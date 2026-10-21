@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from typing import Any
@@ -27,21 +27,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    SENSOR_BOARD_EVENT,
-    SENSOR_BOARD_STATUS,
-    SENSOR_DARTS_THROWN,
-    SENSOR_GAME_MODE,
-    SENSOR_LAST_THROW,
-    SENSOR_MATCH_STATE,
-    SENSOR_NUM_THROWS,
-    SENSOR_ROUND,
-    SENSOR_VISIT_SCORE,
-)
-from .coordinator import AutodartsDataUpdateCoordinator
+from .const import SENSOR_BOARD_EVENT, SENSOR_LAST_THROW, SENSOR_NUM_THROWS
 from .entity import (
     AutodartsBoardEntity,
-    AutodartsEntity,
     AutodartsLocalEntity,
     AutodartsStoredEntity,
     async_track_cameras,
@@ -90,21 +78,11 @@ LOCAL_STATES = [
     # A dartboard without Autodarts, whose darts are entered by hand.
     "manual",
 ]
-MATCH_STATES = ["no_match", "active", "finished"]
-BOARD_STATES = ["connected", "disconnected"]
 
 # ---------------------------------------------------------------------------
 # Helpers to extract values from coordinator data
 # ---------------------------------------------------------------------------
-# coordinator.data = {"board": {...}, "match": {...} | None, "local": {...}}
-
-
-def _board(data: dict[str, Any]) -> dict[str, Any]:
-    return data.get("board") or {}
-
-
-def _match(data: dict[str, Any]) -> dict[str, Any] | None:
-    return data.get("match")
+# coordinator.data = {"local": {...}, ...}, "local" with the board's state.
 
 
 def _local(data: dict[str, Any]) -> dict[str, Any]:
@@ -114,54 +92,15 @@ def _local(data: dict[str, Any]) -> dict[str, Any]:
 # -- value extractors -------------------------------------------------------
 
 
-def _get_board_status(data: dict[str, Any]) -> str:
-    """Board connected / disconnected (from cloud board state)."""
-    board = _board(data)
-    state = board.get("state") or {}
-    if state.get("connected"):
-        return "connected"
-    return "disconnected"
-
-
 def _text(value: Any) -> str | None:
     """Board text short enough for a state; Home Assistant stores 255 characters."""
     return value if isinstance(value, str) and 0 < len(value) <= 255 else None
 
 
 def _get_board_event(data: dict[str, Any]) -> str | None:
-    """Last board event from local detection or cloud."""
+    """Last event of the board's detection, else its status."""
     local = _local(data)
-    if local:
-        return _text(local.get("event")) or _text(local.get("status"))
-    board = _board(data)
-    state = board.get("state") or {}
-    return state.get("event") or board.get("status")
-
-
-def _get_game_mode(data: dict[str, Any]) -> str | None:
-    """Game variant (X01, Cricket, etc.) from match."""
-    match = _match(data)
-    if not match:
-        return None
-    return match.get("variant")
-
-
-def _get_match_state(data: dict[str, Any]) -> str | None:
-    """Match state — active / finished / etc."""
-    match = _match(data)
-    if not match:
-        return "no_match"
-    if match.get("finished"):
-        return "finished"
-    return "active"
-
-
-def _get_round(data: dict[str, Any]) -> int | None:
-    """Current round number."""
-    match = _match(data)
-    if not match:
-        return None
-    return match.get("round")
+    return _text(local.get("event")) or _text(local.get("status"))
 
 
 BEDS = frozenset(
@@ -248,31 +187,7 @@ def _number(value: Any) -> int | float | None:
 
 def _get_num_throws(data: dict[str, Any]) -> int | float | None:
     """Number of throws in the current turn (from local board, 0–3)."""
-    local = _local(data)
-    if local:
-        return _number(local.get("numThrows"))
-    return None
-
-
-def _get_visit_score(data: dict[str, Any]) -> int | None:
-    """Total score of the current turn/visit."""
-    match = _match(data)
-    if not match:
-        return None
-    return match.get("turnScore")
-
-
-def _get_darts_thrown(data: dict[str, Any]) -> int | None:
-    """Total darts thrown in the match (across all players)."""
-    match = _match(data)
-    if not match:
-        return None
-    # Assumption to confirm with a real capture (decision 0020): `turns` is
-    # the match history; CloudMoments reads its first entry as the current visit.
-    turns = match.get("turns")
-    if isinstance(turns, list):
-        return sum(len(t.get("throws", [])) for t in turns)
-    return None
+    return _number(_local(data).get("numThrows"))
 
 
 # ---------------------------------------------------------------------------
@@ -291,36 +206,17 @@ class AutodartsSensorEntityDescription(SensorEntityDescription):
     telemetry: bool = False
 
 
-STATIC_SENSORS: tuple[AutodartsSensorEntityDescription, ...] = (
-    AutodartsSensorEntityDescription(
-        key=SENSOR_BOARD_STATUS,
-        translation_key=SENSOR_BOARD_STATUS,
-        device_class=SensorDeviceClass.ENUM,
-        options=BOARD_STATES,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=_get_board_status,
-    ),
+# The darts and events of the board; a dartboard without Autodarts has only
+# the last dart.
+DART_SENSORS: tuple[AutodartsSensorEntityDescription, ...] = (
     AutodartsSensorEntityDescription(
         key=SENSOR_BOARD_EVENT,
         translation_key=SENSOR_BOARD_EVENT,
+        # Last event repeats Detection status in the Board Manager's raw
+        # English text with every dart: a diagnostic, off unless switched on.
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=_get_board_event,
-    ),
-    AutodartsSensorEntityDescription(
-        key=SENSOR_GAME_MODE,
-        translation_key=SENSOR_GAME_MODE,
-        value_fn=_get_game_mode,
-    ),
-    AutodartsSensorEntityDescription(
-        key=SENSOR_MATCH_STATE,
-        translation_key=SENSOR_MATCH_STATE,
-        device_class=SensorDeviceClass.ENUM,
-        options=MATCH_STATES,
-        value_fn=_get_match_state,
-    ),
-    AutodartsSensorEntityDescription(
-        key=SENSOR_ROUND,
-        translation_key=SENSOR_ROUND,
-        value_fn=_get_round,
     ),
     AutodartsSensorEntityDescription(
         key=SENSOR_LAST_THROW,
@@ -333,35 +229,7 @@ STATIC_SENSORS: tuple[AutodartsSensorEntityDescription, ...] = (
         native_unit_of_measurement="darts",
         value_fn=_get_num_throws,
     ),
-    AutodartsSensorEntityDescription(
-        key=SENSOR_VISIT_SCORE,
-        translation_key=SENSOR_VISIT_SCORE,
-        native_unit_of_measurement="points",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn=_get_visit_score,
-    ),
-    AutodartsSensorEntityDescription(
-        key=SENSOR_DARTS_THROWN,
-        translation_key=SENSOR_DARTS_THROWN,
-        native_unit_of_measurement="darts",
-        state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn=_get_darts_thrown,
-    ),
 )
-
-
-def _local_description(
-    description: AutodartsSensorEntityDescription,
-) -> AutodartsSensorEntityDescription:
-    """Locally, Last event repeats Detection status in the Board Manager's raw
-    English text with every dart: a diagnostic, off unless switched on."""
-    if description.key != SENSOR_BOARD_EVENT:
-        return description
-    return replace(
-        description,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
-    )
 
 
 async def async_setup_entry(
@@ -371,110 +239,78 @@ async def async_setup_entry(
 ) -> None:
     """Set up Autodarts sensors from a config entry."""
     runtime = entry.runtime_data
+    local = runtime.local
     entities: list[SensorEntity] = []
-    local_keys = {SENSOR_BOARD_EVENT, SENSOR_LAST_THROW, SENSOR_NUM_THROWS}
-    if runtime.cloud:
-        entities.extend(
-            AutodartsSensor(runtime.cloud, description)
-            for description in STATIC_SENSORS
-            if runtime.local is None or description.key not in local_keys
+    entities.extend(
+        (AutodartsTrainingDartsSensor if key == "darts" else AutodartsTrainingSensor)(
+            local, key
         )
-    if runtime.local:
-        entities.extend(
-            (
-                AutodartsTrainingDartsSensor
-                if key == "darts"
-                else AutodartsTrainingSensor
-            )(runtime.local, key)
-            for key in (*COUNTERS, *TRAINING_MEASUREMENTS, "started")
+        for key in (*COUNTERS, *TRAINING_MEASUREMENTS, "started")
+    )
+    entities.append(AutodartsLastSessionSensor(local))
+    entities.extend(
+        AutodartsPracticeSensor(local, key)
+        for key in ("remaining", "checkout", "target")
+    )
+    entities.extend(
+        AutodartsPracticeStatistic(local, key) for key in PRACTICE_STATISTICS
+    )
+    # A dartboard without Autodarts detects nothing to correct.
+    if not local.manual_board:
+        entities.append(AutodartsCorrectionRate(local))
+    entities.extend(
+        (
+            AutodartsPersonalBest(local),
+            AutodartsDailyDarts(local),
+            AutodartsStreak(local),
+            AutodartsPlayerProfiles(local),
+            AutodartsDoubles(local),
+            AutodartsLastMatch(local),
+            AutodartsWeeklyReport(local),
+            AutodartsAchievements(local),
+            AutodartsTournament(local),
         )
-        entities.append(AutodartsLastSessionSensor(runtime.local))
-        entities.extend(
-            AutodartsPracticeSensor(runtime.local, key)
-            for key in ("remaining", "checkout", "target")
-        )
-        entities.extend(
-            AutodartsPracticeStatistic(runtime.local, key)
-            for key in PRACTICE_STATISTICS
-        )
-        # A dartboard without Autodarts detects nothing to correct.
-        if not runtime.local.manual_board:
-            entities.append(AutodartsCorrectionRate(runtime.local))
-        entities.extend(
-            (
-                AutodartsPersonalBest(runtime.local),
-                AutodartsDailyDarts(runtime.local),
-                AutodartsStreak(runtime.local),
-                AutodartsPlayerProfiles(runtime.local),
-                AutodartsDoubles(runtime.local),
-                AutodartsLastMatch(runtime.local),
-                AutodartsWeeklyReport(runtime.local),
-                AutodartsAchievements(runtime.local),
-                AutodartsTournament(runtime.local),
-            )
-        )
-        # Without a board, nothing counts the darts in it or reports its events.
-        board_keys = {SENSOR_LAST_THROW} if runtime.local.manual_board else local_keys
-        entities.extend(
-            AutodartsLocalSensor(runtime.local, _local_description(description))
-            for description in STATIC_SENSORS
-            if description.key in board_keys
-        )
-        entities.extend(
-            (
-                AutodartsVisitSensor
-                if description.key == "local_visit_score"
-                else AutodartsLocalSensor
-            )(runtime.local, description)
-            for description in LOCAL_SENSORS
-            if not description.telemetry
-        )
-        # Only a Board Manager reports its readings.
-        if isinstance(board := runtime.local, AutodartsLocalCoordinator):
-            if board.board_manager_2:
-                entities.extend(
-                    AutodartsBoardSensor(board, description)
-                    for description in SYSTEM_SENSORS
-                )
+    )
+    # Without a board, nothing counts the darts in it or reports its events.
+    entities.extend(
+        AutodartsLocalSensor(local, description)
+        for description in DART_SENSORS
+        if not local.manual_board or description.key == SENSOR_LAST_THROW
+    )
+    entities.extend(
+        (
+            AutodartsVisitSensor
+            if description.key == "local_visit_score"
+            else AutodartsLocalSensor
+        )(local, description)
+        for description in LOCAL_SENSORS
+        if not description.telemetry
+    )
+    # Only a Board Manager reports its readings.
+    if isinstance(local, AutodartsLocalCoordinator):
+        if local.board_manager_2:
             entities.extend(
-                AutodartsBoardSensor(board, description)
-                for description in LOCAL_SENSORS
-                if description.telemetry
+                AutodartsBoardSensor(local, description)
+                for description in SYSTEM_SENSORS
             )
-        if runtime.bridge:
-            entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
+        entities.extend(
+            AutodartsBoardSensor(local, description)
+            for description in LOCAL_SENSORS
+            if description.telemetry
+        )
+    if runtime.bridge:
+        entities.append(AutodartsOnlineBridgeSensor(local, runtime.bridge))
     async_add_entities(entities)
     # A dartboard without Autodarts has no cameras.
-    if isinstance(coordinator := runtime.local, AutodartsLocalCoordinator):
+    if isinstance(local, AutodartsLocalCoordinator):
         async_track_cameras(
-            entry, coordinator, partial(_camera_sensor, coordinator), async_add_entities
+            entry, local, partial(_camera_sensor, local), async_add_entities
         )
 
 
 # ---------------------------------------------------------------------------
 # Sensor entity classes
 # ---------------------------------------------------------------------------
-
-
-class AutodartsSensor(AutodartsEntity, SensorEntity):
-    """Representation of a static Autodarts sensor."""
-
-    entity_description: AutodartsSensorEntityDescription
-
-    def __init__(
-        self,
-        coordinator: AutodartsDataUpdateCoordinator,
-        description: AutodartsSensorEntityDescription,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self.entity_description = description
-        self._attr_unique_id = f"{coordinator.board_id}_{description.key}"
-
-    @property
-    def native_value(self) -> Any:
-        """Return the sensor value."""
-        return self.entity_description.value_fn(self.coordinator.data or {})
 
 
 def _last_throw_score(data: dict[str, Any]) -> int | None:

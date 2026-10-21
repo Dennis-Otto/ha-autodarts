@@ -568,7 +568,6 @@ async def manual_board(hass, digit, name):
         data={
             "board_id": board_id,
             "manual_board": True,
-            "local_only": True,
             "name": name,
         },
     )

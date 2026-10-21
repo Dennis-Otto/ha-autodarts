@@ -132,7 +132,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 ### Lokal und privat
 
 - Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch
-- Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke; Geheimnisse des Boards werden nie gespeichert
+- Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche oder die Online-Brücke; Geheimnisse des Boards werden nie gespeichert
 - Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch ([Sprachen](#sprachen))
 - Leicht für einen Raspberry Pi: Eine Nachricht des Boards aktualisiert nur die Entitäten, die zeigen, was sich geändert hat ([Aktualisierung](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html#aktualisierung))
 - Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung
@@ -140,7 +140,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="images/de/architecture-dark.png">
-    <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant, die Entitäten, Board-Ereignisse, Karten und Automationen bereitstellt; die Autodarts-Cloud ist optional" width="480">
+    <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant, die Entitäten, Board-Ereignisse, Karten und Automationen bereitstellt" width="480">
   </picture>
 </p>
 
@@ -177,7 +177,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 ### Erste Schritte
 
 - [Von null bis zur Anzeigetafel](https://dennis-otto.github.io/ha-autodarts/de/getting-started.html): für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel
-- [Installation und Einrichtung](https://dennis-otto.github.io/ha-autodarts/de/installation.html): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen
+- [Installation und Einrichtung](https://dennis-otto.github.io/ha-autodarts/de/installation.html): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, Neukonfiguration, Updates und Entfernen
 - [Spielen ohne Autodarts](https://dennis-otto.github.io/ha-autodarts/de/without-autodarts.html): jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist
 - [Granboard über Bluetooth](https://dennis-otto.github.io/ha-autodarts/de/granboard.html): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys, für jedes Spiel *(experimentell)*
 - [Häufige Fragen](https://dennis-otto.github.io/ha-autodarts/de/faq.html): kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg
@@ -369,7 +369,7 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 
 ## Bekannte Einschränkungen
 
-- **Cloud-Spieldaten sind noch nicht verfügbar.** Sie brauchen eine OAuth-Client-ID, die Autodarts für diese Integration vergibt, und noch ist keine enthalten. Alles Lokale funktioniert ohne sie.
+- **Keine Spieldaten aus der Cloud.** Autodarts vergibt keine Client-IDs an Integrationen von Dritten, deshalb gibt es keine Cloud-Verknüpfung; alles funktioniert mit dem Board Manager in deinem Netzwerk.
 - **Online-Matches über eine Browser-Erweiterung.** Überwerfen und Game shots von Online-Matches kommen nur an, solange die Autodarts-Seite mit Tools for Autodarts offen ist, einer Erweiterung von Dritten. [Grenzen](https://dennis-otto.github.io/ha-autodarts/de/online-matches.html#grenzen).
 - **Trainingssessions zählen Darts, keine Spiele.** Eine Session zählt jeden Dart, den das Board erkennt; Spieler, Legs und Checkouts gehören zum Übungsspiel, das seine eigene Statistik führt.
 - **Board-Manager-Updates installierst du auf dem Board-PC.** Die Update-Entität meldet neue Versionen von Board Manager 2.

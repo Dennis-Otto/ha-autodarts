@@ -41,7 +41,7 @@ Autodarts for Home Assistant is a free, open-source integration that connects an
 | Languages | English, German, Dutch, French and Spanish |
 | Quality | 100 % test coverage, tested against both Board Manager generations in Docker; every rule of the Home Assistant quality scale up to Platinum (self-assessed) |
 | Requirements | Home Assistant 2026.8 or newer with HACS; the tested setups are under [supported devices](README.md#supported-devices) |
-| Online matches | Events straight from the Autodarts cloud follow once Autodarts grants access; until then an experimental bridge through Tools for Autodarts brings them in |
+| Online matches | An experimental bridge through Tools for Autodarts brings busts, won legs and the darts of your opponents in as events |
 
 ## The story
 

@@ -183,12 +183,6 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.caller.async_load(self.hass)
         await self.store.async_load(self._restore)
 
-    async def _async_setup(self) -> None:
-        # The setup loads first, so that its errors stop the setup; a board
-        # found at another address loads here.
-        if not self.store.loaded:
-            await self.async_load()
-
     def _restore(self, saved: object) -> None:
         self.games.restore(saved, dt_util.now())
 

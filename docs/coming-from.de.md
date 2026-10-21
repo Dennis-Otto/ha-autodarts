@@ -95,7 +95,7 @@ Die Entitäts-IDs unten gehören zu einem Board namens *Autodarts Board* in eine
 | *Leg Won*, *Leg Lost*, *Leg Result* | Die Ereignisse `leg_won` und `match_won`, mit dem `name` des Gewinners |
 | *Autodarts Status* | Der Binärsensor *Lokale Verbindung* |
 
-Hier zählt Home Assistant das Übungsspiel selbst: X01 von 101 bis 1001, die Cricket-Spiele, die Partyspiele und die Trainingsspiele. Ein Spiel auf play.autodarts.io zählt der Browser, und seine Punkte kommen nur mit den [Cloud-Spieldaten](entities.de.md#cloud-spieldaten-optional) nach Home Assistant, die noch nicht verfügbar sind.
+Hier zählt Home Assistant das Übungsspiel selbst: X01 von 101 bis 1001, die Cricket-Spiele, die Partyspiele und die Trainingsspiele. Ein Spiel auf play.autodarts.io zählt der Browser, und seine Punkte kommen nicht nach Home Assistant: Autodarts vergibt keine Client-IDs an Integrationen von Dritten, deshalb gibt es keine Cloud-Verknüpfung ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 **Dieselbe Domain:** [vorher entfernen](#eine-integration-mit-derselben-domain-entfernen).
 
@@ -109,7 +109,7 @@ Hier zählt Home Assistant das Übungsspiel selbst: X01 von 101 bis 1001, die Cr
 | Spieler, aktueller Spieler | `players`, `player` und `name` von *Übungsspiel Restpunkte* in einem Übungsspiel, und das Ereignis `turn_changed` |
 | Gewinner | Das Ereignis `match_won` und das Attribut `winner` von *Übungsspiel Restpunkte* |
 
-Diese Integration speichert kein Passwort: Die optionale Cloud-Verknüpfung wird die Geräteanmeldung von Autodarts nutzen.
+Diese Integration braucht kein Autodarts-Konto und speichert kein Passwort.
 
 **Dieselbe Domain:** [vorher entfernen](#eine-integration-mit-derselben-domain-entfernen).
 

@@ -2,58 +2,12 @@
   "title": "Autodarts",
   "config": {
     "step": {
-      "reauth_confirm": {
-        "title": "Volver a vincular Autodarts",
-        "description": "Vincula tu cuenta con el nuevo inicio de sesión de dispositivo de Autodarts. Introduce un ID de cliente público registrado para esta integración y con la autorización de dispositivo habilitada. Tu diana, tus entidades y la configuración local se conservan.",
-        "data": {
-          "client_id": "ID de cliente de Autodarts"
-        },
-        "data_description": {
-          "client_id": "ID de cliente OAuth público con autorización de dispositivo, emitido por Autodarts para esta integración."
-        }
-      },
-      "auth_retry": {
-        "title": "Volver a iniciar sesión en Autodarts",
-        "description": "Pulsa Enviar para volver a la configuración del cliente y solicitar un código de inicio de sesión nuevo."
-      },
-      "boards": {
-        "title": "Cargar dianas de Autodarts",
-        "description": "Tu cuenta está vinculada. Pulsa Enviar para volver a intentar cargar tus dianas."
-      },
-      "board": {
-        "title": "Seleccionar diana",
-        "description": "Elige la diana Autodarts que quieres supervisar.",
-        "data": {
-          "board_id": "Diana"
-        },
-        "data_description": {
-          "board_id": "Las dianas vinculadas a tu cuenta de Autodarts."
-        }
-      },
-      "cloud": {
-        "title": "Configurar Autodarts",
-        "description": "Introduce el ID de cliente público registrado en Autodarts para esta integración, con la autorización de dispositivo habilitada. Es un ID de aplicación, no tu correo electrónico, el ID de la diana ni un secreto. Si quieres, introduce también la IP local de la diana. La siguiente pantalla mostrará tu código de inicio de sesión.",
-        "data": {
-          "client_id": "ID de cliente de Autodarts",
-          "host": "IP local de la diana (opcional)",
-          "port": "Puerto local de la diana"
-        },
-        "data_description": {
-          "client_id": "ID de cliente OAuth público con autorización de dispositivo, emitido por Autodarts para esta integración. No es tu correo electrónico, tu contraseña ni el ID de la diana.",
-          "host": "Opcional. Conecta además la diana en local, lo que habilita los controles y los eventos en tiempo real.",
-          "port": "Puerto de la API de Board Manager, normalmente 3180."
-        }
-      },
-      "auth": {
-        "title": "Vincular cuenta de Autodarts"
-      },
       "user": {
         "title": "Configurar Autodarts",
         "description": "Busca dianas Autodarts en tu red, introduce la dirección de una diana o configura una diana sin Autodarts.",
         "menu_options": {
           "discover": "Buscar dianas en esta red",
           "local": "Introducir la dirección de la diana",
-          "cloud": "Vincular cuenta en la nube",
           "manual": "Diana sin Autodarts: introduce tú cada dardo",
           "granboard": "Granboard por Bluetooth (experimental)"
         }
@@ -63,8 +17,7 @@
         "description": "Vuelve a buscar la diana o cambia su dirección local. Tu diana y tus entidades actuales se conservan.",
         "menu_options": {
           "discover": "Buscar dianas en esta red",
-          "local": "Introducir la dirección de la diana",
-          "cloud": "Vincular cuenta en la nube"
+          "local": "Introducir la dirección de la diana"
         }
       },
       "reconfigure_manual": {
@@ -132,15 +85,7 @@
         "description": "¿Añadir la diana Autodarts en {host}? Board Manager {version}, {cameras} cámaras. Funciona en local, sin iniciar sesión en Autodarts."
       }
     },
-    "progress": {
-      "wait_for_device": "Abre el [inicio de sesión de Autodarts]({verification_uri_complete}) y aprueba la conexión. También puedes abrir [{verification_uri}]({verification_uri}) en otro dispositivo e introducir **{user_code}**.\n\nEsta pantalla continúa automáticamente tras la aprobación. Introduce este código solo en tu propio inicio de sesión de Autodarts."
-    },
     "error": {
-      "invalid_client": "Este ID de cliente no es válido o no está habilitado para el inicio de sesión de dispositivo. Comprueba el ID de cliente de esta integración. Una diana local se puede configurar sin ID de cliente.",
-      "expired_token": "El código de inicio de sesión ha caducado. Solicita un código nuevo.",
-      "access_denied": "Se ha denegado la conexión. Vuelve a iniciar sesión y apruébala.",
-      "invalid_auth": "Autodarts no ha podido autorizar esta conexión. Vuelve a vincular tu cuenta.",
-      "cannot_connect": "No se puede conectar con Autodarts. Inténtalo de nuevo.",
       "invalid_host": "Introduce solo una dirección IP o un nombre de host.",
       "cannot_connect_local": "No se puede acceder al Board Manager local o su respuesta no es válida.",
       "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
@@ -150,9 +95,6 @@
     },
     "abort": {
       "already_configured": "Esta diana Autodarts ya está configurada.",
-      "no_boards": "No se han encontrado dianas para esta cuenta.",
-      "wrong_account": "La cuenta vinculada no tiene acceso a la diana existente. Vincula la cuenta a la que pertenece esta diana.",
-      "reauth_successful": "Autodarts se ha vinculado correctamente. Tu diana y tus entidades se han conservado.",
       "wrong_board": "Esta dirección pertenece a otra diana.",
       "reconfigure_successful": "Se ha actualizado la configuración de Autodarts.",
       "cannot_connect_local": "La diana anunciada en tu red no responde. Comprueba que Board Manager esté en ejecución.",
@@ -191,41 +133,14 @@
   },
   "entity": {
     "sensor": {
-      "board_status": {
-        "name": "Estado de la nube",
-        "state": {
-          "connected": "Conectado",
-          "disconnected": "Desconectado"
-        }
-      },
       "board_event": {
         "name": "Último evento"
-      },
-      "game_mode": {
-        "name": "Modo de juego"
-      },
-      "match_state": {
-        "name": "Estado del partido",
-        "state": {
-          "no_match": "Sin partido",
-          "active": "En curso",
-          "finished": "Terminado"
-        }
-      },
-      "round": {
-        "name": "Ronda"
       },
       "last_throw": {
         "name": "Último dardo"
       },
       "num_throws": {
         "name": "Dardos en la tirada"
-      },
-      "visit_score": {
-        "name": "Puntuación de la tirada"
-      },
-      "darts_thrown": {
-        "name": "Dardos lanzados"
       },
       "local_status": {
         "name": "Estado de la detección",
@@ -844,12 +759,6 @@
     },
     "no_local_address": {
       "message": "Introduce la dirección local de Board Manager: abre el menú de esta entrada y selecciona Reconfigurar."
-    },
-    "relink_required": {
-      "message": "Vuelve a vincular tu cuenta de Autodarts con un ID de cliente registrado."
-    },
-    "cloud_unavailable": {
-      "message": "La nube de Autodarts no responde."
     },
     "no_board": {
       "message": "No hay cargada ninguna diana Autodarts con conexión local."

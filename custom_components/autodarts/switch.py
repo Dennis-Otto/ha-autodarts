@@ -26,35 +26,35 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        # A dartboard without Autodarts has no detection, settings or takeouts,
-        # and every dart is entered by hand.
-        board: list[SwitchEntity] = []
-        if isinstance(coordinator, AutodartsLocalCoordinator):
-            # Board Manager 2 manages its cloud link itself; it offers no toggle.
-            upstream = () if coordinator.board_manager_2 else ("upstream",)
-            board = [
-                *(
-                    AutodartsSwitch(coordinator, key)
-                    for key in ("detection", *upstream, *CONFIG_SWITCHES)
-                ),
-                AutodartsStuckTakeoutSwitch(coordinator),
-            ]
-        async_add_entities(
-            [
-                *board,
-                AutodartsTrainingSwitch(coordinator, "training_session"),
-                AutodartsTrainingSwitch(coordinator, "training_auto_start"),
-                *(
-                    AutodartsPracticeSwitch(coordinator, option)
-                    for option in PRACTICE_OPTIONS
-                    if not (coordinator.manual_board and option == "manual_entry")
-                ),
-                AutodartsAchievementsSwitch(coordinator),
-                AutodartsTournamentSwitch(coordinator, "third_place"),
-                AutodartsTournamentSwitch(coordinator, "random_draw"),
-            ]
-        )
+    coordinator = entry.runtime_data.local
+    # A dartboard without Autodarts has no detection, settings or takeouts,
+    # and every dart is entered by hand.
+    board: list[SwitchEntity] = []
+    if isinstance(coordinator, AutodartsLocalCoordinator):
+        # Board Manager 2 manages its cloud link itself; it offers no toggle.
+        upstream = () if coordinator.board_manager_2 else ("upstream",)
+        board = [
+            *(
+                AutodartsSwitch(coordinator, key)
+                for key in ("detection", *upstream, *CONFIG_SWITCHES)
+            ),
+            AutodartsStuckTakeoutSwitch(coordinator),
+        ]
+    async_add_entities(
+        [
+            *board,
+            AutodartsTrainingSwitch(coordinator, "training_session"),
+            AutodartsTrainingSwitch(coordinator, "training_auto_start"),
+            *(
+                AutodartsPracticeSwitch(coordinator, option)
+                for option in PRACTICE_OPTIONS
+                if not (coordinator.manual_board and option == "manual_entry")
+            ),
+            AutodartsAchievementsSwitch(coordinator),
+            AutodartsTournamentSwitch(coordinator, "third_place"),
+            AutodartsTournamentSwitch(coordinator, "random_draw"),
+        ]
+    )
 
 
 class AutodartsSwitch(AutodartsBoardEntity, SwitchEntity):

@@ -2,58 +2,12 @@
   "title": "Autodarts",
   "config": {
     "step": {
-      "reauth_confirm": {
-        "title": "Link Autodarts again",
-        "description": "Link your account with the new Autodarts device login. Enter a public client ID registered for this integration with device authorization enabled. Your board, entities and local settings will be kept.",
-        "data": {
-          "client_id": "Autodarts client ID"
-        },
-        "data_description": {
-          "client_id": "Public OAuth client ID with device authorization, issued by Autodarts for this integration."
-        }
-      },
-      "auth_retry": {
-        "title": "Restart Autodarts login",
-        "description": "Submit to return to the client settings and request a new login code."
-      },
-      "boards": {
-        "title": "Load Autodarts boards",
-        "description": "Your account is linked. Submit to retry loading your boards."
-      },
-      "board": {
-        "title": "Select Board",
-        "description": "Choose the Autodarts board to monitor.",
-        "data": {
-          "board_id": "Board"
-        },
-        "data_description": {
-          "board_id": "The boards linked to your Autodarts account."
-        }
-      },
-      "cloud": {
-        "title": "Set up Autodarts",
-        "description": "Enter the public client ID registered with Autodarts for this integration, with device authorization enabled. This is an application ID, not your email, board ID or a secret. Optionally enter your local board IP. The next screen will show your login code.",
-        "data": {
-          "client_id": "Autodarts client ID",
-          "host": "Local board IP (optional)",
-          "port": "Local board port"
-        },
-        "data_description": {
-          "client_id": "Public OAuth client ID with device authorization, issued by Autodarts for this integration. Not your email address, password or board ID.",
-          "host": "Optional. Also connects the board locally, which enables controls and realtime events.",
-          "port": "Board Manager API port, normally 3180."
-        }
-      },
-      "auth": {
-        "title": "Link Autodarts account"
-      },
       "user": {
         "title": "Set up Autodarts",
         "description": "Search your network for Autodarts boards, enter a board address, or set up a dartboard without Autodarts.",
         "menu_options": {
           "discover": "Search for boards on this network",
           "local": "Enter board address",
-          "cloud": "Link cloud account",
           "manual": "Dartboard without Autodarts: enter every dart yourself",
           "granboard": "Granboard over Bluetooth (experimental)"
         }
@@ -63,8 +17,7 @@
         "description": "Search for the board again or change its local address. Your existing board and entities are retained.",
         "menu_options": {
           "discover": "Search for boards on this network",
-          "local": "Enter board address",
-          "cloud": "Link cloud account"
+          "local": "Enter board address"
         }
       },
       "reconfigure_manual": {
@@ -132,15 +85,7 @@
         "description": "Add the Autodarts board at {host}? Board Manager {version}, {cameras} cameras. It works locally, without an Autodarts login."
       }
     },
-    "progress": {
-      "wait_for_device": "Open [Autodarts login]({verification_uri_complete}) and approve the connection. Alternatively, open [{verification_uri}]({verification_uri}) on another device and enter **{user_code}**.\n\nThis screen continues automatically after approval. Only enter this code in your own Autodarts login."
-    },
     "error": {
-      "invalid_client": "This client ID is invalid or is not enabled for device login. Check the client ID for this integration. Local board setup is available without a client ID.",
-      "expired_token": "The login code expired. Please request a new code.",
-      "access_denied": "The connection was denied. Please restart login and approve it.",
-      "invalid_auth": "Autodarts could not authorize this connection. Please link your account again.",
-      "cannot_connect": "Unable to connect to Autodarts. Please try again.",
       "invalid_host": "Enter an IP address or hostname only.",
       "cannot_connect_local": "Cannot reach the local Board Manager or its response is invalid.",
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
@@ -150,9 +95,6 @@
     },
     "abort": {
       "already_configured": "This Autodarts board is already configured.",
-      "no_boards": "No boards found for this account.",
-      "wrong_account": "The linked account does not have access to the existing board. Please link the account that owns this board.",
-      "reauth_successful": "Autodarts was linked successfully. Your board and entities have been kept.",
       "wrong_board": "This address belongs to a different board.",
       "reconfigure_successful": "The Autodarts configuration was updated.",
       "cannot_connect_local": "The board announced on your network does not answer. Check that Board Manager is running.",
@@ -191,41 +133,14 @@
   },
   "entity": {
     "sensor": {
-      "board_status": {
-        "name": "Cloud status",
-        "state": {
-          "connected": "Connected",
-          "disconnected": "Disconnected"
-        }
-      },
       "board_event": {
         "name": "Last event"
-      },
-      "game_mode": {
-        "name": "Game mode"
-      },
-      "match_state": {
-        "name": "Match state",
-        "state": {
-          "no_match": "No match",
-          "active": "Active",
-          "finished": "Finished"
-        }
-      },
-      "round": {
-        "name": "Round"
       },
       "last_throw": {
         "name": "Last dart"
       },
       "num_throws": {
         "name": "Darts in visit"
-      },
-      "visit_score": {
-        "name": "Visit score"
-      },
-      "darts_thrown": {
-        "name": "Darts thrown"
       },
       "local_status": {
         "name": "Detection status",
@@ -844,12 +759,6 @@
     },
     "no_local_address": {
       "message": "Enter the local Board Manager address: open the menu of this entry and select Reconfigure."
-    },
-    "relink_required": {
-      "message": "Link your Autodarts account again with a registered client ID."
-    },
-    "cloud_unavailable": {
-      "message": "The Autodarts cloud does not answer."
     },
     "no_board": {
       "message": "No Autodarts board with a local connection is loaded."

@@ -171,7 +171,7 @@ Released as 1.16.0 on 18 October 2026; the [changelog](https://github.com/Dennis
 | **The scoreboard through Chromecast** | Home Assistant Cast shows the cards and the automatic dashboard on a TV with a Chromecast or on a Google Nest Hub ([Home Assistant Cast](scoreboard.md#on-a-tv-with-home-assistant-cast)) | Done |
 | **Calls in the language of Home Assistant** | The dart caller, the practice caller and the weekly report speak the language of Home Assistant, in English, German, Dutch, French and Spanish, without a message of your own ([calls](automations.md#calls-in-the-language-of-home-assistant)) | Done |
 | **A caller for blind and low-vision players** | The scoreboard's caller calls every dart as it lands, the checkout route after every dart and the next target of a training or party game, also from a voice pack ([for blind and low-vision players](scoreboard.md#for-blind-and-low-vision-players)) | Done |
-| **The cloud link** | The moments of online matches from the Autodarts cloud, without a browser extension, as the same board events as from the online bridge, also for boards without a Board Manager in your network such as Lens ([the cloud link](online-matches.md#the-cloud-link)) | Ready; waits for the client ID from Autodarts (see [Next](#next)) |
+| **The cloud link** | Prepared and kept hidden: the moments of online matches from the Autodarts cloud, without a browser extension, as the same board events as from the online bridge, also for boards without a Board Manager in your network such as Lens | Removed, since Autodarts issues no client IDs to third parties ([decision 0025](decisions/0025-no-cloud-link.md), see [Not planned](#not-planned)) |
 | **Quicker on a Raspberry Pi** | Every action saves the training once instead of twice, setup hints are found in a tenth of the time, and Home Assistant loads the integration up to half a second faster ([setup hints](how-it-works.md#setup-hints)) | Done |
 
 ## Version 1.17: big tournaments, streaming and Granboard
@@ -205,7 +205,6 @@ Ideas for the versions after 1.18. Votes and reactions on the [feature requests]
 | --- | --- | --- |
 | **Granboard at a real board** | Check every bed of a real Granboard and take the label *experimental* off the Granboard support of 1.17 | A player with a Granboard who [checks every bed](granboard.md#check-every-bed) and reports what counts wrong |
 | **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
-| **Cloud link** | Cloud match data and the moments of online matches without a browser extension: busts, won legs and matches and every dart, as the same board events as the online bridge ([the cloud link](online-matches.md#the-cloud-link)), also for boards without a Board Manager in your network such as Lens | An OAuth client ID from Autodarts, which has been requested; the integration has been ready for it since 1.16 ([decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)) |
 | **Further languages** | The integration and the cards in more languages, and the questions and answers of Assist in Spanish, French and Dutch as native speakers say them ([#380](https://github.com/Dennis-Otto/ha-autodarts/issues/380)) | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Later
@@ -216,7 +215,8 @@ Ideas for the versions after 1.18. Votes and reactions on the [feature requests]
 
 ## Not planned
 
-- **A cloud account for local play.** Everything that works with the Board Manager in your network keeps working without an Autodarts account; cloud features stay optional.
+- **A cloud account for local play.** Everything that works with the Board Manager in your network keeps working without an Autodarts account.
+- **A link to the Autodarts cloud.** Autodarts issues no client IDs to third-party integrations, so cloud match data and boards without a Board Manager in your network, such as Lens, stay out of reach; the moments of online matches come through the [online bridge](online-matches.md) ([decision 0025](decisions/0025-no-cloud-link.md)).
 - **Telemetry.** The integration sends nothing about your games or your home anywhere, and in local mode nothing leaves your network.
 - **Breaking changes without a way forward.** Existing config entries, entity IDs and automations keep working, or a release migrates them and its notes say what changes.
 

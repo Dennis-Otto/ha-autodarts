@@ -41,8 +41,7 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if (coordinator := entry.runtime_data.local) is None:
-        return
+    coordinator = entry.runtime_data.local
     entities: list[ButtonEntity] = []
     # A dartboard without Autodarts has nothing to start, reset or calibrate.
     board = coordinator if isinstance(coordinator, AutodartsLocalCoordinator) else None

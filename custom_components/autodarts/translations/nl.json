@@ -2,58 +2,12 @@
   "title": "Autodarts",
   "config": {
     "step": {
-      "reauth_confirm": {
-        "title": "Autodarts opnieuw koppelen",
-        "description": "Koppel je account via de nieuwe apparaataanmelding van Autodarts. Voer een openbare client-ID in die voor deze integratie is geregistreerd en waarvoor apparaatautorisatie is ingeschakeld. Je bord, entiteiten en lokale instellingen blijven behouden.",
-        "data": {
-          "client_id": "Autodarts-client-ID"
-        },
-        "data_description": {
-          "client_id": "Openbare OAuth-client-ID met apparaatautorisatie, door Autodarts voor deze integratie uitgegeven."
-        }
-      },
-      "auth_retry": {
-        "title": "Autodarts-aanmelding opnieuw starten",
-        "description": "Klik op Verzenden om terug te gaan naar de clientinstellingen en een nieuwe inlogcode aan te vragen."
-      },
-      "boards": {
-        "title": "Autodarts-borden laden",
-        "description": "Je account is gekoppeld. Klik op Verzenden om je borden opnieuw te laden."
-      },
-      "board": {
-        "title": "Bord selecteren",
-        "description": "Kies het Autodarts-bord dat je wilt volgen.",
-        "data": {
-          "board_id": "Bord"
-        },
-        "data_description": {
-          "board_id": "De borden die aan je Autodarts-account zijn gekoppeld."
-        }
-      },
-      "cloud": {
-        "title": "Autodarts instellen",
-        "description": "Voer de openbare client-ID in die voor deze integratie bij Autodarts is geregistreerd, met apparaatautorisatie ingeschakeld. Dit is een applicatie-ID, niet je e-mailadres, bord-ID of een geheime sleutel. Voer eventueel ook het lokale IP-adres van je bord in. Het volgende scherm toont je inlogcode.",
-        "data": {
-          "client_id": "Autodarts-client-ID",
-          "host": "Lokaal IP-adres van het bord (optioneel)",
-          "port": "Lokale poort van het bord"
-        },
-        "data_description": {
-          "client_id": "Openbare OAuth-client-ID met apparaatautorisatie, door Autodarts voor deze integratie uitgegeven. Niet je e-mailadres, wachtwoord of bord-ID.",
-          "host": "Optioneel. Verbindt het bord ook lokaal, zodat bediening en realtime gebeurtenissen beschikbaar zijn.",
-          "port": "API-poort van Board Manager, meestal 3180."
-        }
-      },
-      "auth": {
-        "title": "Autodarts-account koppelen"
-      },
       "user": {
         "title": "Autodarts instellen",
         "description": "Zoek in je netwerk naar Autodarts-borden, voer een bordadres in of stel een dartbord zonder Autodarts in.",
         "menu_options": {
           "discover": "Borden zoeken in dit netwerk",
           "local": "Bordadres invoeren",
-          "cloud": "Cloudaccount koppelen",
           "manual": "Dartbord zonder Autodarts: elke dart zelf invoeren",
           "granboard": "Granboard via Bluetooth (experimenteel)"
         }
@@ -63,8 +17,7 @@
         "description": "Zoek het bord opnieuw of wijzig het lokale adres. Je bestaande bord en entiteiten blijven behouden.",
         "menu_options": {
           "discover": "Borden zoeken in dit netwerk",
-          "local": "Bordadres invoeren",
-          "cloud": "Cloudaccount koppelen"
+          "local": "Bordadres invoeren"
         }
       },
       "reconfigure_manual": {
@@ -132,15 +85,7 @@
         "description": "Het Autodarts-bord op {host} toevoegen? Board Manager {version}, {cameras} camera's. Het werkt lokaal, zonder Autodarts-aanmelding."
       }
     },
-    "progress": {
-      "wait_for_device": "Open de [Autodarts-aanmelding]({verification_uri_complete}) en keur de verbinding goed. Je kunt ook [{verification_uri}]({verification_uri}) op een ander apparaat openen en **{user_code}** invoeren.\n\nNa de goedkeuring gaat dit scherm automatisch verder. Voer deze code alleen in bij je eigen Autodarts-account."
-    },
     "error": {
-      "invalid_client": "Deze client-ID is ongeldig of niet ingeschakeld voor apparaataanmelding. Controleer de client-ID voor deze integratie. Een lokaal bord kun je ook zonder client-ID instellen.",
-      "expired_token": "De inlogcode is verlopen. Vraag een nieuwe code aan.",
-      "access_denied": "De verbinding is geweigerd. Start de aanmelding opnieuw en keur de verbinding goed.",
-      "invalid_auth": "Autodarts kon deze verbinding niet autoriseren. Koppel je account opnieuw.",
-      "cannot_connect": "Kan geen verbinding maken met Autodarts. Probeer het opnieuw.",
       "invalid_host": "Voer alleen een IP-adres of hostnaam in.",
       "cannot_connect_local": "De lokale Board Manager is niet bereikbaar of geeft een ongeldig antwoord.",
       "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
@@ -150,9 +95,6 @@
     },
     "abort": {
       "already_configured": "Dit Autodarts-bord is al geconfigureerd.",
-      "no_boards": "Geen borden gevonden voor dit account.",
-      "wrong_account": "Het gekoppelde account heeft geen toegang tot het bestaande bord. Koppel het account waar dit bord bij hoort.",
-      "reauth_successful": "Autodarts is met succes gekoppeld. Je bord en entiteiten zijn behouden.",
       "wrong_board": "Dit adres hoort bij een ander bord.",
       "reconfigure_successful": "De Autodarts-configuratie is bijgewerkt.",
       "cannot_connect_local": "Het bord dat zich in je netwerk heeft gemeld, reageert niet. Controleer of Board Manager draait.",
@@ -191,41 +133,14 @@
   },
   "entity": {
     "sensor": {
-      "board_status": {
-        "name": "Cloudstatus",
-        "state": {
-          "connected": "Verbonden",
-          "disconnected": "Verbroken"
-        }
-      },
       "board_event": {
         "name": "Laatste gebeurtenis"
-      },
-      "game_mode": {
-        "name": "Spelmodus"
-      },
-      "match_state": {
-        "name": "Wedstrijdstatus",
-        "state": {
-          "no_match": "Geen wedstrijd",
-          "active": "Actief",
-          "finished": "Afgelopen"
-        }
-      },
-      "round": {
-        "name": "Ronde"
       },
       "last_throw": {
         "name": "Laatste dart"
       },
       "num_throws": {
         "name": "Darts in de beurt"
-      },
-      "visit_score": {
-        "name": "Score van de beurt"
-      },
-      "darts_thrown": {
-        "name": "Gegooide darts"
       },
       "local_status": {
         "name": "Detectiestatus",
@@ -844,12 +759,6 @@
     },
     "no_local_address": {
       "message": "Voer het lokale adres van Board Manager in: open het menu van dit configuratie-item en kies Opnieuw configureren."
-    },
-    "relink_required": {
-      "message": "Koppel je Autodarts-account opnieuw met een geregistreerde client-ID."
-    },
-    "cloud_unavailable": {
-      "message": "De Autodarts-cloud reageert niet."
     },
     "no_board": {
       "message": "Er is geen Autodarts-bord met een lokale verbinding geladen."

@@ -6,7 +6,7 @@ description: "Every entity and event of an Autodarts board in Home Assistant: li
 
 [← Documentation](README.md) · [Deutsch](entities.de.md)
 
-Every board is one device with the entities below. Its name is the one the board has in Autodarts when the board search or the cloud found it, otherwise *Autodarts Board*. The entity names follow your Home Assistant language and do not repeat the device name. Entity IDs are derived from both when an entity is created, for example `sensor.autodarts_board_training_3_dart_average`, and stay as they are when a later version renames an entity.
+Every board is one device with the entities below. Its name is the one the board has in Autodarts when the board search found it, otherwise *Autodarts Board*. The entity names follow your Home Assistant language and do not repeat the device name. Entity IDs are derived from both when an entity is created, for example `sensor.autodarts_board_training_3_dart_average`, and stay as they are when a later version renames an entity.
 
 **Legend:**
 
@@ -33,7 +33,7 @@ The visit score is the plain sum of the darts, without game rules such as busts.
 
 ## Board events
 
-The **Events** entity (for example `event.autodarts_board_events` in a Home Assistant set to English, `event.autodarts_board_ereignisse` in German, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, `training` for session events and the start of a tournament, `schedule` for the weekly report, `manual` for [corrections, darts entered by hand](#corrections-and-darts-entered-by-hand) and what follows from them, `bot` for the darts of the [bot](#bot), `online` for the moments of [online matches](online-matches.md), which the optional online bridge receives from the browser extension Tools for Autodarts, or `cloud` for the same moments from the [cloud link](online-matches.md#the-cloud-link), once it ships. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
+The **Events** entity (for example `event.autodarts_board_events` in a Home Assistant set to English, `event.autodarts_board_ereignisse` in German, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, `training` for session events and the start of a tournament, `schedule` for the weekly report, `manual` for [corrections, darts entered by hand](#corrections-and-darts-entered-by-hand) and what follows from them, `bot` for the darts of the [bot](#bot), or `online` for the moments of [online matches](online-matches.md), which the optional online bridge receives from the browser extension Tools for Autodarts. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
@@ -551,21 +551,6 @@ These sensors are *off* while the detection is stopped, starting, stopping or ca
 | Entity | Type | Description |
 | --- | --- | --- |
 | Camera *N* | Camera, *Disabled* | One board camera, for example in a picture card or the camera dialog. With **BM 2**, the live view relays the board's camera stream through Home Assistant; when the stream is not running, and with BM 1, it shows snapshots. To show a camera, the integration never starts or stops the detection or the streams. |
-
-## Cloud match data (optional)
-
-These entities exist only with a [linked Autodarts account](installation.md#link-the-autodarts-cloud-optional) and are read every 5 seconds during a match, otherwise once a minute.
-
-| Entity | Type | Description |
-| --- | --- | --- |
-| Cloud status | Sensor (enum), *Diagnostic* | `connected` or `disconnected` in the Autodarts cloud. |
-| Game mode | Sensor | Variant of the current match, such as `X01` or `Cricket`. |
-| Match state | Sensor (enum) | `no_match`, `active` or `finished`. |
-| Round | Sensor | Current round. |
-| Visit score | Sensor, points | Score of the current visit in the match. |
-| Darts thrown | Sensor, darts | Darts thrown in the match. |
-
-Without a local board, *Last event*, *Last dart* and *Darts in visit* come from the cloud as well.
 
 ## Actions
 

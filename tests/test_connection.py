@@ -14,11 +14,11 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.api import API_BASE, REFRESH_URL
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
 from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import AutodartsLocalClient
 from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
+from custom_components.autodarts.repairs import async_offer_address
 
 from .local_helpers import (
     BASE,
@@ -28,7 +28,6 @@ from .local_helpers import (
     T20,
     board,
     entity_id,
-    entry_data,
     local_entry_data,
     mock_board,
     mock_board_v2,
@@ -670,28 +669,6 @@ async def test_unknown_system_answers_raise_a_repair(hass, aioclient_mock):
 # -- a board at a new address -----------------------------------------------------------
 
 
-def mock_cloud(aioclient_mock, addresses):
-    aioclient_mock.post(
-        REFRESH_URL,
-        json={"access_token": "new", "refresh_token": "new-refresh", "expires_in": 900},
-    )
-    aioclient_mock.get(
-        API_BASE + "/bs/v0/boards/board-1",
-        json={"id": "board-1", "ip": addresses, "state": {"connected": True}},
-    )
-
-
-async def setup_cloud_board(hass, aioclient_mock, addresses):
-    mock_board(aioclient_mock)
-    mock_cloud(aioclient_mock, addresses)
-    data = {**entry_data(), **local_entry_data(), "local_only": False}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    return entry
-
-
 async def go_away(hass, aioclient_mock, freezer, coordinator, minutes=5):
     """The configured address stops answering for some minutes."""
     aioclient_mock.get(BASE + "/api/state", status=503)
@@ -706,81 +683,6 @@ async def fail_through_mock(coordinator):
         await coordinator.async_refresh()
 
 
-async def test_moved_board_is_offered_at_the_address_the_cloud_reports(
-    hass, aioclient_mock, freezer, hass_client
-):
-    entry = await setup_cloud_board(hass, aioclient_mock, f"{BASE},{OTHER}")
-    coordinator = entry.runtime_data.local
-    aioclient_mock.clear_requests()
-    mock_cloud(aioclient_mock, f"{BASE},{OTHER}")
-    mock_board(aioclient_mock, base=OTHER)
-    aioclient_mock.get(BASE + "/api/state", status=503)
-    await fail_through_mock(coordinator)
-    await hass.async_block_till_done()
-    # A few minutes may just be a board PC that is switched off.
-    assert issue(hass, "board_moved", entry) is None
-    freezer.tick(timedelta(minutes=5))
-    await coordinator.async_refresh()
-    await hass.async_block_till_done()
-    found = issue(hass, "board_moved", entry)
-    assert found.is_fixable
-    assert found.translation_placeholders == {"old": BASE, "new": OTHER}
-    # The configured address itself is never probed as a candidate.
-    probed = [call[1].host for call in aioclient_mock.mock_calls]
-    assert probed.count("192.0.2.20") == 3
-
-    assert await async_setup_component(hass, "repairs", {})
-    client = await hass_client()
-    response = await client.post(
-        "/api/repairs/issues/fix",
-        json={"handler": "autodarts", "issue_id": f"board_moved_{entry.entry_id}"},
-    )
-    flow = await response.json()
-    assert flow["step_id"] == "confirm"
-    assert flow["description_placeholders"] == {"new": OTHER}
-    response = await client.post(f"/api/repairs/issues/fix/{flow['flow_id']}", json={})
-    assert (await response.json())["type"] == "create_entry"
-    await hass.async_block_till_done()
-    assert entry.data["host"] == "192.0.2.20"
-    assert entry.runtime_data.local.client.base_url == OTHER
-    assert state(hass, "binary_sensor", "local_connected") == "on"
-    assert issue(hass, "board_moved", entry) is None
-
-
-@pytest.mark.parametrize("answer", ["another board", "offline"])
-async def test_address_that_is_not_this_board_is_not_offered(
-    hass, aioclient_mock, freezer, answer
-):
-    entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
-    coordinator = entry.runtime_data.local
-    aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
-    if answer == "offline":
-        aioclient_mock.get(OTHER + "/api/state", status=503)
-    else:
-        config = {"auth": {"board_id": "another-board"}, "cam": {}}
-        mock_board(aioclient_mock, base=OTHER, config=config)
-    await go_away(hass, aioclient_mock, freezer, coordinator)
-    assert issue(hass, "board_moved", entry) is None
-    # The cloud is asked again only after half an hour.
-
-    def board_calls() -> int:
-        return sum(
-            call[1].host != "api.autodarts.io" for call in aioclient_mock.mock_calls
-        )
-
-    probes = board_calls()
-    freezer.tick(timedelta(minutes=29))
-    await coordinator.async_refresh()
-    await hass.async_block_till_done()
-    assert board_calls() == probes + 1
-    freezer.tick(timedelta(minutes=1))
-    await coordinator.async_refresh()
-    await hass.async_block_till_done()
-    assert board_calls() >= probes + 2
-
-
 async def test_local_board_is_never_looked_up_elsewhere(hass, aioclient_mock, freezer):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
@@ -790,58 +692,17 @@ async def test_local_board_is_never_looked_up_elsewhere(hass, aioclient_mock, fr
     assert issue(hass, "board_moved", entry) is None
 
 
-async def test_board_found_elsewhere_during_the_unload_is_not_offered(
-    hass, aioclient_mock, freezer
-):
-    entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
-    coordinator = entry.runtime_data.local
-    aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
-    aioclient_mock.get(BASE + "/api/state", status=503)
-    await fail_through_mock(coordinator)
-    freezer.tick(timedelta(minutes=5))
-    # A notice of the board, which the unload deletes.
-    ir.async_create_issue(
-        hass,
-        "autodarts",
-        f"wrong_board_{entry.entry_id}",
-        is_fixable=False,
-        severity=ir.IssueSeverity.ERROR,
-        translation_key="wrong_board",
-    )
-    looking = asyncio.Event()
-
-    async def identify():
-        # The board answers at the other address once the unload has deleted
-        # the board's notices.
-        looking.set()
-        while issue(hass, "wrong_board", entry) is not None:
-            await asyncio.sleep(0)
-        return {"board_id": "board-1", "version": "1.0.7", "camera_count": 3}
-
-    with patch.object(AutodartsLocalClient, "identify", side_effect=identify):
-        await coordinator.async_refresh()
-        await looking.wait()
-        assert await hass.config_entries.async_unload(entry.entry_id)
-        await hass.async_block_till_done()
-    assert issue(hass, "board_moved", entry) is None
-
-
 async def test_board_back_at_its_address_withdraws_the_offer(
     hass, aioclient_mock, freezer
 ):
-    entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
+    entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
     aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
-    mock_board(aioclient_mock, base=OTHER)
     await go_away(hass, aioclient_mock, freezer, coordinator)
+    # Board Manager 2 announced the board at another address meanwhile.
+    async_offer_address(hass, entry, "192.0.2.20", 3180)
     assert issue(hass, "board_moved", entry) is not None
     aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
     mock_board(aioclient_mock)
     await coordinator.async_refresh()
     assert issue(hass, "board_moved", entry) is None
@@ -851,17 +712,14 @@ async def test_board_back_at_its_address_withdraws_the_offer(
 async def test_moved_board_repair_checks_the_address_again(
     hass, aioclient_mock, freezer, hass_client, answer
 ):
-    entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
+    entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
     aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
-    mock_board(aioclient_mock, base=OTHER)
     await go_away(hass, aioclient_mock, freezer, coordinator)
+    # Board Manager 2 announced the board at another address meanwhile.
+    async_offer_address(hass, entry, "192.0.2.20", 3180)
     issue_id = f"board_moved_{entry.entry_id}"
     aioclient_mock.clear_requests()
-    # The cloud keeps answering while the board is away.
-    mock_cloud(aioclient_mock, OTHER)
     if answer == "offline":
         aioclient_mock.get(OTHER + "/api/state", status=503)
     elif answer == "another board":
@@ -884,6 +742,7 @@ async def test_moved_board_repair_checks_the_address_again(
     )
     flow = await response.json()
     if answer != "bad issue":
+        assert flow["description_placeholders"] == {"new": OTHER}
         response = await client.post(
             f"/api/repairs/issues/fix/{flow['flow_id']}", json={}
         )

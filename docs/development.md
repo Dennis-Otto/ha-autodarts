@@ -102,7 +102,7 @@ docker run --rm -v "$PWD:/src:ro" python:3.14 sh -c \
 
 The test suite covers:
 
-- config flows, discovery, migration and reauthentication;
+- config flows, discovery and the migration of config entries;
 - realtime and poll reconciliation, both Board Manager generations and failure recovery;
 - the training rules and every platform;
 - repairs, diagnostics and the dashboard card registration;

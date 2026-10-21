@@ -33,7 +33,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch. Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke, und Geheimnisse des Boards werden nie gespeichert.
+    Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch. Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche oder die Online-Brücke, und Geheimnisse des Boards werden nie gespeichert.
 
     [:octicons-arrow-right-24: Funktionsweise](how-it-works.de.md)
 
@@ -135,7 +135,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 ## Anleitungen
 
 - :material-rocket-launch: [**Von null bis zur Anzeigetafel**](getting-started.de.md): Home Assistant, HACS, die Integration und das erste Spiel, für Autodarts-Spieler, die Home Assistant noch nicht haben
-- :material-download: [**Installation und Einrichtung**](installation.de.md): Voraussetzungen, HACS oder von Hand, die Wege, ein Board hinzuzufügen, die Cloud-Verknüpfung, Updates und Entfernen
+- :material-download: [**Installation und Einrichtung**](installation.de.md): Voraussetzungen, HACS oder von Hand, die Wege, ein Board hinzuzufügen, Updates und Entfernen
 - :material-pencil: [**Spielen ohne Autodarts**](without-autodarts.de.md): jede Dartscheibe, mit allen Spielen, dem Training und der Statistik, die Darts auf einem Tastenfeld eingegeben
 - :material-bluetooth: [**Granboard über Bluetooth**](granboard.de.md): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys *(experimentell)*
 - :material-frequently-asked-questions: [**Häufige Fragen**](faq.de.md): Konto, Geräte, Online-Spiel, Datenschutz, mehrere Boards, Bildschirme, Sprachen und Updates

@@ -22,8 +22,7 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        async_add_entities([AutodartsTrainingCalendar(coordinator)])
+    async_add_entities([AutodartsTrainingCalendar(entry.runtime_data.local)])
 
 
 def _calendar_event(event: JournalEvent) -> CalendarEvent:

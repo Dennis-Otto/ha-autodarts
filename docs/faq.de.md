@@ -24,7 +24,7 @@ Home Assistant ab 2026.8 mit [HACS](https://hacs.xyz) und ein Autodarts-Board in
 
 Die Integration braucht einen Board Manager, den Home Assistant in deinem Netzwerk erreicht. Board Manager 2 ist bis 2.0.2 getestet, der klassische Board Manager 1 funktioniert auch, und laut dem Bericht eines Spielers läuft Autodarts Desktop 2.0.2 unter Linux. Autodarts Desktop unter Windows und Autodarts X sind noch nicht getestet. Ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) sagt uns, wie es mit deinem läuft, ob es klappt oder nicht. [Unterstützte Geräte](README.de.md#unterstützte-geräte)
 
-Lens zählt mit der Kamera eines Handys oder Tablets in der Autodarts-App, ohne Board Manager in deinem Netzwerk, deshalb kann die Integration seine Darts nicht lesen. Gib sie stattdessen auf dem Tastenfeld ein. Sobald die [Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung) kommt, verbindet sich ein Board ohne Board Manager in deinem Netzwerk, etwa Lens, über die Autodarts-Cloud, mit seinen Spieldaten und den Momenten seiner Online-Matches. [Spielen ohne Autodarts](without-autodarts.de.md)
+Lens zählt mit der Kamera eines Handys oder Tablets in der Autodarts-App, ohne Board Manager in deinem Netzwerk, deshalb kann die Integration seine Darts nicht lesen. Gib sie stattdessen auf dem Tastenfeld ein. Eine Verbindung über die Autodarts-Cloud kommt auch nicht: Autodarts vergibt keine Client-IDs an Integrationen von Dritten ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch). [Spielen ohne Autodarts](without-autodarts.de.md)
 
 ### Kostet es etwas?
 
@@ -68,7 +68,7 @@ Englisch, Deutsch, Niederländisch, Französisch und Spanisch, in der Sprache vo
 
 ### Was verlässt mein Netzwerk?
 
-Im lokalen Betrieb nichts. Nur was du wählst, spricht mit dem Internet: Die Board-Suche fragt einmal den öffentlichen Suchdienst von Autodarts, die optionale Cloud-Verknüpfung wird die Geräteanmeldung von Autodarts nutzen, und die Online-Brücke nimmt nur die Aufrufe von Tools for Autodarts an. Geheimnisse des Boards werden nie gespeichert, und die Diagnosedaten schwärzen Board-IDs, Adressen und Spielernamen. Manche Browser sprechen die Ansagen der Anzeigetafel mit Online-Stimmen; eine Offline-Stimme des Geräts hält sie zu Hause. [Datenschutz](how-it-works.de.md#datenschutz) · [Sicherheit](security.de.md)
+Im lokalen Betrieb nichts. Nur was du wählst, spricht mit dem Internet: Die Board-Suche fragt einmal den öffentlichen Suchdienst von Autodarts, und die Online-Brücke nimmt nur die Aufrufe von Tools for Autodarts an. Geheimnisse des Boards werden nie gespeichert, und die Diagnosedaten schwärzen Board-IDs, Adressen und Spielernamen. Manche Browser sprechen die Ansagen der Anzeigetafel mit Online-Stimmen; eine Offline-Stimme des Geräts hält sie zu Hause. [Datenschutz](how-it-works.de.md#datenschutz) · [Sicherheit](security.de.md)
 
 ### Wo liegt meine Statistik?
 

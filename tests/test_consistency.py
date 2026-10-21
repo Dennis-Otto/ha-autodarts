@@ -36,7 +36,7 @@ from custom_components.autodarts.practice import (
     MAX_PLAYERS,
     MAX_SETS,
 )
-from custom_components.autodarts.sensor import BOARD_STATES, LOCAL_STATES, MATCH_STATES
+from custom_components.autodarts.sensor import LOCAL_STATES
 from custom_components.autodarts.services import (
     DELETE_PLAYER_SCHEMA,
     START_GAME_SCHEMA,
@@ -185,8 +185,6 @@ def test_every_action_and_field_is_described(language):
 def test_select_sensor_and_event_states_are_translated():
     assert states("select", "standby_minutes") == {str(m) for m in STANDBY_MINUTES}
     assert states("sensor", "local_status") == set(LOCAL_STATES)
-    assert states("sensor", "match_state") == set(MATCH_STATES)
-    assert states("sensor", "board_status") == set(BOARD_STATES)
     event = TRANSLATIONS["en"]["entity"]["event"]["board_events"]
     assert set(event["state_attributes"]["event_type"]["state"]) == set(EVENT_TYPES)
 

@@ -208,13 +208,6 @@ def freezer(request, freezer):
     return freezer
 
 
-@pytest.fixture
-def cloud_link():
-    """Offer the cloud link, as once Autodarts has issued a client ID."""
-    with patch("custom_components.autodarts.const.CLOUD_LINK_AVAILABLE", True):
-        yield
-
-
 # Loggers of the integration, those Home Assistant reports its entities with,
 # and those of the WebSocket commands and webhooks it offers, which answer a
 # crashing handler with an error of their own.
@@ -225,10 +218,8 @@ WATCHED_LOGGERS = (
     "homeassistant.components.websocket_api",
     "homeassistant.components.webhook",
 )
-# How the coordinators report a board or cloud that is away, once per outage.
-UNAVAILABLE = re.compile(
-    r"(Error fetching|Authentication failed while fetching) autodarts(_local)? data: "
-)
+# How the coordinator reports a board that is away, once per outage.
+UNAVAILABLE = re.compile(r"Error fetching autodarts_local data: ")
 
 
 # The log of a test whose errors pytest_runtest_teardown checks.

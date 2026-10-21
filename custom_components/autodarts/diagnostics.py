@@ -1,4 +1,4 @@
-"""Diagnostics contain local status only; never cloud tokens or board API keys."""
+"""Diagnostics contain local status only; never secrets, addresses or player names."""
 
 from typing import Any
 
@@ -16,8 +16,8 @@ from .runtime import AutodartsConfigEntry
 # The address of a Granboard as well, in the entry's data.
 TO_REDACT = {
     "board_id",
-    "client_id",
     "host",
+    # A token of the Board Manager, should one ever reach the board's data.
     "token",
     "ip",
     "name",
@@ -38,60 +38,43 @@ async def async_get_config_entry_diagnostics(
             "version": entry.version,
             "data": async_redact_data(dict(entry.data), TO_REDACT),
         },
-        "local": async_redact_data(local.data if local else None, TO_REDACT),
+        "local": async_redact_data(local.data, TO_REDACT),
         # The motion flags, the cameras' state, frame rates and the board PC's load.
         "local_readings": async_redact_data(
             board.readings if board else None, TO_REDACT
         ),
-        "local_available": bool(local and local.last_update_success),
-        # Set up with a cloud client, not merely asked for one.
-        "cloud_configured": runtime.cloud is not None,
-        "cloud_available": bool(runtime.cloud and runtime.cloud.last_update_success),
+        "local_available": local.last_update_success,
         "realtime_connected": bool(board and board.stream_connected),
         "board_manager_generation": board.generation if board else None,
-        "training_sessions": (
-            {
-                "active": local.games.training.active,
-                "auto_start": local.games.training.auto_start,
-                "idle_minutes": local.games.training.idle_minutes,
-                "stored_sessions": len(local.games.training.history),
-            }
-            if local
-            else None
-        ),
-        "practice_game": _practice(local) if local else None,
-        "tournament": _tournament(local) if local else None,
+        "training_sessions": {
+            "active": local.games.training.active,
+            "auto_start": local.games.training.auto_start,
+            "idle_minutes": local.games.training.idle_minutes,
+            "stored_sessions": len(local.games.training.history),
+        },
+        "practice_game": _practice(local),
+        "tournament": _tournament(local),
         # Counts only: the bests, profiles and matches carry the names of players.
-        "records": (
-            {
-                "stored_bests": len(local.games.records.bests),
-                "streak": local.games.records.streak,
-                "best_streak": local.games.records.best_streak,
-                "daily_goal": local.games.records.goal,
-                "player_profiles": len(local.games.practice.profiles.players),
-                "stored_matches": len(local.games.practice.profiles.matches),
-                "double_attempts": local.games.practice.doubles.snapshot()["attempts"],
-            }
-            if local
-            else None
-        ),
+        "records": {
+            "stored_bests": len(local.games.records.bests),
+            "streak": local.games.records.streak,
+            "best_streak": local.games.records.best_streak,
+            "daily_goal": local.games.records.goal,
+            "player_profiles": len(local.games.practice.profiles.players),
+            "stored_matches": len(local.games.practice.profiles.matches),
+            "double_attempts": local.games.practice.doubles.snapshot()["attempts"],
+        },
         # Counts only: the journal carries the names of players.
-        "reports": (
-            {
-                "weekday": local.reports.report.weekday,
-                "time": local.reports.report.time.isoformat(timespec="minutes"),
-                "journal_sessions": len(local.reports.journal.sessions),
-                "journal_matches": len(local.reports.journal.matches),
-            }
-            if local
-            else None
-        ),
+        "reports": {
+            "weekday": local.reports.report.weekday,
+            "time": local.reports.report.time.isoformat(timespec="minutes"),
+            "journal_sessions": len(local.reports.journal.sessions),
+            "journal_matches": len(local.reports.journal.matches),
+        },
         # Counts only: progress is kept per player name.
-        "progress": _progress(local) if local else None,
+        "progress": _progress(local),
         "poll_interval_seconds": (
-            local.update_interval.total_seconds()
-            if local and local.update_interval
-            else None
+            local.update_interval.total_seconds() if local.update_interval else None
         ),
         # Counts, kinds of errors and durations only; no addresses or messages.
         # A dartboard without Autodarts connects to nothing, or to its Granboard.

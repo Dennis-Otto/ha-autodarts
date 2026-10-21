@@ -144,12 +144,12 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ### Local and private
 
 - Found automatically with Board Manager 2; Board Manager 1 works too
-- Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored
+- Nothing leaves your network unless you use the board search or the online bridge; board secrets are never stored
 - Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish ([languages](https://dennis-otto.github.io/ha-autodarts/#languages))
 - Light on a Raspberry Pi: a message of the board updates only the entities that show what changed ([data updates](https://dennis-otto.github.io/ha-autodarts/how-it-works.html#data-updates))
 - Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage
 
-<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-dark.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="480"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-dark.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations" width="480"></p>
 
 [How it works →](https://dennis-otto.github.io/ha-autodarts/how-it-works.html)
 
@@ -290,7 +290,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 ## Known limitations
 
-- **Cloud match data is on hold.** It needs an OAuth client ID that Autodarts issues for this integration, and none is bundled yet. Everything local works without it.
+- **No cloud match data.** Autodarts issues no client IDs to third-party integrations, so there is no cloud link; everything works with the Board Manager in your network.
 - **Online matches through a browser extension.** Busts and game shots of online matches arrive only while the Autodarts page is open with Tools for Autodarts, a third-party extension. [Limitations](https://dennis-otto.github.io/ha-autodarts/online-matches.html#limitations).
 - **Training sessions count darts, not games.** A session counts every dart the board detects; players, legs and checkouts belong to the practice game, which keeps its own statistics.
 - **Board Manager updates are installed on the board PC.** The update entity reports new Board Manager 2 versions.

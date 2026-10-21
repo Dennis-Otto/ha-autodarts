@@ -27,7 +27,6 @@ description: "Häufige Probleme der Autodarts-Integration lösen: Einrichtung, R
 | *Das im Netzwerk gemeldete Board antwortet nicht.* | Ein entdecktes Board hat unter der gemeldeten Adresse nicht geantwortet, etwa weil der Board Manager inzwischen gestoppt ist. Starte den Board Manager und füge das Board erneut hinzu oder gib seine Adresse ein. |
 | *Die Einrichtung dieses Boards läuft bereits.* | Ein anderer Einrichtungsdialog für dasselbe Board ist offen, etwa der des entdeckten Boards. Schließe die Einrichtung ab oder brich sie ab. |
 | Das Board wird nicht automatisch gefunden | Die automatische Erkennung braucht Board Manager 2 und mDNS im Netzwerk. Home Assistant in Docker braucht dafür `network_mode: host`; über VLAN-Grenzen hinweg funktioniert mDNS nur mit einem Repeater. Nutze sonst die Suche oder die Adresse. |
-| *Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet.* | Die Cloud-Verknüpfung braucht eine Client-ID, die Autodarts für diese Integration vergibt. Sie gibt es noch nicht; siehe [Cloud-Verknüpfung](installation.de.md#autodarts-cloud-verknüpfen-optional). Die lokale Einrichtung funktioniert ohne sie. |
 
 ## Reparaturen
 
@@ -38,7 +37,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | **Autodarts-Board-Adresse zeigt auf ein anderes Board** | Unter der eingerichteten Adresse antwortet ein Board mit anderer Board-ID, etwa nach vertauschten IP-Adressen. Die Entitäten bleiben nicht verfügbar, damit sie nie Daten eines fremden Boards zeigen. Öffne die Integration, wähle **Neu konfigurieren** und das richtige Board. Der Hinweis verschwindet dann von selbst. |
 | **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten 100 Darts, bei mindestens 50 Darts insgesamt, mussten korrigiert werden, vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
 | **Board auf den neuen Autodarts Board Manager umstellen** | Das Board nutzt noch den klassischen Board Manager 1, den Autodarts abschalten wird. Installiere Board Manager 2 auf dem Board-PC; die Integration stellt sich selbst um, und der Hinweis verschwindet. |
-| **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet unter seiner eingestellten Adresse nicht mehr mit seiner Board-ID, aber unter einer anderen: Entweder hat Board Manager 2 es dort angekündigt (mDNS), oder es ist bei Einträgen mit Autodarts-Cloud-Verknüpfung seit fünf Minuten weg und die Cloud meldet diese Adresse, etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige nur, wenn es dein Board ist: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Siehe [Adresswechsel](how-it-works.de.md#adresswechsel). |
+| **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet unter seiner eingestellten Adresse nicht mehr mit seiner Board-ID, aber unter einer anderen, unter der Board Manager 2 es angekündigt hat (mDNS), etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige nur, wenn es dein Board ist: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Siehe [Adresswechsel](how-it-works.de.md#adresswechsel). |
 | **Autodarts-Board verweigert den Zugriff** | Das Board antwortet mit HTTP 401 oder 403. Der Board Manager braucht keine Anmeldung, also blockiert ein Reverse Proxy, eine Firewall oder eine Anmeldung vor Port 3180 Home Assistant. Lass Home Assistant auf das Board zugreifen; der Hinweis verschwindet beim nächsten erfolgreichen Lesen. |
 | **Autodarts-Board antwortet in einem unbekannten Format** | Eine nötige Abfrage (Zustand, Einstellungen oder `/api/system`) hat dreimal hintereinander in einem Format geantwortet, das diese Version nicht versteht, meist nach einem Board-Manager-Update. Aktualisiere die Integration. Bleibt der Hinweis, [melde ihn](#fehler-melden) mit den Diagnosedaten; das Protokoll nennt die betroffenen Abfragen. |
 
@@ -71,7 +70,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Das Board hat die Aktion nicht angenommen.* | Das Board hat den Befehl abgelehnt oder nicht geantwortet. Prüfe die Verbindung und versuche es erneut. |
 | *Dieses Board unterstützt die Aktion nicht.* | Der Board Manager kennt diesen Befehl nicht, zum Beispiel die Kamerastreams bei Board Manager 1. |
 | *Der Board Manager verweigert den Zugriff.* | Siehe **Autodarts-Board verweigert den Zugriff** unter [Reparaturen](#reparaturen). |
-| *Es ist kein Autodarts-Board mit lokaler Verbindung geladen.* | Jede `autodarts`-Aktion braucht ein lokal verbundenes, geladenes Board. Prüfe den Eintrag unter **Einstellungen → Geräte & Dienste**; ein nur mit der Cloud verknüpfter Eintrag kann nicht spielen. |
+| *Es ist kein Autodarts-Board mit lokaler Verbindung geladen.* | Jede `autodarts`-Aktion braucht ein lokal verbundenes, geladenes Board. Prüfe den Eintrag unter **Einstellungen → Geräte & Dienste**. |
 | Home Assistant meldet, dass du dazu nicht berechtigt bist (*Unauthorized*) | `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` und `autodarts.unlink_player` löschen die Daten der Spieler oder schreiben sie heraus, deshalb dürfen nur Administratoren sie ausführen, etwa nicht der Benutzer des Bildschirms am Board. Automationen führen sie auch aus. |
 | *Es sind mehrere Autodarts-Boards eingerichtet. Wähle das Board.* | Bei mehreren Boards wählst du das Board in der Aktion, in YAML im Feld `config_entry_id`. |
 | Home Assistant meldet, dass der Konfigurationseintrag nicht gefunden wurde, zu einer anderen Integration gehört oder nicht geladen ist | Das in der Aktion gewählte Board wurde gelöscht, ist ein Eintrag einer anderen Integration oder ist nicht geladen. Wähle das Board neu; lädt ein Board nicht, steht der Grund an seinem Eintrag. |
@@ -176,11 +175,11 @@ Ein Spieler hat einen Board-PC mit Ubuntu 24.04 und drei Kameras von Autodarts 1
 - den Board-Zustand und die Zusammenfassung der Einstellungen;
 - unter `local_readings` die Bewegung, ob die Kameras laufen, die Bildraten und die Last des Board-PCs;
 - die Board-Manager-Generation, die Verbindungen und das Leseintervall;
-- ob eine Cloud-Verbindung eingerichtet ist, das Übungsspiel mit seinen Regeln und ob gerade ausgebullt wird;
+- das Übungsspiel mit seinen Regeln und ob gerade ausgebullt wird;
 - die Zahl der gespeicherten Sessions, Bestleistungen, Spielerprofile, Matches und Darts aufs Double;
 - unter `connection` den Verlauf der Verbindung: verpasste Lesevorgänge in Folge, die Art des letzten Fehlers, das letzte erfolgreiche Lesen, wie lange das Board schon fehlt, die Dauer des letzten Lesens, Abfragen mit unbekanntem Format und für die Echtzeitverbindung Verbindungsaufbauten, fehlgeschlagene Versuche, den aktuellen Abstand bis zum nächsten Versuch, den Grund des letzten Abbruchs und die Zahl übersprungener Nachrichten, außerdem unter `stuck_takeout`, ob hängende Entnahmen gelöst werden, ob gerade eine abgewartet wird und wie viele Zurücksetzungen das Board angenommen oder abgelehnt hat.
 
-Board-ID, Board-Name, Adressen, Token und Spielernamen sind geschwärzt; Fehlermeldungen sind nicht enthalten.
+Board-ID, Board-Name, Adressen und Spielernamen sind geschwärzt; Fehlermeldungen sind nicht enthalten.
 
 ### Debug-Protokollierung
 

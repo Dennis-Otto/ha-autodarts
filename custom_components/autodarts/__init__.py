@@ -1,18 +1,14 @@
-"""The Autodarts integration, with independent local and cloud connections."""
+"""The Autodarts integration: local boards and dartboards without Autodarts."""
 
 from __future__ import annotations
 
 import logging
-from typing import Any
+from contextlib import suppress
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryError,
-    ConfigEntryNotReady,
-)
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -20,8 +16,6 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 
-from . import const
-from .api import AutodartsCloudClient
 from .button import V1_BUTTONS
 from .card import (
     async_add_card_resources,
@@ -30,25 +24,19 @@ from .card import (
 )
 from .const import (
     CONF_BOARD_ID,
-    CONF_CLIENT_ID,
     CONF_HOST,
-    CONF_LOCAL_ONLY,
     CONF_MANUAL_BOARD,
     CONF_PORT,
-    CONF_TOKEN,
     DEFAULT_PORT,
     DOMAIN,
     PLATFORMS,
 )
-from .coordinator import AutodartsDataUpdateCoordinator
-from .discovery import cloud_addresses
 from .errors import AutodartsApiError
-from .games_coordinator import board_deleted
+from .games_coordinator import AutodartsGamesCoordinator, board_deleted
 from .local_api import AutodartsLocalClient
 from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .manual_coordinator import AutodartsManualCoordinator
-from .online import async_follow_cloud, async_setup_bridge
-from .repairs import address_title
+from .online import async_setup_bridge
 from .report import BoardReports
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
@@ -68,6 +56,18 @@ V2_ONLY = (
     *(("sensor", description.key) for description in SYSTEM_SENSORS),
     ("update", "board_software"),
 )
+# Data of the cloud link, which entries of version 2.1 may still hold; the link
+# is gone, see decision 0025 in docs/decisions/.
+CLOUD_KEYS = ("token", "client_id", "local_only")
+# Its sensors of the match data in the cloud, whose keys no other entity uses.
+CLOUD_SENSORS = (
+    "board_status",
+    "game_mode",
+    "match_state",
+    "round",
+    "visit_score",
+    "darts_thrown",
+)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -81,147 +81,65 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> bool:
-    """Local controls remain usable even if cloud authentication fails."""
+    """Set up a board, which stays usable while it is switched off."""
     # Again with every board, so that a board added after the last one was deleted
     # brings the cards back to Home Assistant Cast.
     await async_add_card_resources(hass)
-    session = async_get_clientsession(hass)
-    runtime = AutodartsRuntimeData()
-    local_failed = False
-
-    def local_coordinator(host: str, port: int) -> AutodartsLocalCoordinator:
-        return AutodartsLocalCoordinator(
+    local: AutodartsGamesCoordinator
+    if entry.data.get(CONF_MANUAL_BOARD):
+        # A dartboard without Autodarts: nothing to reach, only the store to read.
+        local = AutodartsManualCoordinator(hass, entry.data[CONF_BOARD_ID], entry)
+        await local.async_load()
+        await local.async_config_entry_first_refresh()
+    elif host := entry.data.get(CONF_HOST):
+        local = AutodartsLocalCoordinator(
             hass,
-            AutodartsLocalClient(host, port, session),
+            AutodartsLocalClient(
+                host,
+                entry.data.get(CONF_PORT, DEFAULT_PORT),
+                async_get_clientsession(hass),
+            ),
             entry.data[CONF_BOARD_ID],
             entry,
         )
-
-    async def discover_local(addresses: object) -> None:
-        """Adopt the first address reported by the cloud that answers as this board."""
-        for host, port in cloud_addresses(addresses):
-            if (host, port) == (
-                entry.data.get(CONF_HOST),
-                entry.data.get(CONF_PORT, DEFAULT_PORT),
-            ):
-                continue
-            candidate = local_coordinator(host, port)
-            try:
-                await candidate.async_config_entry_first_refresh()
-            except ConfigEntryNotReady:
-                # Discard failed candidates, including their timers and store.
-                await candidate.async_shutdown()
-                continue
-            if runtime.local is not None:
-                await runtime.local.async_shutdown()
-            runtime.local = candidate
-            hass.config_entries.async_update_entry(
-                entry,
-                title=address_title(entry, host),
-                data={**entry.data, CONF_HOST: host, CONF_PORT: port},
-            )
-            return
-
-    if entry.data.get(CONF_MANUAL_BOARD):
-        # A dartboard without Autodarts: nothing to reach, only the store to read.
-        runtime.local = AutodartsManualCoordinator(
-            hass, entry.data[CONF_BOARD_ID], entry
-        )
-        await runtime.local.async_load()
-        await runtime.local.async_config_entry_first_refresh()
-    elif host := entry.data.get(CONF_HOST):
-        runtime.local = local_coordinator(host, entry.data.get(CONF_PORT, DEFAULT_PORT))
         # A store that cannot be read stops the setup, unlike a board that is
         # switched off: nothing may overwrite the training with empty data.
-        await runtime.local.async_load()
-        try:
-            await runtime.local.async_config_entry_first_refresh()
-        except ConfigEntryNotReady:
-            # Entities stay and recover when the board answers again.
-            local_failed = True
-
-    # Without an obtainable client ID, a relink could never be completed.
-    if not entry.data.get(CONF_LOCAL_ONLY, False) and (
-        const.CLOUD_LINK_AVAILABLE or entry.data.get(CONF_CLIENT_ID)
-    ):
-
-        def persist_token(token: dict[str, Any]) -> None:
-            hass.config_entries.async_update_entry(
-                entry, data={**entry.data, CONF_TOKEN: token}
-            )
-
-        try:
-            if not entry.data.get(CONF_CLIENT_ID):
-                raise ConfigEntryAuthFailed(
-                    translation_domain=DOMAIN, translation_key="relink_required"
-                )
-            runtime.cloud = AutodartsDataUpdateCoordinator(
-                hass,
-                cloud=AutodartsCloudClient(
-                    session,
-                    entry.data[CONF_TOKEN],
-                    entry.data[CONF_CLIENT_ID],
-                    persist_token,
-                ),
-                board_id=entry.data[CONF_BOARD_ID],
-                entry=entry,
-            )
-            await runtime.cloud.async_config_entry_first_refresh()
-        except ConfigEntryAuthFailed:
-            if runtime.local is None:
-                raise
-            # A configured board keeps working locally while the login is renewed.
-            entry.async_start_reauth(hass)
-        except ConfigEntryNotReady:
-            # A configured board works locally while the cloud is away.
-            if runtime.local is None:
-                raise
-
-        # The cloud knows the board's current address: use it when none is set or
-        # the stored one no longer answers, e.g. after a DHCP change.
-        if (runtime.local is None or local_failed) and (
-            runtime.cloud and runtime.cloud.data
-        ):
-            await discover_local(runtime.cloud.data.get("board", {}).get("ip"))
-    elif runtime.local is None:
+        await local.async_load()
+        # Entities stay and recover when the board answers again.
+        with suppress(ConfigEntryNotReady):
+            await local.async_config_entry_first_refresh()
+    else:
         # Retrying cannot help: the user has to enter the address first.
         raise ConfigEntryError(
             translation_domain=DOMAIN, translation_key="no_local_address"
         )
     # A board that is switched off does not stop the setup: the entities of
     # training and games work without it, and the others recover with the board.
-    entry.runtime_data = runtime
-    if runtime.local:
-        device = next(
-            (
-                device
-                for device in dr.async_entries_for_config_entry(
-                    dr.async_get(hass), entry.entry_id
-                )
-                if (DOMAIN, entry.data[CONF_BOARD_ID]) in device.identifiers
-            ),
-            None,
-        )
-        board = (runtime.cloud.data or {}).get("board", {}) if runtime.cloud else {}
-        # The name from Autodarts, else the one found by the board search.
-        runtime.local.device_name = (
-            board.get("name")
-            or entry.data.get(CONF_NAME)
-            or (device.name if device and device.name else "Autodarts Board")
-        )
-    if isinstance(board := runtime.local, AutodartsLocalCoordinator):
-        board.setup_generation = board.generation or 1
+    runtime = entry.runtime_data = AutodartsRuntimeData(local)
+    device = next(
+        (
+            device
+            for device in dr.async_entries_for_config_entry(
+                dr.async_get(hass), entry.entry_id
+            )
+            if (DOMAIN, entry.data[CONF_BOARD_ID]) in device.identifiers
+        ),
+        None,
+    )
+    # The name found by the board search or given to a dartboard without
+    # Autodarts, else the device's.
+    local.device_name = entry.data.get(CONF_NAME) or (
+        device.name if device and device.name else "Autodarts Board"
+    )
+    if isinstance(local, AutodartsLocalCoordinator):
+        local.setup_generation = local.generation or 1
         # An unknown generation keeps the entities and their customizations.
-        if board.generation is not None:
-            _remove_other_generation(hass, entry, board.board_manager_2)
+        if local.generation is not None:
+            _remove_other_generation(hass, entry, local.board_manager_2)
     # Moments of online matches arrive as board events, if switched on.
-    runtime.bridge = await async_setup_bridge(hass, entry, runtime.local)
-    if runtime.cloud and runtime.bridge is None:
-        # Otherwise the faster bridge reports them, and both would report each twice.
-        async_follow_cloud(hass, entry, runtime.cloud, runtime.local)
+    runtime.bridge = await async_setup_bridge(hass, entry, local)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    if runtime.local:
-        runtime.local.async_start()
+    local.async_start()
     return True
 
 
@@ -239,10 +157,19 @@ def _remove_other_generation(
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Upgrade version 1 entries, which stored a board address or a password."""
+    """Upgrade version 1 entries, which stored a board address or a password, and
+    those before version 2.2, which could hold the data of the cloud link."""
     # Home Assistant itself refuses entries of a newer major version.
-    if entry.version == 2:
-        return True
+    if entry.version == 1 and not await _async_migrate_v1(hass, entry):
+        return False
+    # An entry of a newer minor version, from a later release, stays as it is.
+    if entry.minor_version < 2:
+        _remove_cloud_link(hass, entry)
+    return True
+
+
+async def _async_migrate_v1(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Keep the board of a version 1 entry, found by its address if need be."""
     data = dict(entry.data)
     board_id = data.get(CONF_BOARD_ID)
     host = data.get(CONF_HOST)
@@ -264,7 +191,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Version 1 cloud entries stored the account password; never keep it.
     new = {CONF_BOARD_ID: board_id}
     if host:
-        new |= {CONF_HOST: host, CONF_PORT: port, CONF_LOCAL_ONLY: True}
+        new |= {CONF_HOST: host, CONF_PORT: port}
     hass.config_entries.async_update_entry(
         entry, data=new, unique_id=board_id, version=2
     )
@@ -272,15 +199,33 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+def _remove_cloud_link(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove the login of the cloud link and its sensors from an entry.
+
+    An entry that only the cloud reached has no address; its setup keeps
+    failing with no_local_address until one is entered in Reconfigure.
+    """
+    registry = er.async_get(hass)
+    for key in CLOUD_SENSORS:
+        if entity_id := registry.async_get_entity_id(
+            "sensor", DOMAIN, f"{entry.data[CONF_BOARD_ID]}_{key}"
+        ):
+            registry.async_remove(entity_id)
+    hass.config_entries.async_update_entry(
+        entry,
+        data={key: value for key, value in entry.data.items() if key not in CLOUD_KEYS},
+        minor_version=2,
+    )
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> bool:
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         # The board stays loaded, and its repair issues still apply.
         return False
-    if local := entry.runtime_data.local:
-        # Home Assistant shuts the coordinator down only after the unload. A
-        # read still in flight ends here first, so that it cannot bring back
-        # an issue deleted below.
-        await local.async_shutdown()
+    # Home Assistant shuts the coordinator down only after the unload. A read
+    # still in flight ends here first, so that it cannot bring back an issue
+    # deleted below.
+    await entry.runtime_data.local.async_shutdown()
     # The board's repair issues come back with its next setup, where they
     # still apply; their fixes need a loaded board.
     _delete_issues(hass, entry)

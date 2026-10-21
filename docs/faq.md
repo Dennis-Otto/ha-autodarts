@@ -24,7 +24,7 @@ Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Autodarts b
 
 The integration needs a Board Manager that Home Assistant reaches in your network. Board Manager 2 is tested up to 2.0.2, the classic Board Manager 1 works too, and a player reports that Autodarts Desktop 2.0.2 on Linux works. Autodarts Desktop on Windows and Autodarts X have not been tested yet. A [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) tells us how it goes with yours, whether it works or not. [Supported devices](README.md#supported-devices)
 
-Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. Once the [cloud link](online-matches.md#the-cloud-link) ships, a board without a Board Manager in your network, such as Lens, connects through the Autodarts cloud, with its match data and the moments of its online matches. [Play without Autodarts](without-autodarts.md)
+Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. A link through the Autodarts cloud won't come either: Autodarts issues no client IDs to third-party integrations ([decision 0025](decisions/0025-no-cloud-link.md)). [Play without Autodarts](without-autodarts.md)
 
 ### Does it cost anything?
 
@@ -68,7 +68,7 @@ English, German, Dutch, French and Spanish, following the language of Home Assis
 
 ### What leaves my network?
 
-Nothing, in local mode. Only what you choose talks to the internet: the board search asks the public Autodarts discovery service once, the optional cloud link will use the Autodarts device login, and the online bridge only receives the calls of Tools for Autodarts. Board secrets are never stored, and diagnostics redact board IDs, addresses and player names. Some browsers speak the scoreboard's calls with online voices; an offline voice of the device keeps them at home. [Privacy](how-it-works.md#privacy) · [Security design](security.md)
+Nothing, in local mode. Only what you choose talks to the internet: the board search asks the public Autodarts discovery service once, and the online bridge only receives the calls of Tools for Autodarts. Board secrets are never stored, and diagnostics redact board IDs, addresses and player names. Some browsers speak the scoreboard's calls with online voices; an offline voice of the device keeps them at home. [Privacy](how-it-works.md#privacy) · [Security design](security.md)
 
 ### Where are my statistics kept?
 

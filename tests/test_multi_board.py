@@ -144,7 +144,6 @@ async def board_and_dartboard(hass, aioclient_mock):
         data={
             "board_id": DARTBOARD,
             "manual_board": True,
-            "local_only": True,
             "name": "Cellar",
         },
     )

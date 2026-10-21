@@ -5,7 +5,6 @@ import json
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.components.diagnostics import (
     get_diagnostics_for_config_entry,
 )
@@ -19,8 +18,6 @@ from .local_helpers import (
     OUTER_BULL,
     T20,
     board,
-    entry_data,
-    mock_cloud,
     setup_local,
     setup_v2,
 )
@@ -105,32 +102,3 @@ async def test_diagnostics_of_board_manager_2(
     text = json.dumps(diagnostics)
     for secret in ("private-board-api-key", "private-tls-key", "dartboard-pc"):
         assert secret not in text
-
-
-async def test_diagnostics_of_a_cloud_only_entry(
-    hass, aioclient_mock, hass_client, snapshot: SnapshotAssertion
-):
-    mock_cloud(aioclient_mock)
-    entry = MockConfigEntry(domain=DOMAIN, version=2, data=entry_data())
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, entry)
-    assert diagnostics["cloud_configured"] is True
-    assert diagnostics["local"] is None
-    assert diagnostics == snapshot(exclude=VOLATILE)
-    text = json.dumps(diagnostics)
-    for secret in ("rotated", "registered-test-client", "board-1", "My Board"):
-        assert secret not in text
-
-
-async def test_a_local_entry_asked_for_the_cloud_has_none_configured(
-    hass, aioclient_mock, hass_client
-):
-    """Without a client ID, the cloud is never set up."""
-    entry = await setup_local(hass, aioclient_mock)
-    hass.config_entries.async_update_entry(
-        entry, data={**entry.data, "local_only": False}
-    )
-    diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, entry)
-    assert diagnostics["cloud_configured"] is False

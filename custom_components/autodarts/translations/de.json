@@ -2,58 +2,12 @@
   "title": "Autodarts",
   "config": {
     "step": {
-      "reauth_confirm": {
-        "title": "Autodarts erneut verknüpfen",
-        "description": "Verknüpfe dein Konto mit der neuen Autodarts-Geräteanmeldung. Trage eine für diese Integration registrierte öffentliche Client-ID mit freigeschalteter Geräteanmeldung ein. Dein Board, deine Entitäten und die lokalen Einstellungen bleiben erhalten.",
-        "data": {
-          "client_id": "Autodarts-Client-ID"
-        },
-        "data_description": {
-          "client_id": "Öffentliche OAuth-Client-ID mit Geräteanmeldung, von Autodarts für diese Integration vergeben."
-        }
-      },
-      "auth_retry": {
-        "title": "Autodarts-Anmeldung neu starten",
-        "description": "Bestätige, um zur Client-ID zurückzukehren und einen neuen Anmeldecode anzufordern."
-      },
-      "boards": {
-        "title": "Autodarts-Boards laden",
-        "description": "Dein Konto ist verknüpft. Bestätige, um deine Boards erneut zu laden."
-      },
-      "board": {
-        "title": "Board auswählen",
-        "description": "Wähle das Autodarts-Board, das überwacht werden soll.",
-        "data": {
-          "board_id": "Board"
-        },
-        "data_description": {
-          "board_id": "Die Boards, die mit deinem Autodarts-Konto verknüpft sind."
-        }
-      },
-      "cloud": {
-        "title": "Autodarts einrichten",
-        "description": "Trage die öffentliche Client-ID ein, die Autodarts für diese Integration mit Geräteanmeldung freigeschaltet hat. Das ist eine Anwendungs-ID, keine E-Mail-Adresse, keine Board-ID und kein Passwort. Optional kannst du die lokale Board-IP angeben. Anschließend wird dein Anmeldecode angezeigt.",
-        "data": {
-          "client_id": "Autodarts-Client-ID",
-          "host": "Lokale Board-IP (optional)",
-          "port": "Lokaler Board-Port"
-        },
-        "data_description": {
-          "client_id": "Öffentliche OAuth-Client-ID mit Geräteanmeldung, von Autodarts für diese Integration vergeben. Nicht deine E-Mail-Adresse, dein Passwort oder die Board-ID.",
-          "host": "Optional. Verbindet das Board zusätzlich lokal; damit werden Steuerung und Echtzeitereignisse möglich.",
-          "port": "API-Port des Board Managers, normalerweise 3180."
-        }
-      },
-      "auth": {
-        "title": "Autodarts-Konto verknüpfen"
-      },
       "user": {
         "title": "Autodarts einrichten",
         "description": "Suche Autodarts-Boards im Netzwerk, gib eine Board-Adresse ein oder richte eine Dartscheibe ohne Autodarts ein.",
         "menu_options": {
           "discover": "Boards im Netzwerk suchen",
           "local": "Board-Adresse eingeben",
-          "cloud": "Cloud-Konto verknüpfen",
           "manual": "Dartscheibe ohne Autodarts: jeden Dart selbst eingeben",
           "granboard": "Granboard über Bluetooth (experimentell)"
         }
@@ -63,8 +17,7 @@
         "description": "Suche das Board erneut oder ändere seine lokale Adresse. Das bestehende Board und seine Entitäten bleiben erhalten.",
         "menu_options": {
           "discover": "Boards im Netzwerk suchen",
-          "local": "Board-Adresse eingeben",
-          "cloud": "Cloud-Konto verknüpfen"
+          "local": "Board-Adresse eingeben"
         }
       },
       "reconfigure_manual": {
@@ -132,15 +85,7 @@
         "description": "Autodarts-Board unter {host} hinzufügen? Board Manager {version}, {cameras} Kameras. Es funktioniert lokal, ohne Autodarts-Anmeldung."
       }
     },
-    "progress": {
-      "wait_for_device": "Öffne die [Autodarts-Anmeldung]({verification_uri_complete}) und bestätige die Verknüpfung. Alternativ kannst du [{verification_uri}]({verification_uri}) auf einem anderen Gerät öffnen und **{user_code}** eingeben.\n\nNach der Freigabe geht es hier automatisch weiter. Gib diesen Code nur bei deiner eigenen Autodarts-Anmeldung ein."
-    },
     "error": {
-      "invalid_client": "Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet. Prüfe die Client-ID für diese Integration. Ein lokales Board lässt sich ohne Client-ID einrichten.",
-      "expired_token": "Der Anmeldecode ist abgelaufen. Bitte fordere einen neuen Code an.",
-      "access_denied": "Die Verknüpfung wurde abgelehnt. Bitte starte die Anmeldung neu und bestätige sie.",
-      "invalid_auth": "Autodarts konnte diese Verbindung nicht autorisieren. Bitte verknüpfe dein Konto erneut.",
-      "cannot_connect": "Autodarts ist nicht erreichbar. Bitte versuche es erneut.",
       "invalid_host": "Gib nur eine IP-Adresse oder einen Hostnamen ein.",
       "cannot_connect_local": "Der lokale Board Manager ist nicht erreichbar oder liefert keine gültigen Daten.",
       "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
@@ -150,9 +95,6 @@
     },
     "abort": {
       "already_configured": "Dieses Autodarts-Board ist bereits eingerichtet.",
-      "no_boards": "Für dieses Konto wurden keine Boards gefunden.",
-      "wrong_account": "Das verknüpfte Konto hat keinen Zugriff auf das bisherige Board. Bitte verwende das Konto, dem dieses Board gehört.",
-      "reauth_successful": "Autodarts wurde erfolgreich verknüpft. Dein Board und deine Entitäten bleiben erhalten.",
       "wrong_board": "Diese Adresse gehört zu einem anderen Board.",
       "reconfigure_successful": "Die Autodarts-Konfiguration wurde aktualisiert.",
       "cannot_connect_local": "Das im Netzwerk gemeldete Board antwortet nicht. Prüfe, ob der Board Manager läuft.",
@@ -191,41 +133,14 @@
   },
   "entity": {
     "sensor": {
-      "board_status": {
-        "name": "Cloud-Status",
-        "state": {
-          "connected": "Verbunden",
-          "disconnected": "Getrennt"
-        }
-      },
       "board_event": {
         "name": "Letztes Ereignis"
-      },
-      "game_mode": {
-        "name": "Spielmodus"
-      },
-      "match_state": {
-        "name": "Match-Status",
-        "state": {
-          "no_match": "Kein Match",
-          "active": "Läuft",
-          "finished": "Beendet"
-        }
-      },
-      "round": {
-        "name": "Runde"
       },
       "last_throw": {
         "name": "Letzter Dart"
       },
       "num_throws": {
         "name": "Darts in der Aufnahme"
-      },
-      "visit_score": {
-        "name": "Punkte der Aufnahme"
-      },
-      "darts_thrown": {
-        "name": "Geworfene Darts"
       },
       "local_status": {
         "name": "Erkennungsstatus",
@@ -844,12 +759,6 @@
     },
     "no_local_address": {
       "message": "Gib die lokale Adresse des Board Managers ein: Öffne das Menü dieses Eintrags und wähle Neu konfigurieren."
-    },
-    "relink_required": {
-      "message": "Verknüpfe dein Autodarts-Konto erneut mit einer registrierten Client-ID."
-    },
-    "cloud_unavailable": {
-      "message": "Die Autodarts-Cloud antwortet nicht."
     },
     "no_board": {
       "message": "Es ist kein Autodarts-Board mit lokaler Verbindung geladen."

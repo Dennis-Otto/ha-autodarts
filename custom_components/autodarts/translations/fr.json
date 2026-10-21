@@ -2,58 +2,12 @@
   "title": "Autodarts",
   "config": {
     "step": {
-      "reauth_confirm": {
-        "title": "Associer à nouveau Autodarts",
-        "description": "Associez votre compte via la nouvelle connexion par appareil d'Autodarts. Saisissez un ID client public enregistré pour cette intégration, avec l'autorisation d'appareil activée. Votre cible, vos entités et vos paramètres locaux seront conservés.",
-        "data": {
-          "client_id": "ID client Autodarts"
-        },
-        "data_description": {
-          "client_id": "ID client OAuth public avec autorisation d'appareil, délivré par Autodarts pour cette intégration."
-        }
-      },
-      "auth_retry": {
-        "title": "Relancer la connexion à Autodarts",
-        "description": "Validez pour revenir à la saisie de l'ID client et demander un nouveau code de connexion."
-      },
-      "boards": {
-        "title": "Charger les cibles Autodarts",
-        "description": "Votre compte est associé. Validez pour réessayer de charger vos cibles."
-      },
-      "board": {
-        "title": "Sélectionner la cible",
-        "description": "Choisissez la cible Autodarts à surveiller.",
-        "data": {
-          "board_id": "Cible"
-        },
-        "data_description": {
-          "board_id": "Les cibles associées à votre compte Autodarts."
-        }
-      },
-      "cloud": {
-        "title": "Configurer Autodarts",
-        "description": "Saisissez l'ID client public enregistré auprès d'Autodarts pour cette intégration, avec l'autorisation d'appareil activée. Il s'agit d'un identifiant d'application, et non de votre adresse e-mail, de l'ID de votre cible ou d'un secret. Vous pouvez aussi saisir l'IP locale de votre cible. L'écran suivant affichera votre code de connexion.",
-        "data": {
-          "client_id": "ID client Autodarts",
-          "host": "IP locale de la cible (facultatif)",
-          "port": "Port local de la cible"
-        },
-        "data_description": {
-          "client_id": "ID client OAuth public avec autorisation d'appareil, délivré par Autodarts pour cette intégration. Il ne s'agit pas de votre adresse e-mail, de votre mot de passe ni de l'ID de votre cible.",
-          "host": "Facultatif. Connecte aussi la cible en local, ce qui active les commandes et les événements en temps réel.",
-          "port": "Port de l'API Board Manager, en général 3180."
-        }
-      },
-      "auth": {
-        "title": "Associer le compte Autodarts"
-      },
       "user": {
         "title": "Configurer Autodarts",
         "description": "Recherchez des cibles Autodarts sur votre réseau, saisissez l'adresse d'une cible ou configurez une cible sans Autodarts.",
         "menu_options": {
           "discover": "Rechercher des cibles sur ce réseau",
           "local": "Saisir l'adresse de la cible",
-          "cloud": "Associer un compte cloud",
           "manual": "Cible sans Autodarts\u00a0: saisir soi-même chaque fléchette",
           "granboard": "Granboard via Bluetooth (expérimental)"
         }
@@ -63,8 +17,7 @@
         "description": "Recherchez à nouveau la cible ou modifiez son adresse locale. Votre cible et vos entités existantes sont conservées.",
         "menu_options": {
           "discover": "Rechercher des cibles sur ce réseau",
-          "local": "Saisir l'adresse de la cible",
-          "cloud": "Associer un compte cloud"
+          "local": "Saisir l'adresse de la cible"
         }
       },
       "reconfigure_manual": {
@@ -132,15 +85,7 @@
         "description": "Ajouter la cible Autodarts à l'adresse {host}\u00a0? Board Manager {version}, {cameras} caméras. Elle fonctionne en local, sans connexion à Autodarts."
       }
     },
-    "progress": {
-      "wait_for_device": "Ouvrez la [page de connexion Autodarts]({verification_uri_complete}) et autorisez l'accès. Vous pouvez aussi ouvrir [{verification_uri}]({verification_uri}) sur un autre appareil et saisir **{user_code}**.\n\nUne fois l'accès autorisé, la configuration se poursuit automatiquement. Ne saisissez ce code que sur votre propre page de connexion Autodarts."
-    },
     "error": {
-      "invalid_client": "Cet ID client n'est pas valide ou n'est pas activé pour la connexion par appareil. Vérifiez l'ID client de cette intégration. Une cible locale peut être configurée sans ID client.",
-      "expired_token": "Le code de connexion a expiré. Veuillez demander un nouveau code.",
-      "access_denied": "L'association a été refusée. Veuillez relancer la connexion puis autoriser l'accès.",
-      "invalid_auth": "Autodarts n'a pas pu autoriser cette connexion. Veuillez associer à nouveau votre compte.",
-      "cannot_connect": "Impossible de se connecter à Autodarts. Veuillez réessayer.",
       "invalid_host": "Saisissez uniquement une adresse IP ou un nom d'hôte.",
       "cannot_connect_local": "Impossible de joindre Board Manager en local, ou sa réponse n'est pas valide.",
       "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
@@ -150,9 +95,6 @@
     },
     "abort": {
       "already_configured": "Cette cible Autodarts est déjà configurée.",
-      "no_boards": "Aucune cible trouvée pour ce compte.",
-      "wrong_account": "Le compte associé n'a pas accès à la cible existante. Veuillez associer le compte auquel appartient cette cible.",
-      "reauth_successful": "Autodarts a bien été associé. Votre cible et vos entités ont été conservées.",
       "wrong_board": "Cette adresse appartient à une autre cible.",
       "reconfigure_successful": "La configuration d'Autodarts a été mise à jour.",
       "cannot_connect_local": "La cible annoncée sur votre réseau ne répond pas. Vérifiez que Board Manager est bien lancé.",
@@ -191,41 +133,14 @@
   },
   "entity": {
     "sensor": {
-      "board_status": {
-        "name": "État du cloud",
-        "state": {
-          "connected": "Connecté",
-          "disconnected": "Déconnecté"
-        }
-      },
       "board_event": {
         "name": "Dernier événement"
-      },
-      "game_mode": {
-        "name": "Mode de jeu"
-      },
-      "match_state": {
-        "name": "État du match",
-        "state": {
-          "no_match": "Aucun match",
-          "active": "En cours",
-          "finished": "Terminé"
-        }
-      },
-      "round": {
-        "name": "Tour"
       },
       "last_throw": {
         "name": "Dernière fléchette"
       },
       "num_throws": {
         "name": "Fléchettes de la volée"
-      },
-      "visit_score": {
-        "name": "Score de la volée"
-      },
-      "darts_thrown": {
-        "name": "Fléchettes lancées"
       },
       "local_status": {
         "name": "État de la détection",
@@ -844,12 +759,6 @@
     },
     "no_local_address": {
       "message": "Saisissez l'adresse locale de Board Manager\u00a0: ouvrez le menu de cette entrée et sélectionnez Reconfigurer."
-    },
-    "relink_required": {
-      "message": "Associez à nouveau votre compte Autodarts avec un ID client enregistré."
-    },
-    "cloud_unavailable": {
-      "message": "Le cloud Autodarts ne répond pas."
     },
     "no_board": {
       "message": "Aucune cible Autodarts avec une connexion locale n'est chargée."

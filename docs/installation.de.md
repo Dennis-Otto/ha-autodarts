@@ -14,9 +14,8 @@ description: "Installiere die Autodarts-Integration mit HACS, füge dein Board �
 | Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux. Autodarts Desktop unter Windows und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
 | Ohne Autodarts | Jede Dartscheibe: Du gibst die Darts auf einem Tastenfeld ein, siehe [Spielen ohne Autodarts](without-autodarts.de.md); dafür braucht es weder einen Board-PC noch ein Netzwerk zum Board |
-| Optional: Cloud-Spieldaten | Ein Autodarts-Konto und eine OAuth-Client-ID, die Autodarts für diese Integration vergibt (siehe [Cloud-Verknüpfung](#autodarts-cloud-verknüpfen-optional)) |
 
-Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kein Passwort und keinen API-Schlüssel**. Die Registrierung deines Boards bei Autodarts bleibt unverändert.
+Die Integration braucht **keine Autodarts-Anmeldung, kein Passwort und keinen API-Schlüssel**. Die Registrierung deines Boards bei Autodarts bleibt unverändert. Eine Verknüpfung mit der Autodarts-Cloud hat sie auch nicht: Autodarts vergibt keine Client-IDs an Integrationen von Dritten ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 ## Installieren
 
@@ -91,29 +90,14 @@ Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gib dem Bo
 
 Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entities.de.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](cards.de.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](cards.de.md).
 
-## Autodarts-Cloud verknüpfen (optional)
-
-Mit einem verknüpften Autodarts-Konto kommen Spieldaten aus der Cloud dazu: Spielmodus, Match-Status, Runde, Punkte der Aufnahme und geworfene Darts. Die lokale Steuerung hängt nicht davon ab. Sie funktioniert weiter, wenn die Cloud nicht erreichbar ist oder die Anmeldung abläuft.
-
-> **Stand:** Für die Verknüpfung braucht es eine öffentliche OAuth-Client-ID mit Geräteanmeldung, die Autodarts für diese Integration vergibt. Sie ist beantragt, aber noch nicht enthalten. Bis dahin bieten Einrichtung und **Neu konfigurieren** die Cloud-Verknüpfung nicht an. Alles Lokale funktioniert ohne sie.
-
-So wird es ablaufen, sobald die Client-ID verfügbar ist:
-
-1. Wähle bei der Einrichtung **Cloud-Konto verknüpfen**. Bei einem bestehenden Board wählst du **Neu konfigurieren → Cloud-Konto verknüpfen**.
-2. Home Assistant zeigt einen Code wie `ABCD-EFGH` und einen Link. Öffne den Link auf einem beliebigen Gerät, melde dich bei Autodarts an und bestätige den Code.
-3. Home Assistant macht selbstständig weiter. Hat dein Konto mehrere Boards, wählst du eines aus.
-
-Dein Passwort sieht Home Assistant nie. Die Token erneuern sich automatisch. Läuft eine Anmeldung ab oder wird sie widerrufen, bittet Home Assistant um eine **erneute Anmeldung**; die lokale Steuerung läuft währenddessen weiter.
-
 ## Neu konfigurieren
 
 Öffne **Einstellungen → Geräte & Dienste → Autodarts** und im Menü des Boards (⋮) **Neu konfigurieren**. Du kannst dort:
 
 - das Board neu suchen oder eine neue Adresse eintragen, etwa nach einer Netzwerkänderung;
-- die Cloud-Verknüpfung hinzufügen oder erneuern, sobald sie verfügbar ist;
 - das Autodarts-Board anschließen, das eine [Dartscheibe ohne Autodarts](without-autodarts.de.md#autodarts-später) bekommen hat, die dabei ihre Spiele und Statistiken behält.
 
-Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse oder ein Konto, das zu einem anderen Board gehört, lehnt die Integration ab.
+Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse, die zu einem anderen Board gehört, lehnt die Integration ab.
 
 ## Von Board Manager 1 auf Board Manager 2 umsteigen
 

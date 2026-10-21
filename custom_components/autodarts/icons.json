@@ -170,31 +170,13 @@
       }
     },
     "sensor": {
-      "board_status": {
-        "default": "mdi:bullseye"
-      },
       "board_event": {
         "default": "mdi:bell-ring"
-      },
-      "game_mode": {
-        "default": "mdi:gamepad-variant"
-      },
-      "match_state": {
-        "default": "mdi:play-circle"
-      },
-      "round": {
-        "default": "mdi:rotate-right"
       },
       "last_throw": {
         "default": "mdi:arrow-projectile"
       },
       "num_throws": {
-        "default": "mdi:counter"
-      },
-      "visit_score": {
-        "default": "mdi:numeric"
-      },
-      "darts_thrown": {
         "default": "mdi:counter"
       },
       "local_status": {
