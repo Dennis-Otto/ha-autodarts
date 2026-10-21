@@ -199,7 +199,7 @@ Erschienen als 1.18.0 am 19. Oktober 2026; die Details stehen im [Changelog](htt
 
 ## Version 2.0: HomeDarts for Autodarts
 
-Das nächste Release, 2.0.0, noch ohne Termin; die Details stehen dann im [Changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md) (auf Englisch).
+Erschienen als 2.0.0 am 21. Oktober 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#200-2026-10-21) (auf Englisch).
 
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
