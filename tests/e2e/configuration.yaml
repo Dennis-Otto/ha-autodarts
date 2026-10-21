@@ -45,4 +45,4 @@ zeroconf:
 logger:
   default: warning
   logs:
-    custom_components.autodarts: debug
+    custom_components.homedarts: debug

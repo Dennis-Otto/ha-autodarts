@@ -1,6 +1,6 @@
 """Training sessions with darts entered by hand, the bot's darts and undone visits."""
 
-from custom_components.autodarts.training import (
+from custom_components.homedarts.training import (
     COUNTERS,
     TrainingSession,
     dart_flags,

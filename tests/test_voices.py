@@ -19,9 +19,9 @@ from homeassistant.exceptions import (
 )
 from homeassistant.setup import async_setup_component
 
-from custom_components.autodarts import voices
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.voices import pack_words, sound_key, valid_pack
+from custom_components.homedarts import voices
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.voices import pack_words, sound_key, valid_pack
 
 ENGINE = "tts.piper"
 MP3 = b"ID3 a recorded call"
@@ -33,7 +33,7 @@ def folders(hass, tmp_path: Path) -> Path:
     media = tmp_path / "media"
     hass.config.media_dirs = {"local": str(media)}
     hass.config.allowlist_external_dirs = {str(media)}
-    return media / "autodarts" / "voices"
+    return media / "homedarts" / "voices"
 
 
 def recorded(folder: Path, *names: str) -> Path:
@@ -61,7 +61,7 @@ async def sound(hass, pack: str, *keys) -> dict:
 
 
 async def pack_of(client, pack: str) -> dict:
-    await client.send_json_auto_id({"type": "autodarts/voice_pack", "pack": pack})
+    await client.send_json_auto_id({"type": "homedarts/voice_pack", "pack": pack})
     return await client.receive_json()
 
 
@@ -122,7 +122,7 @@ async def test_a_pack_of_darts_caller_works_as_it_is(
     assert await async_setup_component(hass, "media_source", {})
     client = await hass_ws_client(hass)
     answer = await pack_of(client, "russ-bray")
-    base = "/media/local/autodarts/voices/russ-bray"
+    base = "/media/local/homedarts/voices/russ-bray"
     assert answer["success"] is True
     assert answer["result"] == {
         "pack": "russ-bray",
@@ -175,7 +175,7 @@ async def test_the_blueprints_get_the_sound_of_a_call(hass, tmp_path, integratio
     )
     assert await sound(hass, "russ-bray", "yr_40", "YOU_REQUIRE") == {
         "key": "YOU_REQUIRE",
-        "media_content_id": "media-source://media_source/local/autodarts/voices/russ-bray/you_require.mp3",
+        "media_content_id": "media-source://media_source/local/homedarts/voices/russ-bray/you_require.mp3",
         "media_content_type": "audio/mpeg",
     }
     # A template renders a score as a number.
@@ -183,7 +183,7 @@ async def test_the_blueprints_get_the_sound_of_a_call(hass, tmp_path, integratio
     with patch.object(voices.random, "choice", side_effect=lambda files: files[-1]):
         assert (await sound(hass, "russ-bray", "gameshot")) == {
             "key": "gameshot",
-            "media_content_id": "media-source://media_source/local/autodarts/voices/russ-bray/gameshot+2.wav",
+            "media_content_id": "media-source://media_source/local/homedarts/voices/russ-bray/gameshot+2.wav",
             "media_content_type": "audio/wav",
         }
     empty = {"key": "", "media_content_id": "", "media_content_type": ""}

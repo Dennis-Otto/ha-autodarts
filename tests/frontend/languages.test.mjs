@@ -27,7 +27,7 @@ const WORDS = {
     update: "Update naar 1.5.0",
     layout: "Indeling",
     layouts: ["Automatisch", "Bord rechts", "Bord onderaan", "Alleen bord"],
-    scoreboard: "Autodarts-scorebord",
+    scoreboard: "HomeDarts-scorebord",
   },
   fr: {
     ready: "Prêt – lancez\u00a0!",
@@ -47,7 +47,7 @@ const WORDS = {
     update: "Mise à jour vers 1.5.0",
     layout: "Disposition",
     layouts: ["Automatique", "Cible à droite", "Cible en dessous", "Cible seule"],
-    scoreboard: "Tableau des scores Autodarts",
+    scoreboard: "Tableau des scores HomeDarts",
   },
   es: {
     ready: "Todo listo – ¡lanza!",
@@ -67,7 +67,7 @@ const WORDS = {
     update: "Actualizar a 1.5.0",
     layout: "Disposición",
     layouts: ["Automática", "Diana a la derecha", "Diana debajo", "Solo la diana"],
-    scoreboard: "Marcador Autodarts",
+    scoreboard: "Marcador HomeDarts",
   },
 };
 
@@ -110,7 +110,7 @@ test("the live card speaks Dutch, French and Spanish, with their decimal comma",
   for (const lang of LANGUAGES) {
     const words = WORDS[lang];
     const states = { ...READY, "sensor.local_visit_score": score(T20), "sensor.training_average": "45.6" };
-    const card = mount("autodarts-card", makeHass({ states, language: lang }));
+    const card = mount("homedarts-card", makeHass({ states, language: lang }));
     assert.equal(raw(card, ".pill"), words.ready, lang);
     assert.equal(raw(card, ".visit-label"), words.visit, lang);
     assert.equal(text(card, ".progress"), words.progress, lang);
@@ -140,13 +140,13 @@ const BOARD = {
 test("the training and status cards speak Dutch, French and Spanish", () => {
   for (const lang of LANGUAGES) {
     const words = WORDS[lang];
-    const training = mount("autodarts-training-card", makeHass({ states: SESSION, language: lang }));
+    const training = mount("homedarts-training-card", makeHass({ states: SESSION, language: lang }));
     assert.equal(text(training, ".title"), words.training, lang);
     assert.equal(text(training, ".average"), "55,8", lang);
     assert.equal(raw(training, ".average-label"), words.averageLabel, lang);
     assert.equal(raw(training, ".session-state"), words.session, lang);
     assert.equal(raw(training, '[data-action="session"]'), words.endSession, lang);
-    const status = mount("autodarts-status-card", makeHass({ states: BOARD, cameras: [camera(1)], language: lang }));
+    const status = mount("homedarts-status-card", makeHass({ states: BOARD, cameras: [camera(1)], language: lang }));
     assert.equal(raw(status, ".pill"), words.ready, lang);
     assert.equal(raw(status, ".update-badge"), words.update, lang);
     training.remove();
@@ -179,7 +179,7 @@ test("the caller calls Dutch, French and Spanish games with a voice of that lang
   for (const lang of LANGUAGES) {
     const words = WORDS[lang];
     const hass = makeHass({ states: { ...READY, ...visit(), ...x01(501) }, language: lang });
-    const card = mount("autodarts-scoreboard-card", hass, { caller: true });
+    const card = mount("homedarts-scoreboard-card", hass, { caller: true });
     $(card, ".caller-toggle").click();
     assert.deepEqual(spoken.splice(0), [[words.callerOn, lang]], lang);
     const sam = { player: 2, name: "Sam", checkout: "D20" };
@@ -209,17 +209,17 @@ test("the caller calls Dutch, French and Spanish games with a voice of that lang
 test("card forms and the card picker speak the language of the last Home Assistant a card saw", () => {
   for (const lang of LANGUAGES) {
     const words = WORDS[lang];
-    mount("autodarts-card", makeHass({ states: READY, language: lang })).remove();
-    const form = customElements.get("autodarts-card").getConfigForm();
+    mount("homedarts-card", makeHass({ states: READY, language: lang })).remove();
+    const form = customElements.get("homedarts-card").getConfigForm();
     assert.equal(form.computeLabel({ name: "layout" }), words.layout, lang);
     assert.deepEqual(
       form.schema[2].schema[0].selector.select.options.map((option) => option.label),
       words.layouts,
       lang
     );
-    const scoreboard = window.customCards.find((card) => card.type === "autodarts-scoreboard-card");
+    const scoreboard = window.customCards.find((card) => card.type === "homedarts-scoreboard-card");
     assert.equal(scoreboard.name, words.scoreboard, lang);
     // The documentation is English and German; other languages link the English one.
-    assert.equal(scoreboard.documentationURL, "https://dennis-otto.github.io/ha-autodarts/cards.html#scoreboard-card", lang);
+    assert.equal(scoreboard.documentationURL, "https://dennis-otto.github.io/homedarts-for-autodarts/cards.html#scoreboard-card", lang);
   }
 });

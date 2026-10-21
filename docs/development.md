@@ -10,23 +10,23 @@ description: "Develop the integration: the building blocks of the cards, the tes
 
 | Path | Contents |
 | --- | --- |
-| `custom_components/autodarts/` | The integration |
-| `custom_components/autodarts/frontend/autodarts-card.js` | The seven dashboard cards, served by the integration |
-| `custom_components/autodarts/frontend/autodarts-strategy.js` | The automatic dashboard's strategy element alone, registered before Home Assistant's five seconds run out; it loads the rest from `autodarts-card.js` |
-| `custom_components/autodarts/frontend/text/` | The [texts of the cards](#texts-of-the-cards), one module per language, which `autodarts-card.js` imports |
-| `blueprints/automation/autodarts/` | Automation blueprints |
-| `custom_components/autodarts/blueprints/` | The [blueprints of the release package](#blueprints-in-the-release-package), a copy of `blueprints/` with the fingerprint of every version in `blueprint_versions.json` |
+| `custom_components/homedarts/` | The integration |
+| `custom_components/homedarts/frontend/homedarts-card.js` | The seven dashboard cards, served by the integration |
+| `custom_components/homedarts/frontend/homedarts-strategy.js` | The automatic dashboard's strategy element alone, registered before Home Assistant's five seconds run out; it loads the rest from `homedarts-card.js` |
+| `custom_components/homedarts/frontend/text/` | The [texts of the cards](#texts-of-the-cards), one module per language, which `homedarts-card.js` imports |
+| `blueprints/automation/homedarts/` | Automation blueprints |
+| `custom_components/homedarts/blueprints/` | The [blueprints of the release package](#blueprints-in-the-release-package), a copy of `blueprints/` with the fingerprint of every version in `blueprint_versions.json` |
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
 | `tests/fixtures/board_manager/` | [Recorded answers](#recorded-board-manager-answers) of Board Manager 1.0.7, 2.0.0 and 2.0.2, which both doubles of the Board Manager answer like |
-| `docs/` | Documentation and the [website](https://dennis-otto.github.io/ha-autodarts/), each German translation next to its page as `<name>.de.md` |
+| `docs/` | Documentation and the [website](https://dennis-otto.github.io/homedarts-for-autodarts/), each German translation next to its page as `<name>.de.md` |
 | `scripts/` | The checks, the [translation bot](#translation-bot) and the tools for media and diagrams |
 | `.github/` | Workflows, issue forms, the labels in `labels.toml` and the settings of the [issue assistant](#issue-assistant) in `issue-assistant/` |
 
 ## UI building blocks
 
-The cards are made of shared building blocks in `autodarts-card.js`: a change to a block reaches every card, and `tests/frontend/building-blocks.test.mjs` fails where a card leaves one out. Use them instead of styling a part anew.
+The cards are made of shared building blocks in `homedarts-card.js`: a change to a block reaches every card, and `tests/frontend/building-blocks.test.mjs` fails where a card leaves one out. Use them instead of styling a part anew.
 
 Nothing may move while a game goes on. A line that comes and goes, such as a route, a note or the details of a player, keeps its room while empty (`.route-line`, `.details-line`), and a narrow tile keeps two lines where a long one could wrap. A control that shows only at times takes the place of something, not a row of its own: the undo of the last visit is the tile beside the darts. The browser step *steady heights* checks it.
 
@@ -76,7 +76,7 @@ The integration has building blocks of its own, which every module uses instead 
 
 | Module | What it holds | Use it for |
 | --- | --- | --- |
-| `board.py` | The rings of the board (`BULL_MM`, `OUTER_BULL_MM`, `TREBLE_MM` and `DOUBLE_MM` as their inner and outer edge, `RADIUS_MM`), the numbers in `SECTORS`, and `bed_name`, `top_bed`, `segment_at`, `aim_point` and `distance_mm` | Every name of a bed and every point on the board: the bot, the dart log, the aim map, the party games and the actions that enter a dart by its position. The cards draw the same board (`R` in `autodarts-card.js`), and `tests/test_board.py` fails when the two differ or a module brings its own geometry. |
+| `board.py` | The rings of the board (`BULL_MM`, `OUTER_BULL_MM`, `TREBLE_MM` and `DOUBLE_MM` as their inner and outer edge, `RADIUS_MM`), the numbers in `SECTORS`, and `bed_name`, `top_bed`, `segment_at`, `aim_point` and `distance_mm` | Every name of a bed and every point on the board: the bot, the dart log, the aim map, the party games and the actions that enter a dart by its position. The cards draw the same board (`R` in `homedarts-card.js`), and `tests/test_board.py` fails when the two differ or a module brings its own geometry. |
 | `entity.py` | `AutodartsLocalEntity`, `AutodartsStoredEntity`, `camera_count` and `async_track_cameras` | An entity of a board; an entity of what Home Assistant keeps itself, such as a setting, a game, a session or a statistic, which stays available while the board is away; the entities of each camera, added as soon as the board reports the camera. |
 | `scoring.py` | `score`, `fits`, `average`, `rate` and `bounded_count` | The points of a dart, the In and Out modes, averages and hit rates, and a count or setting read back from a stored file. |
 
@@ -142,7 +142,7 @@ The cards of a test leave the page with it because a card that stayed made `npm 
 
 ## Docker end-to-end test
 
-The [end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames, a restart and the takeout Board Manager 2.0.2 sometimes never finishes; the test checks that visits and entities come through them and that the integration frees the takeout:
+The [end-to-end test](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames, a restart and the takeout Board Manager 2.0.2 sometimes never finishes; the test checks that visits and entities come through them and that the integration frees the takeout:
 
 ```sh
 BOARD_MANAGER=1 bash tests/e2e/run.sh
@@ -153,7 +153,7 @@ The log shows the seconds of every phase, such as `Scenario phase: resilience (4
 
 ### Recorded Board Manager answers
 
-The unit tests and the end-to-end test each talk to a double of the Board Manager: `tests/local_helpers.py` registers its answers with the HTTP mock of Home Assistant's tests, and `tests/e2e/board_mock.py` serves them in a container of its own. Both answer like the recordings in [`tests/fixtures/board_manager/`](https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/fixtures/board_manager/README.md): one folder per Board Manager version, 1.0.7, 2.0.0 and 2.0.2, with one file per route the integration reads, the frames of the socket while darts are thrown and taken out, and `capture.json`, which says where the recording comes from. The double of the end-to-end test puts the board ID and keys of the test and the state of the board it simulates over its recording; that of the unit tests answers exactly as recorded, unless a test gives answers of its own.
+The unit tests and the end-to-end test each talk to a double of the Board Manager: `tests/local_helpers.py` registers its answers with the HTTP mock of Home Assistant's tests, and `tests/e2e/board_mock.py` serves them in a container of its own. Both answer like the recordings in [`tests/fixtures/board_manager/`](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/tests/fixtures/board_manager/README.md): one folder per Board Manager version, 1.0.7, 2.0.0 and 2.0.2, with one file per route the integration reads, the frames of the socket while darts are thrown and taken out, and `capture.json`, which says where the recording comes from. The double of the end-to-end test puts the board ID and keys of the test and the state of the board it simulates over its recording; that of the unit tests answers exactly as recorded, unless a test gives answers of its own.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/board-recordings-dark.png">
@@ -162,11 +162,11 @@ The unit tests and the end-to-end test each talk to a double of the Board Manage
 
 `tests/test_board_contract.py` holds both doubles to the recordings. It fails when the double of the end-to-end test answers a route, or sends a frame, with other keys or types than its recording, when the double of the unit tests answers anything else than its recording, when the integration rejects a recording or ignores one of its frames, and when a recording keeps a secret. It also records the double of the end-to-end test with the capture script and compares the result with the recording.
 
-A real board makes a recording with `python scripts/capture_board.py <address of the board PC>`. The script reads every route, records the socket for a minute (`--seconds`, or `--frames` for a number of frames), replaces the board ID, the API key, the TLS key and certificate, the name and address of the board PC and every private IPv4 address by documented placeholders, such as `board-1` and `private-board-api-key`, and writes the folder of the version the board reports. It writes nothing that still holds one of them. The recordings of today are built from the shapes the integration was developed against (`"captured": null`); a capture of a real board replaces them, and a [board compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) asks for one. A new folder needs no change of the tests: every test of the contract takes it up.
+A real board makes a recording with `python scripts/capture_board.py <address of the board PC>`. The script reads every route, records the socket for a minute (`--seconds`, or `--frames` for a number of frames), replaces the board ID, the API key, the TLS key and certificate, the name and address of the board PC and every private IPv4 address by documented placeholders, such as `board-1` and `private-board-api-key`, and writes the folder of the version the board reports. It writes nothing that still holds one of them. The recordings of today are built from the shapes the integration was developed against (`"captured": null`); a capture of a real board replaces them, and a [board compatibility report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml) asks for one. A new folder needs no change of the tests: every test of the contract takes it up.
 
 ## Demo instance and browser test
 
-`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, four weeks of long-term statistics for the graphs, players linked to persons with pictures, highlight photos, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
+`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, four weeks of long-term statistics for the graphs, players linked to persons with pictures, highlight photos, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/homedarts-demo/board>. Login is not needed from the local network.
 
 `tests/e2e/browser.sh` checks the cards in Chromium, and in WebKit for Safari, against the demo:
 
@@ -178,7 +178,7 @@ A real board makes a recording with `python scripts/capture_board.py <address of
 - the generated dashboard, the forms of all seven cards, the strategy editor and the light theme;
 - the new game screen, scoreboard, keypad and tournament on an 800 × 480 tablet, without sideways scrolling and with targets of at least 44 px, and idle mode on a device that asks for reduced motion;
 - touch screens driven by taps: an iPhone with the safe areas of its status bar and home indicator, a small Android phone, an iPhone on its side and a 24 inch touch monitor, with a theme of see-through cards. Every game of the new game screen is tapped, a match is started, played and ended there, and four players with long names play X01 and Cricket. On the board of the keypad two fingers zoom in and a finger aims with the loupe and enters a treble 20 where it lets go; the board to correct a dart opens zoomed in on a small screen, and a tap corrects it. The scoreboard has to stay one screen high above the home indicator, the start bar has to cover what scrolls beneath it, and the board may neither cover a key nor draw beyond its box;
-- Safari on an iPhone, in WebKit, signed in as a phone that opened Home Assistant before, with the tokens of the frontend in its storage, so that its first load shows the dashboard without the login page: the automatic dashboard has to open although `autodarts-card.js` comes six seconds late, after Home Assistant stopped waiting for the element of the strategy, and the page has to load the module once. Then every game of the new game screen has to stay under the finger that taps it;
+- Safari on an iPhone, in WebKit, signed in as a phone that opened Home Assistant before, with the tokens of the frontend in its storage, so that its first load shows the dashboard without the login page: the automatic dashboard has to open although `homedarts-card.js` comes six seconds late, after Home Assistant stopped waiting for the element of the strategy, and the page has to load the module once. Then every game of the new game screen has to stay under the finger that taps it;
 - every view of both dashboards and the scoreboard's own screens, with the scoreboard during a game, the keypad's board and the board of a correction, on nine sizes, from a small phone to a 27 inch touch monitor, both ways round and in German, and on the phones the scoreboard during a game in English, Spanish, French and Dutch too: no card wider than the screen, no text cut off, lying on other text, running over the edge of its tile or smaller than 11 px, no row of buttons running over its edge, no control smaller than 40 px on a touch screen, and no full-height scoreboard below the screen;
 - steady heights: X01 with routes, setups, a bust and the game shot, a match of legs and sets, Cricket, Tactics, Killer and 121 checkout, dart by dart on four sizes in German. From the start of a game to its last dart, no card and no part of the scoreboard may change its height, on the live card beside the scoreboard, the full-height scoreboard and the live card with its game;
 - accessibility: every card meets WCAG 2.1 at levels A and AA, checked by [axe-core](https://github.com/dequelabs/axe-core) on a laptop and an iPhone in the dark and the light theme (see [Accessibility check](#accessibility-check));
@@ -190,7 +190,7 @@ After each step the log shows its seconds, such as `Browser step: steady heights
 
 ### The browser test in shards
 
-The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` splits the shard of the machine once more: worker w runs the shard `(k - 1) * W + w` of `n * W` on a demo instance of its own, side by side, so `1/2` alone runs the groups 1 and 3, but `1/2` with two workers the shards `1/4` and `2/4`, the groups 1 and 2. Each worker has its browser, a Compose project of its own (`autodarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`. `browser.sh` refuses more shards than groups before it starts anything, such as `BROWSER_SHARD=2/4` with `BROWSER_WORKERS=2`.
+The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` splits the shard of the machine once more: worker w runs the shard `(k - 1) * W + w` of `n * W` on a demo instance of its own, side by side, so `1/2` alone runs the groups 1 and 3, but `1/2` with two workers the shards `1/4` and `2/4`, the groups 1 and 2. Each worker has its browser, a Compose project of its own (`homedarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`. `browser.sh` refuses more shards than groups before it starts anything, such as `BROWSER_SHARD=2/4` with `BROWSER_WORKERS=2`.
 
 ```sh
 BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # every step, four shards at once
@@ -220,7 +220,7 @@ The browser test waits for what it checks, never for a fixed time, which would b
 
 The steps that look at many screens open them side by side and play every game once for all of them: *every screen size* its nine screens, and then the phones in four more languages; *steady heights* its four screens with three views each; *accessibility* its four screens and themes, where axe-core scans all of them at the same time; and *a dartboard without Autodarts* its nine screens. A wait that runs out names the page with its screen size and language, what it waited for and what the page showed instead, such as the request that got no answer or the state of each entity.
 
-`tests/test_e2e_waits.py` fails when the browser test waits a fixed time with `page.wait_for_timeout`, except for the two waits it lists with their reasons, each called once: a finger that rests on the loupe for 120 ms before it lets go, and the six seconds for which the Safari step holds back `autodarts-card.js`. No script that drives a browser may call `time.sleep`: Playwright's sync API handles the events of the browser, such as a request that a route holds back, only inside its own calls, so a sleep stops all of them. `tests/test_e2e_waits.py` also fails when a step runs the clock of a page that it installs only after the page has loaded, or never, because the timers of the cards would then run on the real clock.
+`tests/test_e2e_waits.py` fails when the browser test waits a fixed time with `page.wait_for_timeout`, except for the two waits it lists with their reasons, each called once: a finger that rests on the loupe for 120 ms before it lets go, and the six seconds for which the Safari step holds back `homedarts-card.js`. No script that drives a browser may call `time.sleep`: Playwright's sync API handles the events of the browser, such as a request that a route holds back, only inside its own calls, so a sleep stops all of them. `tests/test_e2e_waits.py` also fails when a step runs the clock of a page that it installs only after the page has loaded, or never, because the timers of the cards would then run on the real clock.
 
 ### Accessibility check
 
@@ -281,9 +281,9 @@ Each job of a group lists the seconds of its sections in its summary, and the lo
 
 ### Screenshot bot
 
-The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/autodarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test, and the [recorded answers](#recorded-board-manager-answers) of its simulated Board Manager) reaches `main`, every Thursday and on demand, it renders every image of both languages anew, in [groups side by side](#groups-side-by-side), and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file. Only the rendered images go over those of `main`: the diagrams in `docs/images`, which `main` may have anew by the time the images are rendered, stay as they are, and an image that neither the tool nor a diagram in `docs/diagrams` makes any more goes.
+The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/homedarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test, and the [recorded answers](#recorded-board-manager-answers) of its simulated Board Manager) reaches `main`, every Thursday and on demand, it renders every image of both languages anew, in [groups side by side](#groups-side-by-side), and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file. Only the rendered images go over those of `main`: the diagrams in `docs/images`, which `main` may have anew by the time the images are rendered, stay as they are, and an image that neither the tool nor a diagram in `docs/diagrams` makes any more goes.
 
-A release starts the bot as well. It writes its version into `custom_components/autodarts/manifest.json`, and the integration page in `online-bridge.png` shows the major version of it ([a fixed version](#the-same-images-in-every-run)): a release of the same major version renders every image as it was, a new major version, such as 2.0.0, changes that image. The maintainer or the release app merges the release pull request, so its push to `main` starts workflows like any other; only a merge with the `GITHUB_TOKEN` of a workflow would start none. So the image follows a new major version within the hour rather than on Thursday, and the visual check of later pull requests doesn't report it as changed for days.
+A release starts the bot as well. It writes its version into `custom_components/homedarts/manifest.json`, and the integration page in `online-bridge.png` shows the major version of it ([a fixed version](#the-same-images-in-every-run)): a release of the same major version renders every image as it was, a new major version, such as 2.0.0, changes that image. The maintainer or the release app merges the release pull request, so its push to `main` starts workflows like any other; only a merge with the `GITHUB_TOKEN` of a workflow would start none. So the image follows a new major version within the hour rather than on Thursday, and the visual check of later pull requests doesn't report it as changed for days.
 
 Its job *timeline* records the games of the [live demo](#live-demo-of-the-website) anew at the same time, and the pull request brings a recording that changed along with the images.
 
@@ -313,7 +313,7 @@ Keep animations short, below about 20 seconds and 1 MB, and give every image a d
 
 ## Live demo of the website
 
-The [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) plays the cards on the website, without Home Assistant: a 501 against the bot, a Cricket game and a tournament, in the five languages of the cards, on a desktop and a phone. Nobody records it by hand, and nothing in it is made up.
+The [live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html) plays the cards on the website, without Home Assistant: a 501 against the bot, a Cricket game and a tournament, in the five languages of the cards, on a desktop and a phone. Nobody records it by hand, and nothing in it is made up.
 
 - `scripts/record_demo.py` lets the integration play the games in the Home Assistant of the tests, at a simulated board, on a clock that moves only with the games (`tests/demo_timeline.py` describes them). After every move it keeps the states of the entities that changed and the answers to the positions command of the training card, in `docs/demo/timeline.json`, one line per step. Two recordings of the same code are the same, byte for byte. `tests/test_demo_timeline.py` plays the games in every run of the tests, so a change that breaks them fails there.
 - `docs/demo/index.html` and `docs/demo/demo.js` are the page. A small stand-in for Home Assistant hands the cards the states of each step, as Home Assistant would, with every date and time in them moved to the moment of the replay, so a countdown counts and "since" reads today. A button of a card, or a tap on an entity, only shows a note that this is a recording; nothing leaves the page. The website takes the cards from the integration as they are (`on_post_build` in `scripts/mkdocs_hooks.py`), so the demo always shows the cards of its version.
@@ -423,7 +423,7 @@ bot with a new recording, starts that one job and none of Home Assistant:
 
 | Path | Why the live demo uses it |
 | --- | --- |
-| `custom_components/autodarts/frontend/` | the cards that it plays |
+| `custom_components/homedarts/frontend/` | the cards that it plays |
 | `docs/demo/`, `docs/branding/`, `scripts/mkdocs_hooks.py` | the page, its recording and what the website gives it |
 | `tests/e2e/live_demo.py`, `tests/e2e/live_demo.sh`, `tests/e2e/requirements-browser.txt` | its browser test |
 | `.github/workflows/e2e.yml` | the workflow itself |
@@ -479,7 +479,7 @@ with a stand-in for `gh`.
 
 ### When a check of this project fails
 
-A check that fails explains itself, also to a contributor from a fork: the [PR coach](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#when-a-check-fails) of the blueprint says what it found, why that matters and how to fix it, with the commands to run. It takes the checks of the blueprint from `.github/checks.toml`, and those of this project alone from `.github/checks.project.toml`. When a job of the end-to-end tests or of the visual check fails, its last step, *Explain the failure*, writes the explanation into the summary of the job and as its annotation. After the checks, the coach shows it in its one comment on the pull request; the comment follows the visual check as well, because the answer `test_workflows` of `.copier-answers.yml` names it.
+A check that fails explains itself, also to a contributor from a fork: the [PR coach](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#when-a-check-fails) of the blueprint says what it found, why that matters and how to fix it, with the commands to run. It takes the checks of the blueprint from `.github/checks.toml`, and those of this project alone from `.github/checks.project.toml`. When a job of the end-to-end tests or of the visual check fails, its last step, *Explain the failure*, writes the explanation into the summary of the job and as its annotation. After the checks, the coach shows it in its one comment on the pull request; the comment follows the visual check as well, because the answer `test_workflows` of `.copier-answers.yml` names it.
 
 | Check | What its explanation names | How it is fixed |
 | --- | --- | --- |
@@ -491,7 +491,7 @@ A check that fails explains itself, also to a contributor from a fork: the [PR c
 | *render (…)* and *compare (…)* of the visual check | `tests/e2e/visual.sh` for the group and the language | by a person; an image that only looks different is no failure, the screenshot bot renders it after the merge |
 | the step *Checks of this project* of `scripts/check.sh` | the license, ESLint and the tests of the cards and of the translation bot with Node | by the fix bot, as far as a command can |
 
-What a command can fix, the fix bot fixes. When the check *check (home-assistant)* fails, it runs the commands of `autofix` of every step of `scripts/check.sh`; the step *Checks of this project* names ESLint's fixes of the cards, `python scripts/sync_translations.py` and `python scripts/ship_blueprints.py`. The sync of the translations copies `strings.json` to `translations/en.json` and puts the texts of every other language in the order of `strings.json`, without those that it no longer has; a text that a language misses stays for a person: write it in the language, or ask in the pull request for a maintainer or a native speaker to add it before the merge ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). After the checks, the bot commits the files that changed onto the branch of the pull request, or suggests them at their lines on a pull request from a fork, and `python3 .github/blueprint.py fix run` makes the same fixes on your machine. Both reach the step *Checks of this project* once the blueprint finds a step inside an `if` of `scripts/check.sh` ([Dennis-Otto/repo-blueprint#351](https://github.com/Dennis-Otto/repo-blueprint/issues/351)); until then, run its three commands yourself.
+What a command can fix, the fix bot fixes. When the check *check (home-assistant)* fails, it runs the commands of `autofix` of every step of `scripts/check.sh`; the step *Checks of this project* names ESLint's fixes of the cards, `python scripts/sync_translations.py` and `python scripts/ship_blueprints.py`. The sync of the translations copies `strings.json` to `translations/en.json` and puts the texts of every other language in the order of `strings.json`, without those that it no longer has; a text that a language misses stays for a person: write it in the language, or ask in the pull request for a maintainer or a native speaker to add it before the merge ([translations](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#translations)). After the checks, the bot commits the files that changed onto the branch of the pull request, or suggests them at their lines on a pull request from a fork, and `python3 .github/blueprint.py fix run` makes the same fixes on your machine. Both reach the step *Checks of this project* once the blueprint finds a step inside an `if` of `scripts/check.sh` ([Dennis-Otto/repo-blueprint#351](https://github.com/Dennis-Otto/repo-blueprint/issues/351)); until then, run its three commands yourself.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/check-coach-dark.png">
@@ -571,7 +571,7 @@ positions, Cricket, the bot and the party games. Most tests check them directly,
 one run on the four cores of a runner reaches all of their 2,804 mutants in under
 two hours. The X01 practice game, the training games and the tournaments would add
 about 5,900 mutants, more than the 320 minutes of a run allow; they join once the
-workflow splits the run into parts. The [Mutation run of 13 October 2026](https://github.com/Dennis-Otto/ha-autodarts/actions/runs/38461492820)
+workflow splits the run into parts. The [Mutation run of 13 October 2026](https://github.com/Dennis-Otto/homedarts-for-autodarts/actions/runs/38461492820)
 took 1 h 51 min: it killed 2,503 of the 2,804 mutants, let 294 survive and stopped 7
 at the time limit, a score of 89 %. Most of the survivors are in the party games, the
 bot and the positions.
@@ -609,7 +609,7 @@ To run them yourself on Linux or macOS (mutmut forks, so on Windows in WSL or Do
 
 ```sh
 .venv/bin/pip install --require-hashes --no-deps -r .github/mutation-requirements.txt
-.venv/bin/mutmut run "custom_components.autodarts.checkout*"
+.venv/bin/mutmut run "custom_components.homedarts.checkout*"
 .venv/bin/mutmut results
 .venv/bin/mutmut show <name of a mutant>
 ```
@@ -655,14 +655,14 @@ The job *issue-assistant* of the **Lint** workflow runs the action's `check`: it
 
 ## Texts of the cards
 
-The texts of the cards are one module per language in `custom_components/autodarts/frontend/text/`, `export default` followed by JSON, so that a translator edits one small file and every tool reads it alike: the consistency tests, the browser test and the [translation bot](#translation-bot) drop the lines of comments and read the rest as JSON. `autodarts-card.js` imports each file and puts them together in `TEXT`; `tests/test_consistency.py` checks the files, their imports and their keys ([decision 0019](decisions/0019-card-texts-per-language.md)).
+The texts of the cards are one module per language in `custom_components/homedarts/frontend/text/`, `export default` followed by JSON, so that a translator edits one small file and every tool reads it alike: the consistency tests, the browser test and the [translation bot](#translation-bot) drop the lines of comments and read the rest as JSON. `homedarts-card.js` imports each file and puts them together in `TEXT`; `tests/test_consistency.py` checks the files, their imports and their keys ([decision 0019](decisions/0019-card-texts-per-language.md)).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/card-files-dark.png">
-  <img src="images/en/card-files-light.png" alt="How a browser gets the cards and their texts: at every start, the integration digests every file of the cards, both modules and the texts of each language. Version and digest name a folder such as /autodarts/1.16.0-0123abcd/, from which every page loads autodarts-strategy.js and autodarts-card.js. The card module imports text/en.js, text/de.js and the other languages beside it, from the same folder, and the browser keeps every file of the folder for a month. A release, or a text changed in one language, gives a new folder for every file, so no browser mixes files of two versions." width="560">
+  <img src="images/en/card-files-light.png" alt="How a browser gets the cards and their texts: at every start, the integration digests every file of the cards, both modules and the texts of each language. Version and digest name a folder such as /homedarts/1.16.0-0123abcd/, from which every page loads homedarts-strategy.js and homedarts-card.js. The card module imports text/en.js, text/de.js and the other languages beside it, from the same folder, and the browser keeps every file of the folder for a month. A release, or a text changed in one language, gives a new folder for every file, so no browser mixes files of two versions." width="560">
 </picture>
 
-The integration serves every file of the folder at `/autodarts/<version>-<digest>/<path>`, compressed, and hands both modules to every page at those addresses (`card.py`). Relative imports keep the folder, so a change of any file, also of one text, moves all of them to new addresses, and no browser keeps an old text beside a new card. The folder of a version that has gone and the addresses without a version serve today's files, which browsers ask for again on every load.
+The integration serves every file of the folder at `/homedarts/<version>-<digest>/<path>`, compressed, and hands both modules to every page at those addresses (`card.py`). Relative imports keep the folder, so a change of any file, also of one text, moves all of them to new addresses, and no browser keeps an old text beside a new card. The folder of a version that has gone and the addresses without a version serve today's files, which browsers ask for again on every load.
 
 ## Translation bot
 
@@ -685,7 +685,7 @@ Each issue lists the keys with a link to their line, the English text now and wh
 
 ## Blueprints in the release package
 
-HACS installs the package of a release, which holds only the folder of the integration, so the blueprints travel in `custom_components/autodarts/blueprints/`, a copy of `blueprints/` ([decision 0023](decisions/0023-blueprints-ship-with-the-integration.md)). `custom_components/autodarts/blueprint_versions.json` keeps a fingerprint of every version of each blueprint that main has had, by which the integration recognises a blueprint nobody changed and updates it, see `shipped_blueprints.py` and the [updates of the blueprints](automations.md#updates-of-the-blueprints). After a change of a blueprint:
+HACS installs the package of a release, which holds only the folder of the integration, so the blueprints travel in `custom_components/homedarts/blueprints/`, a copy of `blueprints/` ([decision 0023](decisions/0023-blueprints-ship-with-the-integration.md)). `custom_components/homedarts/blueprint_versions.json` keeps a fingerprint of every version of each blueprint that main has had, by which the integration recognises a blueprint nobody changed and updates it, see `shipped_blueprints.py` and the [updates of the blueprints](automations.md#updates-of-the-blueprints). After a change of a blueprint:
 
 ```sh
 python scripts/ship_blueprints.py
@@ -701,6 +701,6 @@ See the [release guide](releases.md).
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
 - Python follows Ruff and strict mypy (`pyproject.toml`), JavaScript the recommended rules of ESLint (`eslint.config.mjs`); `scripts/check.sh` fails on either.
-- User-facing text goes into `strings.json` and every translation, card texts into every file of `frontend/text/`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text, and for a text that no card reads any more ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
+- User-facing text goes into `strings.json` and every translation, card texts into every file of `frontend/text/`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text, and for a text that no card reads any more ([translations](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
 - New behavior needs tests, and new user-facing features need documentation in English and German.
 - A part of a card is built of the [UI building blocks](#ui-building-blocks): what a tap does shows before the tap.

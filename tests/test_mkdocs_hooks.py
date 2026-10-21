@@ -13,7 +13,7 @@ SPEC = importlib.util.spec_from_file_location(
 hooks = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(hooks)
 CONFIG = SimpleNamespace(docs_dir=str(ROOT / "docs"))
-SITE = "https://dennis-otto.github.io/ha-autodarts/"
+SITE = "https://dennis-otto.github.io/homedarts-for-autodarts/"
 
 
 def page(source: str, url: str, **meta: object) -> SimpleNamespace:
@@ -74,7 +74,7 @@ def test_a_link_in_the_language_of_the_website_stays_for_mkdocs():
         ("[Releases](releases.md)", GERMAN),
         ("[Spiele](games.de.md)", FALLBACK),
         ("[Changelog](../CHANGELOG.md)", ENGLISH),
-        ("[GitHub](https://github.com/Dennis-Otto/ha-autodarts)", ENGLISH),
+        ("[GitHub](https://github.com/Dennis-Otto/homedarts-for-autodarts)", ENGLISH),
         ("[Below](#live-card)", ENGLISH),
     ]:
         assert markdown(text, of) == text
@@ -147,8 +147,8 @@ def test_the_live_demo_gets_the_cards_of_the_integration(tmp_path):
     (tmp_path / "demo").mkdir()
     (tmp_path / "demo" / "index.html").write_text("<!doctype html>", encoding="utf-8")
     hooks.on_post_build(SimpleNamespace(site_dir=str(tmp_path), site_url=SITE))
-    cards = ROOT / "custom_components" / "autodarts" / "frontend" / "autodarts-card.js"
-    assert (tmp_path / "demo" / "autodarts-card.js").read_bytes() == cards.read_bytes()
+    cards = ROOT / "custom_components" / "homedarts" / "frontend" / "homedarts-card.js"
+    assert (tmp_path / "demo" / "homedarts-card.js").read_bytes() == cards.read_bytes()
     # The texts that the card module imports, beside it as in the integration.
     texts = sorted((cards.parent / "text").glob("*.js"))
     assert len(texts) == 5
@@ -286,13 +286,16 @@ def test_a_line_back_within_the_text_stays():
     for text, website in [
         ("# Cards\n\nText.\n\n[← Documentation](README.md)\n", "index.md"),
         ("# Cards\n\n[← Documentation](README.md)\nmore text.\n", "index.md"),
-        ("# Cards\n\n[← Project](https://github.com/Dennis-Otto/ha-autodarts)\n", ""),
+        (
+            "# Cards\n\n[← Project](https://github.com/Dennis-Otto/homedarts-for-autodarts)\n",
+            "",
+        ),
         ("# Cards\n\n[Documentation](README.md)\n", "index.md"),
     ]:
         assert markdown(text, ENGLISH) == text.replace("README.md", website, 1)
 
 
-REPOSITORY = "https://github.com/Dennis-Otto/ha-autodarts"
+REPOSITORY = "https://github.com/Dennis-Otto/homedarts-for-autodarts"
 
 
 def repository(tmp_path: Path, **files: str) -> SimpleNamespace:

@@ -12,9 +12,9 @@ The integration includes seven cards. Home Assistant loads them automatically, s
 - adapts to its width, from a phone to a wall tablet;
 - finds your board by itself. With several boards, choose one in the editor.
 
-**[Try them live](https://dennis-otto.github.io/ha-autodarts/demo/index.html)**: the scoreboard, the live, training and players cards play a 501 against the bot, a Cricket game and a tournament in your browser, without Home Assistant.
+**[Try them live](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html)**: the scoreboard, the live, training and players cards play a 501 against the bot, a Cricket game and a tournament in your browser, without Home Assistant.
 
-To add one, edit a dashboard, select **Add card** and search for **Autodarts**. The card picker names the cards in your language and links each one to its section below.
+To add one, edit a dashboard, select **Add card** and search for **HomeDarts**. The card picker names the cards **HomeDarts**, **HomeDarts training**, **HomeDarts board status**, **HomeDarts scoreboard**, **HomeDarts players**, **HomeDarts doubles** and **HomeDarts leaderboard**, in your language, and links each one to its section below.
 
 **On this page:** [Live card](#live-card) · [Training card](#training-card) · [Board status card](#board-status-card) · [Scoreboard card](#scoreboard-card) · [Doubles card](#doubles-card) · [Players card](#players-card) · [Leaderboard card](#leaderboard-card) · [Automatic dashboard](#automatic-dashboard) · [Home Assistant Cast](#home-assistant-cast) · [Card editor](#card-editor) · [Accessibility](#accessibility) · [Tips](#tips)
 
@@ -22,7 +22,7 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
 
 ## Live card
 
-`custom:autodarts-card` shows the current visit, dart by dart, on a board drawn with the geometry of the Autodarts Board Manager.
+`custom:homedarts-card` shows the current visit, dart by dart, on a board drawn with the geometry of the Autodarts Board Manager.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/en/card-light.png">
@@ -66,7 +66,7 @@ On a phone, the live card stacks the visit, the board, the statistics and the co
 | `device_id` | device | first board | The board to show |
 | `title` | text | board name | Card title |
 | `layout` | `auto`, `horizontal`, `vertical`, `board` | `auto` | Board on the right, board below, or board only. `auto` switches to vertical on narrow cards |
-| `board_style` | `classic`, `autodarts` | `classic` | Classic board with wires, or the flat Autodarts look |
+| `board_style` | `classic`, `flat` | `classic` | Classic board with wires, or the flat look (*Flat* in the editor) |
 | `highlight` | `visit`, `last`, `none` | `visit` | Highlight all darts of the visit, only the last one, or none |
 | `blink` | boolean | `true` | Blink the hit beds |
 | `show_markers` | boolean | `true` | Show dart positions |
@@ -83,25 +83,25 @@ On a phone, the live card stacks the visit, the board, the statistics and the co
 | `accent_color` | [color](#colors) | theme primary color | Labels and main button |
 | `highlight_color` | [color](#colors) | `#ffd60a` (gold) | Hit beds and the latest dart |
 
-With `layout: vertical` and `board_style: autodarts`, the board sits below the visit, in the flat look of Autodarts:
+With `layout: vertical` and `board_style: flat`, the board sits below the visit, in the flat look:
 
-<img src="images/en/card-autodarts-style.png" alt="The live card in the vertical layout with the Autodarts board style: the visit of T20, S5 and Bull for 115 points above the board, the training session and the controls below it" width="400">
+<img src="images/en/card-flat-style.png" alt="The live card in the vertical layout with the flat board style: the visit of T20, S5 and Bull for 115 points above the board, the training session and the controls below it" width="400">
 
 With `layout: board`, the card shows the board alone:
 
 <img src="images/en/card-board-only.png" alt="The live card in the board layout: only the board, with the three darts of the visit and the beds they hit lit up" width="400">
 
 ```yaml
-type: custom:autodarts-card
+type: custom:homedarts-card
 layout: vertical
-board_style: autodarts
+board_style: flat
 highlight: last
 highlight_color: "#00e5ff"
 ```
 
 ## Training card
 
-`custom:autodarts-training-card` turns the local [training session](entities.md#training-session) into a dashboard you'll want to look at after every session.
+`custom:homedarts-training-card` turns the local [training session](entities.md#training-session) into a dashboard you'll want to look at after every session.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/en/training-card-light.png">
@@ -123,7 +123,7 @@ highlight_color: "#00e5ff"
 - **Recent visits:** a bar chart of your last visits with the session average as a dashed line.
   - Bars are colored gray below 60, accent color from 60, green for 100+, orange for 140+ and gold for 180.
   - The visits come from the recorder, so the chart survives page reloads, and every visit shows, also when the turn passes at the same moment, as it does in a practice game.
-  - An [undone visit](entities.md#undo-a-visit-autodartsundo_visit) leaves the chart; corrected, it comes back as a new visit. The bot's visits are left out, as they count for nobody.
+  - An [undone visit](entities.md#undo-a-visit-homedartsundo_visit) leaves the chart; corrected, it comes back as a new visit. The bot's visits are left out, as they count for nobody.
 - **Past sessions:** end time, duration, darts, 3-dart average and highest visit of your last five finished sessions.
 - **Session controls:**
   - *Start session* and *End session* switch the [training session](entities.md#training-session) on and off. Ending needs a second tap to confirm.
@@ -138,7 +138,7 @@ highlight_color: "#00e5ff"
 | `title` | text | *Training · board name* | Card title |
 | `mode` | `beds`, `numbers`, `positions`, `aim` | `beds` | Heatmap per bed, per number, of the dart positions or of where to aim |
 | `player` | text | the session | A player name: the heatmap starts with that player's darts. The editor lists the named players and takes any other name |
-| `board_style` | `muted`, `classic`, `autodarts` | `muted` | The muted board lets the heatmap stand out |
+| `board_style` | `muted`, `classic`, `flat` | `muted` | The muted board lets the heatmap stand out |
 | `history_size` | 5–60 | `20` | Visits in the chart; labels are shown up to 30 |
 | `show_heatmap` | boolean | `true` | Show the heatmap |
 | `show_heatmap_controls` | boolean | `true` | Show the switches of the mode and of whose darts the heatmap shows |
@@ -151,7 +151,7 @@ highlight_color: "#00e5ff"
 | `accent_color` | [color](#colors) | theme primary color | Labels and 60+ visits |
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: numbers
 history_size: 40
 show_reset: false
@@ -171,7 +171,7 @@ The switches above the board choose the mode and whose darts the heatmap shows:
 
 ## Board status card
 
-`custom:autodarts-status-card` shows the health of the board and gathers the maintenance actions in one place.
+`custom:homedarts-status-card` shows the health of the board and gathers the maintenance actions in one place.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/en/status-card-light.png">
@@ -200,13 +200,13 @@ A [dartboard without Autodarts](without-autodarts.md) has none of these; the car
 | `accent_color` | [color](#colors) | theme primary color | Labels and the detection switch |
 
 ```yaml
-type: custom:autodarts-status-card
+type: custom:homedarts-status-card
 show_system: false
 ```
 
 ## Scoreboard card
 
-`custom:autodarts-scoreboard-card` is made for a tablet or TV next to the board: large enough to read from the oche, and it always shows what is being played.
+`custom:homedarts-scoreboard-card` is made for a tablet or TV next to the board: large enough to read from the oche, and it always shows what is being played.
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
@@ -220,7 +220,7 @@ show_system: false
 - **Winner:** a banner names the winner of the match with the result, for example *Alex wins the match 3 : 2!*, until the next dart. The result counts legs, or sets in a match of sets; a match of one leg has none.
 - **Match summary:** when an X01 or Cricket match ends, the [match summary](#match-summary) takes the place of the players.
 - **Tournaments:** the round of the match, and between the matches the table or the bracket; see [tournaments](#tournaments).
-- **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
+- **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-homedartslink_player) show the person's picture next to their name.
 - **Visit:** the three darts of the current visit along the bottom, and beside them its score. While the board is empty, and between games where the big number is the visit, that tile shows the last visit instead, which a tap takes back. A tap on a dart corrects it; see [correcting and entering darts](#correcting-and-entering-darts). Nothing on the card changes its height during a game: the lines for a route, a note and the details keep their room while empty, and a narrow tile keeps two lines for a long route from the start.
 - **Caller:** with `caller: true`, the screen at the board calls the game itself in the language of Home Assistant: English, German, Dutch, French or Spanish (other languages hear English). It calls only what counts:
   - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), "leave yourself 32" when only a [setup](entities.md#setup-hints) is possible, the game shot of a leg and the match, and a fanfare for a 180 that counted. The bot is called *Bot*.
@@ -253,10 +253,10 @@ Choose the next game at the board, without a phone: tap **New game** below the s
 <img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
 - **Game:** every game of *Practice game*, grouped into X01, Cricket, party games and training games. `lobby_games` limits the choice.
-- **Players:** up to four, in a party game up to eight, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. In X01 and the Cricket games, *+ Bot* seats the [bot](entities.md#bot) after the players, at level 60; − and + change its level in steps of 10, from 20 to 120, and ✕ sends it home. With the bot, up to three players play. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
+- **Players:** up to four, in a party game up to eight, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-homedartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. In X01 and the Cricket games, *+ Bot* seats the [bot](entities.md#bot) after the players, at level 60; − and + change its level in steps of 10, from 20 to 120, and ✕ sends it home. With the bot, up to three players play. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
 - **Format:** legs per set and sets to win, for a match of several players.
 - **Options:** for X01 the in and out mode, *Straight*, *Double* or *Master*, the bull mode *25/50* or *50/50* and *Max rounds* in steps up to 50, a tournament straight or double in and out alone; and the bull-off for a match, with bull-off by distance where the board offers it. With four players of X01 or a Cricket game, *Teams* plays 1 and 3 against 2 and 4.
-- **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. If detection is stopped, the start switches it on, because no dart counts without it; the screen says so above the button. The start stays at the bottom of the screen while the page scrolls. During a game, *End game* stops it after a second tap.
+- **Start:** starts the game with [`homedarts.start_game`](entities.md#start-a-practice-game-homedartsstart_game), and the scoreboard shows it at once. If detection is stopped, the start switches it on, because no dart counts without it; the screen says so above the button. The start stays at the bottom of the screen while the page scrolls. During a game, *End game* stops it after a second tap.
 
 The screen never opens in the preview of the card editor.
 
@@ -270,7 +270,7 @@ The darts of the visit along the bottom are buttons while `corrections` is on, w
 
 <img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
 
-- **Correct a dart:** tap a dart the board read wrong. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; S, D or T is set to the dart's bed. Tap the multiplier, then the number, or 25, Bull or Miss, and [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart) puts the dart there. The remaining score and the visit follow at once. A second tap on the dart, or *Cancel*, closes the pad. The bot's darts cannot be corrected.
+- **Correct a dart:** tap a dart the board read wrong. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; S, D or T is set to the dart's bed. Tap the multiplier, then the number, or 25, Bull or Miss, and [`homedarts.correct_dart`](entities.md#correct-a-dart-homedartscorrect_dart) puts the dart there. The remaining score and the visit follow at once. A second tap on the dart, or *Cancel*, closes the pad. The bot's darts cannot be corrected.
 - **Where the dart is:** *Keys | Board* at the top of the pad switches from the keys to the board. Tap the spot where the dart is: the bed follows from it, and the dart is logged there in the [dart positions](how-it-works.md#dart-positions). The dashed ring shows where the board saw the dart. A dart corrected with the keys has no position, because the board misread the spot as well. The board stays the pad's view until *Keys* is chosen, and the keypad uses it too.
 
   <img src="images/en/correct-dart-board.webp" alt="Animation: the board read the second dart as T20 for 180; a tap on it opens the pad, Board shows the board with a dashed ring where the board saw the dart, and a tap on the single 20 above it corrects the visit to 140" width="760">
@@ -279,9 +279,9 @@ The darts of the visit along the bottom are buttons while `corrections` is on, w
 
   <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
 
-- **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras; on a [dartboard without Autodarts](without-autodarts.md) it always shows, unless the card sets `keypad: false`, for example on a TV without touch. Every tap on a bed enters a dart with [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout; it needs a second tap. While the bot is at the board, the keypad waits.
-- **Score:** in X01, *Keys | Board | Score* has a third view, the score of a visit: its digits in as many rows as the numbers of the keys, the score typed and what it leaves in the head, and **OK**, which sends [`autodarts.enter_visit`](entities.md#enter-a-visits-score-autodartsenter_visit). A score that no visit makes from where the player stands, such as 179, or 180 before the opening double with double in, says so, and **OK** waits for another. A checkout asks for its darts where it could take fewer than three, and for the darts at a double where they can differ; a visit that leaves a double in reach asks for the darts at it. The answers keep the rows of the digits, so the pad keeps its height, and *Cancel* goes back to the score. A keyboard types the score too: when the score view opens, the pad takes the focus; digits type the score, Backspace takes back a digit, and Enter sends it, also while a digit of the pad has the focus. During a question, the digits of its answers answer it, and Escape or Backspace go back to the score. The pad keeps the focus after a score went in, so the next one can be typed at once, and while the bot throws, the keys wait as the pad does. On a narrow pad, such as on a 360 pixel phone, the three views show icons, the dots of a keypad, the rings of the board and a sum, so they keep the line of S, D and T; their names stay their labels for screen readers.
-- **Undo:** the tile *Last* beside the darts shows the last visit with a curved arrow while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take it back, for a wrong reading noticed after the darts were pulled or a typo on the keypad. A tap turns it red and asks *Undo?*, a second tap takes the visit back; it comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again. With the keypad too, the tile is the undo, so the keypad keeps the same keys after every visit.
+- **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras; on a [dartboard without Autodarts](without-autodarts.md) it always shows, unless the card sets `keypad: false`, for example on a TV without touch. Every tap on a bed enters a dart with [`homedarts.throw_dart`](entities.md#enter-a-dart-homedartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout; it needs a second tap. While the bot is at the board, the keypad waits.
+- **Score:** in X01, *Keys | Board | Score* has a third view, the score of a visit: its digits in as many rows as the numbers of the keys, the score typed and what it leaves in the head, and **OK**, which sends [`homedarts.enter_visit`](entities.md#enter-a-visits-score-homedartsenter_visit). A score that no visit makes from where the player stands, such as 179, or 180 before the opening double with double in, says so, and **OK** waits for another. A checkout asks for its darts where it could take fewer than three, and for the darts at a double where they can differ; a visit that leaves a double in reach asks for the darts at it. The answers keep the rows of the digits, so the pad keeps its height, and *Cancel* goes back to the score. A keyboard types the score too: when the score view opens, the pad takes the focus; digits type the score, Backspace takes back a digit, and Enter sends it, also while a digit of the pad has the focus. During a question, the digits of its answers answer it, and Escape or Backspace go back to the score. The pad keeps the focus after a score went in, so the next one can be typed at once, and while the bot throws, the keys wait as the pad does. On a narrow pad, such as on a 360 pixel phone, the three views show icons, the dots of a keypad, the rings of the board and a sum, so they keep the line of S, D and T; their names stay their labels for screen readers.
+- **Undo:** the tile *Last* beside the darts shows the last visit with a curved arrow while [`homedarts.undo_visit`](entities.md#undo-a-visit-homedartsundo_visit) can take it back, for a wrong reading noticed after the darts were pulled or a typo on the keypad. A tap turns it red and asks *Undo?*, a second tap takes the visit back; it comes back to correct its darts, and the keypad's *Next player* or [`homedarts.next_player`](entities.md#pass-the-turn-homedartsnext_player) ends it again. With the keypad too, the tile is the undo, so the keypad keeps the same keys after every visit.
 - **Marks:** a dart that a tap corrects has a frame and a pencil at its top right; one entered or corrected by hand has a dashed frame, and the bot's darts are tinted in the accent color. On a dartboard without Autodarts, where every dart is entered by hand, only corrected darts get the dashed frame.
 
 On a full-height scoreboard in landscape, the pad and the keypad sit beside the scores, so the players, the visit and the pad fit the screen together. The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
@@ -298,7 +298,7 @@ During a [tournament](entities.md#tournaments), the scoreboard follows it:
 - **Bracket:** a column for every round, with the match for third place below the final; byes, open places and results; the next match is outlined. A player who goes on slides into the next round; on devices set to reduce motion, the places fill without moving.
 - **Winner:** after the last match, a banner names the winner of the tournament, and the table or the bracket stays until a new match begins.
 - **Caller:** with the caller on and `call_results`, it announces every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
-- **New game screen:** *Tournament* switches the screen to a tournament of named players, up to eight in a round robin and 32 in the other formats: X01, with start scores for a handicap, or a Cricket game, round robin, knockout, double elimination or groups and knockout, with groups the number of groups (*Auto* lets the board choose) and how many of each go on, which start from *Tournament groups* and *Tournament qualifiers per group*, legs and sets, the rules, the match for third place and a random draw. *Start tournament* starts it with [`autodarts.start_tournament`](entities.md#start-a-tournament-autodartsstart_tournament). During a tournament, *Stop tournament* ends it and its game after a second tap. Starting a new tournament while one is played stops that one first: the screen says so, and the start needs a second tap.
+- **New game screen:** *Tournament* switches the screen to a tournament of named players, up to eight in a round robin and 32 in the other formats: X01, with start scores for a handicap, or a Cricket game, round robin, knockout, double elimination or groups and knockout, with groups the number of groups (*Auto* lets the board choose) and how many of each go on, which start from *Tournament groups* and *Tournament qualifiers per group*, legs and sets, the rules, the match for third place and a random draw. *Start tournament* starts it with [`homedarts.start_tournament`](entities.md#start-a-tournament-homedartsstart_tournament). During a tournament, *Stop tournament* ends it and its game after a second tap. Starting a new tournament while one is played stops that one first: the screen says so, and the start needs a second tap.
 - **Several boards:** in a [tournament on several boards](games.md#a-tournament-on-several-boards), the scoreboard of every board plays its own match. Above the table or the bracket, a box for every board shows the players of its match, or when its next match starts, with the box of the card's own board outlined, and below the boxes the expected end of the tournament.
 - **Idle mode:** the panel `tournament` shows the table or the bracket of the tournament being played or just finished, on several boards with the boxes of the boards.
 
@@ -344,7 +344,7 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `call_darts` | `off`, `score`, `bed` | `off` | Call [every dart](scoreboard.md#for-blind-and-low-vision-players) as it lands: by its points, such as 60, or by its bed, such as Treble 20 |
 | `call_route` | boolean | `false` | Call the route of a checkout, also after each dart that leaves another one |
 | `call_target` | boolean | `false` | Call the next target of a training or party game, such as Double 16 |
-| `caller_voice` | text | empty | A [voice pack](scoreboard.md#voice-packs): the name of a folder of `/media/autodarts/voices` with recorded calls, such as a pack of darts-caller; empty is the browser's voice |
+| `caller_voice` | text | empty | A [voice pack](scoreboard.md#voice-packs): the name of a folder of `/media/homedarts/voices` with recorded calls, such as a pack of darts-caller; empty is the browser's voice |
 | `lobby` | boolean | `true` | Offer the [new game screen](#new-game-screen) |
 | `lobby_games` | list of games | every game | The games the new game screen offers, for example `["501", cricket, killer]` |
 | `idle` | boolean | `true` | Switch [idle mode](#idle-mode) on |
@@ -364,7 +364,7 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, idle mode, correcting and entering darts, and the stream overlay have collapsed sections of their own. An overlay leaves out the status, the caller, the new game screen, idle mode, the keypad and the corrections, which nobody taps on a stream, and the match summary unless it takes the whole picture.
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 full_height: true
 caller: true
 lobby_games: ["301", "501", cricket, killer]
@@ -387,7 +387,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 ## Doubles card
 
-`custom:autodarts-doubles-card` shows the [doubles analysis](entities.md#doubles-analysis): every double hit on the double ring of the board, colored by its hit rate from red (rarely hit) to green (about every second dart) where darts were aimed at it, and in the accent color by how often it was hit where not. The list below shows every double, the best rate first, with how often it was hit by any dart, the hits and darts aimed at it, and its hit rate. The favorite double is filled. With `player`, it shows the doubles of one named player instead of everybody's; a name without a profile gets a hint to check its spelling.
+`custom:homedarts-doubles-card` shows the [doubles analysis](entities.md#doubles-analysis): every double hit on the double ring of the board, colored by its hit rate from red (rarely hit) to green (about every second dart) where darts were aimed at it, and in the accent color by how often it was hit where not. The list below shows every double, the best rate first, with how often it was hit by any dart, the hits and darts aimed at it, and its hit rate. The favorite double is filled. With `player`, it shows the doubles of one named player instead of everybody's; a name without a profile gets a hint to check its spelling.
 
 <img src="images/en/doubles-card.png" alt="Doubles card: the double ring colored by hit rate from red to green, and a list of the doubles with hits, darts and hit rate, the best first" width="760">
 
@@ -402,7 +402,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 ## Players card
 
-`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture. Below, the head-to-head records with a balance bar and the recent matches with their result and the winner in bold: the legs every player won, or the sets in a match of sets, such as *Cricket · Sets*. On request, an *Export* button downloads everything as a file; only administrators see it, as the export is an action for administrators.
+`custom:homedarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Players [linked to a person](entities.md#link-a-player-to-a-person-homedartslink_player) show the person's picture. Below, the head-to-head records with a balance bar and the recent matches with their result and the winner in bold: the legs every player won, or the sets in a match of sets, such as *Cricket · Sets*. On request, an *Export* button downloads everything as a file; only administrators see it, as the export is an action for administrators.
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
@@ -427,13 +427,13 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 | `show_trends` | boolean | `true` | Show the trends |
 | `trend_weeks` | 4–12 | `12` | Weeks in the trends |
 | `show_spread` | boolean | `true` | Show the groupings |
-| `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`autodarts.export`](entities.md#export-training-data-autodartsexport) to `autodarts/exports` in the media folder and downloads the file through Home Assistant with your login. Exports contain player names, so only administrators can export and download; for other users, such as the one of a wall tablet, the export fails. |
+| `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`homedarts.export`](entities.md#export-training-data-homedartsexport) to `homedarts/exports` in the media folder and downloads the file through Home Assistant with your login. Exports contain player names, so only administrators can export and download; for other users, such as the one of a wall tablet, the export fails. |
 | `export_format` | `csv`, `json` | `csv` | Format of the export; CSV comes as a ZIP file with one table each |
 | `accent_color` | [color](#colors) | theme primary color | Labels, the balance bars, progress and trend lines |
 
 ## Leaderboard card
 
-`custom:autodarts-leaderboard-card` ranks the records of all named players. The leader of each record gets the crown, the next places follow.
+`custom:homedarts-leaderboard-card` ranks the records of all named players. The leader of each record gets the crown, the next places follow.
 
 <img src="images/en/leaderboard-card.png" alt="Leaderboard card with the period switch and the records best average, highest checkout, most 180s, fewest darts in 501, best Cricket MPR, longest streak, most badges and most darts, each with the leader and two more places" width="760">
 
@@ -462,7 +462,7 @@ A period covers whole weeks from Monday: *This week* the current week, *Last 4 w
 | `accent_color` | [color](#colors) | theme primary color | Labels and the period switch |
 
 ```yaml
-type: custom:autodarts-leaderboard-card
+type: custom:homedarts-leaderboard-card
 period: month
 limit: 5
 ```
@@ -472,7 +472,7 @@ limit: 5
 Instead of arranging the cards yourself, let the integration build a whole dashboard:
 
 1. Go to **Settings → Dashboards → Add dashboard**.
-2. Choose **Autodarts**.
+2. Choose **HomeDarts**.
 
 For every board, the dashboard gets up to six views in its tabs and the stream overlay, which update themselves when you add a board or enable entities:
 
@@ -498,7 +498,7 @@ In YAML, the whole dashboard is one line; `device_id`, `title`, `scoreboard` and
 
 ```yaml
 strategy:
-  type: custom:autodarts
+  type: custom:homedarts
   device_id: 0123456789abcdef   # only this board
   title: Darts
   scoreboard:
@@ -518,7 +518,7 @@ If the chosen board is removed from Home Assistant, the dashboard says so instea
 
 ## Home Assistant Cast
 
-[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) shows a dashboard on a TV through a Chromecast, or on a Google Nest Hub, without a browser on the device. The cards and the automatic dashboard work there too: Cast loads the dashboard resources of Home Assistant, and the integration keeps its two modules there, `autodarts-strategy.js` and `autodarts-card.js`, in the folder of its version under `/autodarts/`, such as `/autodarts/1.16.0-0123abcd/autodarts-card.js`. It brings them up to date with every start of Home Assistant and removes them with its last board. *Settings → Dashboards → ⋮ → Resources* lists them when advanced mode is on in your user profile. Browsers stay as they are: they load each module once, as a resource and as part of Home Assistant.
+[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) shows a dashboard on a TV through a Chromecast, or on a Google Nest Hub, without a browser on the device. The cards and the automatic dashboard work there too: Cast loads the dashboard resources of Home Assistant, and the integration keeps its two modules there, `homedarts-strategy.js` and `homedarts-card.js`, in the folder of its version under `/homedarts/`, such as `/homedarts/1.16.0-0123abcd/homedarts-card.js`. It brings them up to date with every start of Home Assistant and removes them with its last board. *Settings → Dashboards → ⋮ → Resources* lists them when advanced mode is on in your user profile. Browsers stay as they are: they load each module once, as a resource and as part of Home Assistant.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/cast-dark.png">
@@ -531,9 +531,9 @@ If the chosen board is removed from Home Assistant, the dashboard says so instea
   lovelace:
     resource_mode: yaml
     resources:
-      - url: /autodarts/autodarts-strategy.js
+      - url: /homedarts/homedarts-strategy.js
         type: module
-      - url: /autodarts/autodarts-card.js
+      - url: /homedarts/homedarts-card.js
         type: module
   ```
 
@@ -546,7 +546,7 @@ The guide [scoreboard at the board](scoreboard.md#on-a-tv-with-home-assistant-ca
 
 All options can be set in the visual editor. It is a form of Home Assistant, so it looks and works like the editors of the built-in cards:
 
-- The device picker offers only Autodarts boards.
+- The device picker offers only the boards of HomeDarts.
 - Switches show their default until you change them; lists name their default below the field.
 - The caller options, the new game screen and idle mode of the scoreboard wait in collapsed sections; the doubles card offers the named players.
 - An option the form cannot show, such as a mistyped `layout`, sends the editor to the code view with a message that names it.
@@ -579,4 +579,5 @@ The cards work with a keyboard, with a screen reader and without animations:
 - **Combine:** put the live card and the training card next to each other in a sections view with two columns.
 - **Several boards:** add one card per board and choose the board in each card's editor.
 - **Cached old version:** after an update, the card URL changes automatically. If a browser still shows an old card, reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
+- **Dashboards from version 1.x:** up to version 1.18, the cards were called `custom:autodarts-card` and so on, and the flat look was `board_style: autodarts`. The takeover renames them in the dashboards that Home Assistant keeps; in a dashboard in YAML, replace `custom:autodarts` with `custom:homedarts` and `board_style: autodarts` with `board_style: flat` ([what you change yourself](new-name.md#what-you-change-yourself)).
 - **Download size:** all cards come in one module and their texts in a small file per language, compressed to about 175 KB together. A browser downloads it on its first visit and after an update and keeps it until the next one, so only the first load of a dashboard waits for it on a slow connection.

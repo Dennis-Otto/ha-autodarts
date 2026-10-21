@@ -18,7 +18,7 @@ import {
   topHits,
   visitBucket,
   visitsFromHistory,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const RUNS = { numRuns: 2000 };
 const BED_NAMES = ["Triple", "Double", "SingleInner", "SingleOuter", "Single", "Outside", null, "", "<b>"];

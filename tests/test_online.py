@@ -27,11 +27,11 @@ from pytest_homeassistant_custom_component.components.diagnostics import (
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
 
-from custom_components.autodarts import online
-from custom_components.autodarts.config_flow import AutodartsConfigFlow
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.local_coordinator import EVENT_TYPES
-from custom_components.autodarts.online import (
+from custom_components.homedarts import online
+from custom_components.homedarts.config_flow import AutodartsConfigFlow
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.local_coordinator import EVENT_TYPES
+from custom_components.homedarts.online import (
     EFFECT_TRIGGERS,
     MOMENTS,
     ONLINE_EVENT_TYPES,
@@ -134,7 +134,7 @@ async def call(client, method: str = "GET", query: str = "", **kwargs):
         ("miss", None, "online_dart", {"segment": "MISS", "score": 0}),
     ],
 )
-def test_triggers_of_tools_for_autodarts(trigger, player, kind, details):
+def test_triggers_of_tools_for_homedarts(trigger, player, kind, details):
     assert parse(trigger, player) == (
         kind,
         {"trigger": trigger, **({"name": player} if player else {}), **details},
@@ -231,7 +231,7 @@ async def test_options_switch_the_bridge_on_and_show_the_address(hass, aioclient
     assert entry.runtime_data.bridge is None
     assert (
         er.async_get(hass).async_get_entity_id(
-            "sensor", "autodarts", "board-1_online_bridge_last_event"
+            "sensor", "homedarts", "board-1_online_bridge_last_event"
         )
         is None
     )
@@ -332,7 +332,7 @@ async def test_options_switch_the_bridge_on_and_show_the_address(hass, aioclient
     assert hass.states.get(SENSOR) is None
     assert (
         er.async_get(hass).async_get_entity_id(
-            "sensor", "autodarts", "board-1_online_bridge_last_event"
+            "sensor", "homedarts", "board-1_online_bridge_last_event"
         )
         is None
     )
@@ -363,7 +363,7 @@ async def test_only_an_entry_with_a_local_board_has_options(hass, aioclient_mock
     """The bridge delivers moments as events of the local board."""
     local = await setup_bridge(hass, aioclient_mock, options={})
     manual = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         minor_version=2,
         data={"board_id": "manual_1", "manual_board": True, "name": "Dartboard"},
@@ -394,7 +394,7 @@ async def test_address_without_the_configured_urls(hass):
 async def test_calls_become_board_events(
     hass, aioclient_mock, hass_client_no_auth, caplog
 ):
-    caplog.set_level(logging.DEBUG, logger="custom_components.autodarts")
+    caplog.set_level(logging.DEBUG, logger="custom_components.homedarts")
     entry = await setup_bridge(hass, aioclient_mock)
     events = record_events(hass)
     client = await hass_client_no_auth()
@@ -504,7 +504,7 @@ async def test_calls_become_board_events(
     assert not [
         record
         for record in caplog.records
-        if record.name.startswith("custom_components.autodarts")
+        if record.name.startswith("custom_components.homedarts")
         and WEBHOOK_ID in record.getMessage()
     ]
 
@@ -589,7 +589,7 @@ async def test_invalid_calls_are_refused(
 async def test_unknown_triggers_are_explained_once(
     hass, aioclient_mock, hass_client_no_auth, caplog
 ):
-    caplog.set_level(logging.DEBUG, logger="custom_components.autodarts")
+    caplog.set_level(logging.DEBUG, logger="custom_components.homedarts")
     await setup_bridge(hass, aioclient_mock)
     events = record_events(hass)
     client = await hass_client_no_auth()
@@ -602,7 +602,7 @@ async def test_unknown_triggers_are_explained_once(
     warnings = [
         record.getMessage()
         for record in caplog.records
-        if record.name == "custom_components.autodarts.online"
+        if record.name == "custom_components.homedarts.online"
         and record.levelno == logging.WARNING
     ]
     assert warnings == [

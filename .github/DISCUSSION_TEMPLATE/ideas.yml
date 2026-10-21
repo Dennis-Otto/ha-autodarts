@@ -3,7 +3,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Share an idea for a game, a card, an automation or anything else. The [roadmap](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/roadmap.md) shows what is already planned.
+        Share an idea for a game, a card, an automation or anything else. The [roadmap](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/docs/roadmap.md) shows what is already planned.
   - type: textarea
     id: idea
     attributes:

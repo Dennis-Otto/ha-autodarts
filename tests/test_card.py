@@ -18,7 +18,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.card import (
+from custom_components.homedarts.card import (
     FRONTEND,
     _accepts_gzip,
     _load,
@@ -26,12 +26,12 @@ from custom_components.autodarts.card import (
     async_register_card,
     async_remove_card_resources,
 )
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.sensor import AutodartsVisitSensor
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.sensor import AutodartsVisitSensor
 
 from .local_helpers import STATE, entity_id, setup_local
 
-MANIFEST = Path(__file__).parents[1] / "custom_components/autodarts/manifest.json"
+MANIFEST = Path(__file__).parents[1] / "custom_components/homedarts/manifest.json"
 
 
 def dart(name, number, multiplier, bed, x=None, y=None):
@@ -220,14 +220,14 @@ def tag():
 
 def address(name):
     """A file of the cards in the folder of this version."""
-    return f"/autodarts/{tag()}/{name}"
+    return f"/homedarts/{tag()}/{name}"
 
 
 async def serve_card(hass, hass_client_no_auth):
     """Register the card as Home Assistant does and return a client without a login."""
     assert await async_setup_component(hass, "http", {})
     hass.config.components.add("frontend")
-    with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
+    with patch("custom_components.homedarts.card.add_extra_js_url") as add_js:
         await async_register_card(hass)
     return await hass_client_no_auth(), add_js
 
@@ -244,26 +244,26 @@ async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth
     client, add_js = await serve_card(hass, hass_client_no_auth)
     # The strategy comes first and imports the card from the same folder.
     assert [call.args for call in add_js.call_args_list] == [
-        (hass, address("autodarts-strategy.js")),
-        (hass, address("autodarts-card.js")),
+        (hass, address("homedarts-strategy.js")),
+        (hass, address("homedarts-card.js")),
     ]
-    response = await client.get(address("autodarts-strategy.js"))
+    response = await client.get(address("homedarts-strategy.js"))
     assert response.status == 200
     # Home Assistant's own header for static files, which the card module copies.
     static_cache_control = response.headers["Cache-Control"]
     assert static_cache_control == "public, max-age=2678400"
-    assert await response.read() == FILES["autodarts-strategy.js"].read_bytes()
+    assert await response.read() == FILES["homedarts-strategy.js"].read_bytes()
 
     # Every browser accepts gzip, as the test client does: a quarter of the module.
-    response = await client.get(address("autodarts-card.js"), auto_decompress=False)
+    response = await client.get(address("homedarts-card.js"), auto_decompress=False)
     assert response.status == 200
     assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
     assert response.headers["Content-Encoding"] == "gzip"
     assert_cached(response)
     assert response.headers["Cache-Control"] == static_cache_control
     sent = await response.read()
-    assert gzip.decompress(sent) == FILES["autodarts-card.js"].read_bytes()
-    assert len(sent) < FILES["autodarts-card.js"].stat().st_size * 0.3
+    assert gzip.decompress(sent) == FILES["homedarts-card.js"].read_bytes()
+    assert len(sent) < FILES["homedarts-card.js"].stat().st_size * 0.3
 
 
 async def test_the_texts_of_every_language_are_served_beside_the_card(
@@ -275,7 +275,7 @@ async def test_the_texts_of_every_language_are_served_beside_the_card(
     assert texts == [
         f"text/{language}.js" for language in ("de", "en", "es", "fr", "nl")
     ]
-    source = FILES["autodarts-card.js"].read_text(encoding="utf-8")
+    source = FILES["homedarts-card.js"].read_text(encoding="utf-8")
     for name in texts:
         assert f'from "./{name}";' in source
         response = await client.get(address(name), auto_decompress=False)
@@ -292,8 +292,8 @@ async def test_only_the_files_of_the_cards_are_served(hass, hass_client_no_auth)
         address("text/xx.js"),
         address("card.py"),
         address("manifest.json"),
-        f"/autodarts/{tag()}/frontend/autodarts-card.js",
-        f"/autodarts/{tag()}/other/{tag()}/autodarts-card.js",
+        f"/homedarts/{tag()}/frontend/homedarts-card.js",
+        f"/homedarts/{tag()}/other/{tag()}/homedarts-card.js",
     ):
         response = await client.get(path)
         assert response.status == 404, path
@@ -304,7 +304,7 @@ def test_a_change_of_any_file_moves_every_address(tmp_path):
     mixes a cached card module with the texts of another version."""
     folder = tmp_path / "frontend"
     shutil.copytree(FRONTEND, folder)
-    with patch("custom_components.autodarts.card.FRONTEND", folder):
+    with patch("custom_components.homedarts.card.FRONTEND", folder):
         files, digest = _load()
         assert list(files) == sorted(FILES)
         assert files[TEXT][0] == FILES[TEXT].read_bytes()
@@ -328,7 +328,7 @@ async def test_card_is_plain_for_clients_without_gzip(
 ):
     client, _ = await serve_card(hass, hass_client_no_auth)
     response = await client.get(
-        address("autodarts-card.js"),
+        address("homedarts-card.js"),
         headers=headers,
         skip_auto_headers=[] if headers else ["Accept-Encoding"],
         auto_decompress=False,
@@ -337,13 +337,13 @@ async def test_card_is_plain_for_clients_without_gzip(
     assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
     assert "Content-Encoding" not in response.headers
     assert_cached(response)
-    assert await response.read() == FILES["autodarts-card.js"].read_bytes()
+    assert await response.read() == FILES["homedarts-card.js"].read_bytes()
 
 
 async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
     client, _ = await serve_card(hass, hass_client_no_auth)
     # A browser asks again after a month, Safari also on every reload.
-    url = address("autodarts-card.js")
+    url = address("homedarts-card.js")
     for known in (f'W/"{tag()}"', f'"{tag()}"', f'"0.1.0-00000000", W/"{tag()}"', "*"):
         response = await client.get(url, headers={"If-None-Match": known})
         assert response.status == 304
@@ -352,7 +352,7 @@ async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
     # A copy of another version gets the module served now.
     response = await client.get(url, headers={"If-None-Match": 'W/"0.1.0-0"'})
     assert response.status == 200
-    assert await response.read() == FILES["autodarts-card.js"].read_bytes()
+    assert await response.read() == FILES["homedarts-card.js"].read_bytes()
 
 
 @pytest.mark.parametrize(
@@ -388,20 +388,20 @@ def test_the_first_weight_of_gzip_counts(rest):
 
 async def test_card_is_skipped_without_web_frontend(hass):
     hass.http = Mock(async_register_static_paths=AsyncMock())
-    with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
-        assert await async_setup_component(hass, "autodarts", {})
+    with patch("custom_components.homedarts.card.add_extra_js_url") as add_js:
+        assert await async_setup_component(hass, "homedarts", {})
     hass.http.async_register_static_paths.assert_not_called()
     hass.http.register_view.assert_not_called()
     add_js.assert_not_called()
 
 
-@pytest.mark.parametrize("name", ["autodarts-strategy.js", "autodarts-card.js", TEXT])
+@pytest.mark.parametrize("name", ["homedarts-strategy.js", "homedarts-card.js", TEXT])
 @pytest.mark.parametrize(
     "folder",
     [
-        "/autodarts/{name}",
-        "/autodarts/{name}?v={tag}",
-        "/autodarts/0.1.0-00000000/{name}",
+        "/homedarts/{name}",
+        "/homedarts/{name}?v={tag}",
+        "/homedarts/0.1.0-00000000/{name}",
     ],
     ids=["no version", "the query of earlier releases", "a version that has gone"],
 )
@@ -426,13 +426,13 @@ async def test_an_address_of_no_or_another_version_never_goes_stale(
 CAST = "https://cast.home-assistant.io"
 OTHER = ("module", "/hacsfiles/button-card/button-card.js")
 # A copy of the card module in the www folder, as people installed cards by hand.
-COPY = "/local/autodarts/autodarts-card.js"
+COPY = "/local/homedarts/homedarts-card.js"
 
 
 async def test_home_assistant_cast_may_load_both_modules(hass, hass_client_no_auth):
     """The Cast receiver runs on its own origin and loads the modules from there."""
     client, _ = await serve_card(hass, hass_client_no_auth)
-    for name in ("autodarts-strategy.js", "autodarts-card.js", TEXT):
+    for name in ("homedarts-strategy.js", "homedarts-card.js", TEXT):
         response = await client.get(address(name), headers={"Origin": CAST})
         assert response.status == 200
         assert response.headers["Access-Control-Allow-Origin"] == CAST
@@ -450,8 +450,8 @@ def listed(hass):
 def ours():
     """Both modules at their current addresses, the strategy first."""
     return [
-        ("module", address("autodarts-strategy.js")),
-        ("module", address("autodarts-card.js")),
+        ("module", address("homedarts-strategy.js")),
+        ("module", address("homedarts-card.js")),
     ]
 
 
@@ -463,7 +463,7 @@ async def with_dashboards(hass, **lovelace):
 
 
 async def register(hass):
-    with patch("custom_components.autodarts.card.add_extra_js_url"):
+    with patch("custom_components.homedarts.card.add_extra_js_url"):
         await async_register_card(hass)
 
 
@@ -476,23 +476,23 @@ async def test_cast_finds_both_modules_in_the_dashboard_resources(hass, hass_sto
                 {
                     "id": "old",
                     "type": "module",
-                    "url": "/autodarts/autodarts-strategy.js?v=1.0.0-00000000",
+                    "url": "/homedarts/homedarts-strategy.js?v=1.0.0-00000000",
                 },
                 {"id": "theirs", "type": OTHER[0], "url": OTHER[1]},
                 {
                     "id": "by-hand",
                     "type": "js",
-                    "url": "http://homeassistant.local:8123/autodarts/autodarts-card.js",
+                    "url": "http://homeassistant.local:8123/homedarts/homedarts-card.js",
                 },
                 {
                     "id": "twice",
                     "type": "module",
-                    "url": "/autodarts/autodarts-card.js?v=1.0.0-00000000",
+                    "url": "/homedarts/homedarts-card.js?v=1.0.0-00000000",
                 },
                 {
                     "id": "folder",
                     "type": "module",
-                    "url": "/autodarts/1.15.0-00000000/autodarts-strategy.js",
+                    "url": "/homedarts/1.15.0-00000000/homedarts-strategy.js",
                 },
                 {"id": "copy", "type": "module", "url": COPY},
             ]
@@ -580,7 +580,7 @@ async def manual_board(hass, digit, name):
 async def test_cast_gets_the_cards_until_the_last_board_is_deleted(hass):
     await with_dashboards(hass)
     await resources(hass).async_create_item({"res_type": OTHER[0], "url": OTHER[1]})
-    with patch("custom_components.autodarts.card.add_extra_js_url"):
+    with patch("custom_components.homedarts.card.add_extra_js_url"):
         garage = await manual_board(hass, "1", "Garage")
         cellar = await manual_board(hass, "2", "Cellar")
     assert listed(hass) == [OTHER, *ours()]

@@ -6,7 +6,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import (
     S20,
@@ -186,9 +186,9 @@ async def test_start_game_checks_teams_and_start_scores(hass, aioclient_mock):
 async def test_new_games_and_options_survive_a_restart(
     hass, aioclient_mock, hass_storage
 ):
-    hass_storage["autodarts.games-entry.training"] = {
+    hass_storage["homedarts.games-entry.training"] = {
         "version": 1,
-        "key": "autodarts.games-entry.training",
+        "key": "homedarts.games-entry.training",
         "data": {
             "practice": {
                 "game": "cut_throat",
@@ -202,7 +202,7 @@ async def test_new_games_and_options_survive_a_restart(
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts", version=2, data=local_entry_data(), entry_id="games-entry"
+        domain="homedarts", version=2, data=local_entry_data(), entry_id="games-entry"
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

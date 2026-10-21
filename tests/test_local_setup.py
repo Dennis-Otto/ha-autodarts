@@ -11,9 +11,9 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.camera import AutodartsCamera
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.errors import AutodartsConnectionError
+from custom_components.homedarts.camera import AutodartsCamera
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.errors import AutodartsConnectionError
 
 from .local_helpers import (
     BASE,
@@ -47,7 +47,7 @@ async def test_local_setup_entities_and_private_diagnostics(
         registry.async_get(entity_id(hass, "button", "calibrate")).disabled_by is None
     )
     device = dr.async_get(hass).async_get_device_by_identifier(
-        ("autodarts", "board-1"), entry.entry_id
+        ("homedarts", "board-1"), entry.entry_id
     )
     assert device.name == "Autodarts Board"
     assert device.sw_version == "1.0.7"
@@ -216,7 +216,7 @@ async def test_optional_endpoints_and_delayed_camera_discovery(
     assert state(hass, "switch", "auto_calibrate") == "unavailable"
     registry = er.async_get(hass)
     assert (
-        registry.async_get_entity_id("camera", "autodarts", "board-1_camera_0") is None
+        registry.async_get_entity_id("camera", "homedarts", "board-1_camera_0") is None
     )
     coordinator = entry.runtime_data.local
     with patch.object(
@@ -227,7 +227,7 @@ async def test_optional_endpoints_and_delayed_camera_discovery(
         await coordinator.async_refresh()
         await hass.async_block_till_done()
         assert (
-            registry.async_get_entity_id("camera", "autodarts", "board-1_camera_1")
+            registry.async_get_entity_id("camera", "homedarts", "board-1_camera_1")
             is None
         )
         freezer.tick(timedelta(seconds=1))
@@ -269,7 +269,7 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
     config = deepcopy(CONFIG)
     config["auth"]["board_id"] = "another-board"
     mock_board(aioclient_mock, config=config)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     # The entry loads for training and games; the board stays out of reach.
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -279,6 +279,6 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
     assert state(hass, "button", "calibrate") == "unavailable"
     assert state(hass, "switch", "training_session") == "on"
     issue = ir.async_get(hass).async_get_issue(
-        "autodarts", f"wrong_board_{entry.entry_id}"
+        "homedarts", f"wrong_board_{entry.entry_id}"
     )
     assert issue.translation_placeholders == {"address": BASE}

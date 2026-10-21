@@ -17,20 +17,21 @@ ROOT = Path(__file__).parents[1]
 SCRIPT = ROOT / "scripts" / "reach.sh"
 BASH = shutil.which("bash")
 # Two pages of releases, as gh --paginate --slurp prints them: the downloads of
-# autodarts.zip count on both, those of other files do not.
+# homedarts.zip, and of autodarts.zip up to 1.18, count on both, those of other
+# files do not.
 RELEASES = [
     [
         {
-            "tag_name": "v1.2.0",
+            "tag_name": "v2.0.0",
             "assets": [
-                {"name": "autodarts.zip", "download_count": 30},
+                {"name": "homedarts.zip", "download_count": 30},
                 {"name": "notes.txt", "download_count": 99},
             ],
         }
     ],
     [
         {
-            "tag_name": "v1.1.0",
+            "tag_name": "v1.18.0",
             "assets": [{"name": "autodarts.zip", "download_count": 12}],
         }
     ],
@@ -47,16 +48,16 @@ MONTHS = {
 pytestmark = pytest.mark.skipif(BASH is None, reason="needs bash")
 
 
-def fake(tmp_path: Path, versions: dict[str, int]) -> dict[str, str]:
+def fake(
+    tmp_path: Path, versions: dict[str, int], domain: str = "homedarts"
+) -> dict[str, str]:
     tmp_path.mkdir(exist_ok=True)
     answers = {
         "releases": RELEASES,
         "views": {"count": 40, "uniques": 17},
         "referrers": REFERRERS,
         "repository": {"stargazers_count": 4},
-        "analytics": {
-            "autodarts": {"total": sum(versions.values()), "versions": versions}
-        },
+        "analytics": {domain: {"total": sum(versions.values()), "versions": versions}},
     }
     for name, answer in answers.items():
         (tmp_path / f"{name}.json").write_text(json.dumps(answer), encoding="utf-8")
@@ -81,10 +82,12 @@ esac
     return {**os.environ, "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}
 
 
-def row(tmp_path: Path, versions: dict[str, int], *arguments: str) -> list[str]:
+def row(
+    tmp_path: Path, versions: dict[str, int], *arguments: str, domain: str = "homedarts"
+) -> list[str]:
     result = subprocess.run(
         [BASH, str(SCRIPT), *arguments],
-        env=fake(tmp_path, versions),
+        env=fake(tmp_path, versions, domain),
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -101,15 +104,19 @@ def month(language: str) -> str:
 
 
 def test_the_row_counts_the_downloads_of_every_page_and_google_in_any_case(tmp_path):
-    assert row(tmp_path, {"1.2.0": 3}) == [month("en"), "42", "17", "2", "Yes", "4"]
+    assert row(tmp_path, {"2.0.0": 3}) == [month("en"), "42", "17", "2", "Yes", "4"]
 
 
-def test_another_integration_with_the_same_domain_does_not_count(tmp_path):
-    assert row(tmp_path, {"0.4.2": 8})[4] == "No"
+def test_installations_of_the_former_domain_count(tmp_path):
+    assert row(tmp_path, {"1.18.0": 2}, domain="autodarts")[4] == "Yes"
+
+
+def test_another_integration_with_the_former_domain_does_not_count(tmp_path):
+    assert row(tmp_path, {"0.4.2": 8}, domain="autodarts")[4] == "No"
 
 
 def test_the_german_row_names_the_month_and_the_answer_in_german(tmp_path):
-    assert row(tmp_path, {"1.1.0": 1}, "de") == [
+    assert row(tmp_path, {"2.0.0": 1}, "de") == [
         month("de"),
         "42",
         "17",

@@ -1,10 +1,10 @@
 """Ship the blueprints with the integration, after a change of one of them.
 
-Copies blueprints/automation/autodarts/ into the integration, whose release
+Copies blueprints/automation/homedarts/ into the integration, whose release
 package carries it, and adds the fingerprint of each blueprint to
-custom_components/autodarts/blueprint_versions.json. With the fingerprints of
+custom_components/homedarts/blueprint_versions.json. With the fingerprints of
 every earlier version, the integration recognises a blueprint nobody changed and
-brings it up to date (custom_components/autodarts/shipped_blueprints.py).
+brings it up to date (custom_components/homedarts/shipped_blueprints.py).
 
     python scripts/ship_blueprints.py
     python scripts/ship_blueprints.py --history   # also every version in Git
@@ -22,12 +22,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path("blueprints", "automation", "autodarts")
+SOURCE = Path("blueprints", "automation", "homedarts")
 sys.path.insert(0, str(ROOT))
 
 from homeassistant.util.yaml import parse_yaml  # noqa: E402
 
-from custom_components.autodarts.shipped_blueprints import (  # noqa: E402
+from custom_components.homedarts.shipped_blueprints import (  # noqa: E402
     SHIPPED,
     VERSIONS,
     fingerprint,

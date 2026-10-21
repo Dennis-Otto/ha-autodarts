@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.autodarts.camera_health import CameraHealth
+from custom_components.homedarts.camera_health import CameraHealth
 
 
 def board(fps=None, running=True, status="Throw", cameras=True):

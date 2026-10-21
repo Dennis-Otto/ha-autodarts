@@ -14,12 +14,12 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
-from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import (
+from custom_components.homedarts.errors import AutodartsConnectionError
+from custom_components.homedarts.local_api import (
     AutodartsLocalAuthError,
     AutodartsLocalClient,
 )
-from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
+from custom_components.homedarts.local_coordinator import AutodartsLocalCoordinator
 
 from .local_helpers import (
     BASE,
@@ -62,7 +62,7 @@ class Socket:
 @pytest.fixture
 def motion_sensors_enabled():
     """Also create the motion sensors that start disabled."""
-    with patch("custom_components.autodarts.binary_sensor.MOTION_DISABLED", ()):
+    with patch("custom_components.homedarts.binary_sensor.MOTION_DISABLED", ()):
         yield
 
 
@@ -472,11 +472,11 @@ async def test_removing_integration_deletes_saved_session(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     entry.runtime_data.local.async_receive("state", board(T20))
-    store = Store(hass, 1, f"autodarts.{entry.entry_id}.training")
+    store = Store(hass, 1, f"homedarts.{entry.entry_id}.training")
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert (await store.async_load())["darts"] == 1
     await hass.config_entries.async_remove(entry.entry_id)
-    assert f"autodarts.{entry.entry_id}.training" not in hass_storage
+    assert f"homedarts.{entry.entry_id}.training" not in hass_storage
 
 
 async def test_wrong_board_mutes_push_and_keeps_controls_unavailable(

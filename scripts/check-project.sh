@@ -11,7 +11,7 @@ python3 - <<'PYTHON'
 import hashlib
 from pathlib import Path
 
-for path in ("LICENSE", "custom_components/autodarts/LICENSE"):
+for path in ("LICENSE", "custom_components/homedarts/LICENSE"):
 	text = Path(path).read_text(encoding="utf-8")
 	if not text.startswith("MIT License\n") or "Copyright (c)" not in text:
 		raise SystemExit(f"{path}: the MIT license and its copyright must stay.")
@@ -33,7 +33,7 @@ if ! command -v node >/dev/null 2>&1 || [[ ! -d node_modules ]]; then
 	echo "Node.js or its packages (npm ci) are missing here; the CI tests the cards."
 	exit 0
 fi
-for module in custom_components/autodarts/frontend/*.js custom_components/autodarts/frontend/text/*.js; do
+for module in custom_components/homedarts/frontend/*.js custom_components/homedarts/frontend/text/*.js; do
 	node --check "$module"
 done
 npx --no-install eslint .

@@ -5,9 +5,9 @@ import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.profiles import Profile, Profiles
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.profiles import Profile, Profiles
 
 from .local_helpers import (
     BULL,
@@ -101,7 +101,7 @@ async def test_players_are_linked_and_unlinked_by_actions(
     await hass.async_block_till_done()
     assert players(hass)["Dennis"]["person"] == "person.dennis"
     # The link is saved at once, with the profile.
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert saved["profiles"]["players"][0]["person"] == "person.dennis"
 
     with pytest.raises(ServiceValidationError) as error:
@@ -147,9 +147,9 @@ async def test_players_are_linked_and_unlinked_by_actions(
 
 
 async def test_a_link_survives_a_restart(hass, aioclient_mock, hass_storage):
-    hass_storage["autodarts.person-entry.training"] = {
+    hass_storage["homedarts.person-entry.training"] = {
         "version": 1,
-        "key": "autodarts.person-entry.training",
+        "key": "homedarts.person-entry.training",
         "data": {
             "practice": {
                 "profiles": {
@@ -164,7 +164,7 @@ async def test_a_link_survives_a_restart(hass, aioclient_mock, hass_storage):
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         data=local_entry_data(),
         entry_id="person-entry",

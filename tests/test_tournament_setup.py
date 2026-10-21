@@ -14,7 +14,7 @@ from pytest_homeassistant_custom_component.components.diagnostics import (
     get_diagnostics_for_config_entry,
 )
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import (
     S20,
@@ -401,7 +401,7 @@ async def test_a_tournament_survives_a_restart(
     assert coordinator.games.practice.hold
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    assert hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["tournament"]
+    assert hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["tournament"]
     coordinator = entry.runtime_data.local
     assert coordinator.games.practice.hold
     assert state(hass, "sensor", "tournament") == "round_2"

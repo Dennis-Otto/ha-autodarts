@@ -14,11 +14,11 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import AutodartsLocalClient
-from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
-from custom_components.autodarts.repairs import async_offer_address
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.errors import AutodartsConnectionError
+from custom_components.homedarts.local_api import AutodartsLocalClient
+from custom_components.homedarts.local_coordinator import AutodartsLocalCoordinator
+from custom_components.homedarts.repairs import async_offer_address
 
 from .local_helpers import (
     BASE,
@@ -36,7 +36,7 @@ from .local_helpers import (
 )
 
 OTHER = "http://192.0.2.20:3180"
-LOGGER = "custom_components.autodarts.local_coordinator"
+LOGGER = "custom_components.homedarts.local_coordinator"
 
 
 def capture(hass, coordinator) -> list[tuple[str, dict]]:
@@ -56,7 +56,7 @@ def kinds(fired, *wanted) -> list[str]:
 
 
 def issue(hass, name, entry):
-    return ir.async_get(hass).async_get_issue("autodarts", f"{name}_{entry.entry_id}")
+    return ir.async_get(hass).async_get_issue("homedarts", f"{name}_{entry.entry_id}")
 
 
 def messages(caplog, level, text) -> int:
@@ -240,7 +240,7 @@ async def test_rejected_states_never_shift_positions_onto_the_visit(
 
 async def test_board_text_longer_than_a_state_reads_as_unknown(hass, aioclient_mock):
     # Locally, Last event is a diagnostic that starts switched off.
-    er.async_get(hass).async_get_or_create("sensor", "autodarts", "board-1_board_event")
+    er.async_get(hass).async_get_or_create("sensor", "homedarts", "board-1_board_event")
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     coordinator.async_receive("state", board(event="x" * 256, status="Throw"))
@@ -394,7 +394,7 @@ async def test_board_that_stays_away_is_polled_less_often(hass, aioclient_mock):
 async def test_board_off_at_the_start_still_loads(hass, aioclient_mock):
     """Training, games and their events work without the board."""
     aioclient_mock.get(BASE + "/api/state", status=503)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -427,10 +427,10 @@ async def test_unknown_generation_keeps_the_entities_of_board_manager_2(
 ):
     """A board that is off at the first start may still run Board Manager 2."""
     registry = er.async_get(hass)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     cpu = registry.async_get_or_create(
-        "sensor", "autodarts", "board-1_cpu_usage", config_entry=entry
+        "sensor", "homedarts", "board-1_cpu_usage", config_entry=entry
     )
     aioclient_mock.get(BASE + "/api/state", status=503)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -655,7 +655,7 @@ async def test_unknown_system_answers_raise_a_repair(hass, aioclient_mock):
     aioclient_mock.get(BASE + "/api/system", json=["no", "object"])
     mock_board_v2(aioclient_mock)
     data = {**local_entry_data(), "api_generation": 2}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -728,7 +728,7 @@ async def test_moved_board_repair_checks_the_address_again(
     else:
         ir.async_create_issue(
             hass,
-            "autodarts",
+            "homedarts",
             issue_id,
             is_fixable=True,
             severity=ir.IssueSeverity.WARNING,
@@ -738,7 +738,7 @@ async def test_moved_board_repair_checks_the_address_again(
     assert await async_setup_component(hass, "repairs", {})
     client = await hass_client()
     response = await client.post(
-        "/api/repairs/issues/fix", json={"handler": "autodarts", "issue_id": issue_id}
+        "/api/repairs/issues/fix", json={"handler": "homedarts", "issue_id": issue_id}
     )
     flow = await response.json()
     if answer != "bad issue":

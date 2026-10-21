@@ -31,34 +31,34 @@ HACS ist der Store für Integrationen und Karten aus der Community, wie diese hi
 
 ## 3. Die Integration installieren
 
-[![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
+[![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration)
 
-1. Wähle die Schaltfläche oben und bestätige die Adresse deines Home Assistant. HACS öffnet diese Integration. Ohne die Schaltfläche: Öffne **HACS**, suche nach **Autodarts** und öffne es.
+1. Wähle die Schaltfläche oben und bestätige die Adresse deines Home Assistant. HACS öffnet diese Integration. Ohne die Schaltfläche: Öffne **HACS**, suche nach **HomeDarts** und öffne es.
 2. Wähle **Herunterladen**.
 3. Starte Home Assistant neu: **Einstellungen → System**, oben rechts die Ein-/Aus-Taste, **Home Assistant neu starten**.
 
 ## 4. Board hinzufügen
 
-[![Home Assistant öffnen und Autodarts einrichten.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Home Assistant öffnen und HomeDarts for Autodarts einrichten.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
 Mit Board Manager 2 findet Home Assistant das Board meist von selbst: **Einstellungen → Geräte & Dienste** zeigt unter *Entdeckt* **Autodarts-Board gefunden**. Wähle **Hinzufügen** und bestätige.
 
 Sonst wählst du die Schaltfläche oben und dann **Boards im Netzwerk suchen** oder **Board-Adresse eingeben** mit der IP-Adresse des Board-PCs. Ein Autodarts-Konto brauchst du nicht.
 
-<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü von Autodarts: Boards im Netzwerk suchen, eine Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
+<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü von HomeDarts: Boards im Netzwerk suchen, eine Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
 
 Die [Installationsanleitung](installation.de.md#board-hinzufügen) erklärt die Wege im Detail. Ohne Autodarts wählst du **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gibst dem Board einen Namen; [Spielen ohne Autodarts](without-autodarts.de.md) zeigt den Rest.
 
 ## 5. Dashboard anlegen
 
-Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Ein Klick legt ein komplettes Dashboard für dein Board an, mit Ansichten für das laufende Spiel, die Anzeigetafel, das Training, die Spieler und das Board. Es aktualisiert sich selbst, wenn du ein Board hinzufügst oder eine neue Version neue Ansichten bringt.
+Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → HomeDarts**. Ein Klick legt ein komplettes Dashboard für dein Board an, mit Ansichten für das laufende Spiel, die Anzeigetafel, das Training, die Spieler und das Board. Es aktualisiert sich selbst, wenn du ein Board hinzufügst oder eine neue Version neue Ansichten bringt.
 
 <img src="images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 
 ## 6. Anzeigetafel neben das Board
 
 1. Öffne Home Assistant auf dem Tablet im Browser oder in der [Home-Assistant-App](https://companion.home-assistant.io/) und melde dich an. Ein eigener Benutzer ohne Administratorrechte verhindert, dass der Bildschirm deine Einstellungen ändert.
-2. Öffne das Autodarts-Dashboard und dort die Ansicht *Anzeigetafel*.
+2. Öffne das HomeDarts-Dashboard und dort die Ansicht *Anzeigetafel*.
 3. Schalte den Browser in den Vollbildmodus und lass das Tablet am Ladegerät eingeschaltet.
 
 Die [Anleitung zur Anzeigetafel](scoreboard.de.md#den-bildschirm-einrichten) beschreibt die Einzelheiten und die Optionen, etwa den Caller.
@@ -78,5 +78,5 @@ Erkennt das Board einen Dart falsch, tippst du ihn in der Aufnahme an und korrig
 ## Wenn etwas nicht klappt
 
 - Die [Fehlerbehebung](troubleshooting.de.md) erklärt jede Meldung der Einrichtung und jede Reparaturmeldung.
-- Frag in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/q-a). Fragen werden dort beantwortet, damit jede Antwort auch dem nächsten Spieler hilft. Deutsch und Englisch sind willkommen.
-- Steht dein Setup nicht unter den [unterstützten Geräten](README.de.md#unterstützte-geräte), hilft ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml), ob es klappt oder nicht.
+- Frag in den [GitHub Discussions](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/categories/q-a). Fragen werden dort beantwortet, damit jede Antwort auch dem nächsten Spieler hilft. Deutsch und Englisch sind willkommen.
+- Steht dein Setup nicht unter den [unterstützten Geräten](README.de.md#unterstützte-geräte), hilft ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml), ob es klappt oder nicht.

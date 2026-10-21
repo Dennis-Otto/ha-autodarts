@@ -9,9 +9,9 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, rule
 
-from custom_components.autodarts.bot import Bot, aim, hidden_cricket_aim
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.cricket import (
+from custom_components.homedarts.bot import Bot, aim, hidden_cricket_aim
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.cricket import (
     BULL,
     CRICKET_NUMBERS,
     DRAWN_GAMES,
@@ -22,7 +22,7 @@ from custom_components.autodarts.cricket import (
     shown,
     valid_draw,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import board, dart, setup_local, state, throw
 

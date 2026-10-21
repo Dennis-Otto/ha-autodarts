@@ -66,7 +66,7 @@ function board(asked, aim = AIM) {
 function setup(config = {}, aim = AIM, language = "en") {
   const asked = [];
   const hass = withLanguage(makeHass({ states: { ...SESSION, ...PROFILES }, callWS: board(asked, aim) }), language);
-  const card = mount("autodarts-training-card", hass, { mode: "aim", player: "Alex", ...config });
+  const card = mount("homedarts-training-card", hass, { mode: "aim", player: "Alex", ...config });
   return { asked, hass, card };
 }
 
@@ -256,7 +256,7 @@ test("the summary names the best aim and how much less the other beds score", ()
 test("the training card draws the aim map of a player", async () => {
   const { asked, card } = setup();
   // Only the aim map asks for the aim model.
-  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE, player: "Alex", aim: true }]);
+  assert.deepEqual(asked, [{ type: "homedarts/positions", device_id: DEVICE, player: "Alex", aim: true }]);
   assert.equal($(card, '[data-mode="aim"]').getAttribute("aria-pressed"), "true");
   await drawn(card);
   assert.equal(
@@ -306,7 +306,7 @@ test("without enough darts at a treble, the card says how many are missing", asy
 
 test("until the positions arrive, the aim map stays empty", () => {
   const hass = makeHass({ states: { ...SESSION, ...PROFILES }, callWS: () => new Promise(() => {}) });
-  const card = mount("autodarts-training-card", hass, { mode: "aim" });
+  const card = mount("homedarts-training-card", hass, { mode: "aim" });
   assert.equal($(card, ".heat .groups").hidden, true);
   assert.equal($(card, ".heat-layer").children.length, 0);
   assert.equal($(card, ".heat-list").children.length, 0);
@@ -369,7 +369,7 @@ test("a newer model replaces a map that was still on its way", async () => {
       states: { ...SESSION, ...PROFILES },
       callWS: async () => ({ player: "Alex", known: true, positions: [], spread: [], aim }),
     });
-    const card = mount("autodarts-training-card", hass, { mode: "aim", player: "Alex" });
+    const card = mount("homedarts-training-card", hass, { mode: "aim", player: "Alex" });
     await settle();
     const [worker] = workers.slice(-1);
     assert.equal(worker.held.length, 1);
@@ -394,7 +394,7 @@ test("the last map stays until the map of a new model arrives", async () => {
       states: { ...SESSION, ...PROFILES },
       callWS: async () => ({ player: "Alex", known: true, positions: [], spread: [], aim }),
     });
-    const card = mount("autodarts-training-card", hass, { mode: "aim", player: "Alex" });
+    const card = mount("homedarts-training-card", hass, { mode: "aim", player: "Alex" });
     await settle();
     const [worker] = workers.slice(-1);
     await worker.answer(0);

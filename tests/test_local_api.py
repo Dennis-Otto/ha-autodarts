@@ -6,8 +6,8 @@ import aiohttp
 import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import (
+from custom_components.homedarts.errors import AutodartsConnectionError
+from custom_components.homedarts.local_api import (
     AutodartsLocalClient,
     AutodartsLocalCommandError,
 )

@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 E2E_PORT="${E2E_PORT:-18123}"
-PROJECT_NAME="${E2E_PROJECT_NAME:-autodarts_e2e}"
+PROJECT_NAME="${E2E_PROJECT_NAME:-homedarts_e2e}"
 COMPOSE=("${DOCKER_BIN}" compose --project-name "${PROJECT_NAME}" --file compose.yaml)
 
 export E2E_PORT

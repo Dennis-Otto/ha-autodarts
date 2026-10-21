@@ -15,7 +15,7 @@ async def open_local(hass, entry=None):
     context = {"source": SOURCE_USER}
     if entry:
         context = {"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id}
-    result = await hass.config_entries.flow.async_init("autodarts", context=context)
+    result = await hass.config_entries.flow.async_init("homedarts", context=context)
     assert result["type"] == FlowResultType.MENU
     return await hass.config_entries.flow.async_configure(
         result["flow_id"], {"next_step_id": "local"}
@@ -26,7 +26,7 @@ async def test_create_local_entry_without_credentials(hass, aioclient_mock):
     mock_board(aioclient_mock)
     result = await open_local(hass)
     assert set(result["data_schema"].schema) == {"host", "port"}
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": "192.0.2.10", "port": 3180}
         )
@@ -53,7 +53,7 @@ async def create_after_error(hass, aioclient_mock, result):
     """The form keeps its flow: the correct address sets the board up."""
     aioclient_mock.clear_requests()
     mock_board(aioclient_mock)
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": "192.0.2.10", "port": 3180}
         )
@@ -91,7 +91,7 @@ async def test_local_setup_errors(hass, aioclient_mock, failure, error):
 async def test_local_setup_detects_legacy_duplicate(hass, aioclient_mock):
     """An entry from before unique IDs has the board only in its data."""
     mock_board(aioclient_mock)
-    entry = MockConfigEntry(domain="autodarts", version=2, data={"board_id": "board-1"})
+    entry = MockConfigEntry(domain="homedarts", version=2, data={"board_id": "board-1"})
     entry.add_to_hass(hass)
     result = await open_local(hass)
     result = await hass.config_entries.flow.async_configure(
@@ -109,13 +109,13 @@ async def test_reconfigure_gives_an_entry_without_address_its_board(
 ):
     """An entry that only the cloud link reached gets the address of its board."""
     data = {"board_id": "board-1"}
-    entry = MockConfigEntry(domain="autodarts", version=2, minor_version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, minor_version=2, data=data)
     entry.add_to_hass(hass)
     config = deepcopy(CONFIG)
     config["auth"]["board_id"] = board_id
     mock_board(aioclient_mock, config=config)
     result = await open_local(hass, entry)
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": "192.0.2.10", "port": 3180}
         )
@@ -131,7 +131,7 @@ async def test_menus_offer_the_ways_to_add_a_board(hass):
     """Search, address, a Granboard or a dartboard without Autodarts; no menu
     leads to a login."""
     entry = MockConfigEntry(
-        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+        domain="homedarts", version=2, unique_id="board-1", data=local_entry_data()
     )
     entry.add_to_hass(hass)
     for context, options in (
@@ -142,5 +142,5 @@ async def test_menus_offer_the_ways_to_add_a_board(hass):
             ["discover", "local"],
         ),
     ):
-        result = await hass.config_entries.flow.async_init("autodarts", context=context)
+        result = await hass.config_entries.flow.async_init("homedarts", context=context)
         assert result["menu_options"] == options

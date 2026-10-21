@@ -44,7 +44,7 @@ test("ESLint skips every folder that .gitignore ignores, at the top or anywhere"
     assert.equal(await linted(path), false, path);
     // A folder without a leading slash, such as __pycache__/, is ignored at every depth.
     if (!folder.startsWith("/")) {
-      assert.equal(await linted(`custom_components/autodarts/${path}`), false, path);
+      assert.equal(await linted(`custom_components/homedarts/${path}`), false, path);
     }
   }
 });
@@ -56,7 +56,7 @@ test("ESLint lints every JavaScript file that Git keeps", async () => {
   })
     .split("\0")
     .filter(Boolean);
-  assert.ok(files.includes("custom_components/autodarts/frontend/autodarts-card.js"));
+  assert.ok(files.includes("custom_components/homedarts/frontend/homedarts-card.js"));
   assert.ok(files.includes("eslint.config.mjs"));
   for (const file of files) {
     assert.equal(await linted(file), true, file);

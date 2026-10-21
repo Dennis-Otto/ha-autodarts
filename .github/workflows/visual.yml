@@ -16,7 +16,7 @@ name: Visual check
 on:
   pull_request:
     paths:
-      - custom_components/autodarts/frontend/**
+      - custom_components/homedarts/frontend/**
       - tests/e2e/**
       - "!tests/e2e/browser.py"
       - "!tests/e2e/shards.py"

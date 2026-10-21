@@ -3,13 +3,13 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.cricket import (
+from custom_components.homedarts.cricket import (
     CRICKET_NUMBERS,
     TACTICS_NUMBERS,
     next_target,
     play_visit,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import dart, throw
 

@@ -1,6 +1,6 @@
 """Bring the translation files of the integration in step with its English source.
 
-custom_components/autodarts/strings.json holds the English texts, translations/en.json
+custom_components/homedarts/strings.json holds the English texts, translations/en.json
 is its copy, and every other file of translations/ has the same keys in the same order
 (CONTRIBUTING.md#translations). This script makes what a command can make of that:
 
@@ -26,7 +26,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INTEGRATION = Path("custom_components", "autodarts")
+INTEGRATION = Path("custom_components", "homedarts")
 ENGLISH = "en.json"
 # Characters that look like a space but aren't, as escapes, so that a person sees them
 # in the file: the no-break spaces of French before : ; ? and !.

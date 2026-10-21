@@ -11,7 +11,7 @@ from homeassistant.exceptions import ServiceValidationError
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.brackets import (
+from custom_components.homedarts.brackets import (
     GRAND_FINAL,
     GRAND_FINAL_RESET,
     GROUP_ORDERS,
@@ -25,8 +25,8 @@ from custom_components.autodarts.brackets import (
     places,
     snake,
 )
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.tournament import (
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.tournament import (
     DOUBLE_KNOCKOUT,
     ENTRANTS,
     FINISHED,

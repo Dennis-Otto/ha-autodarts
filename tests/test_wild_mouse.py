@@ -3,14 +3,14 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.bot import (
+from custom_components.homedarts.bot import (
     _dart,
     _wild_mouse_bed,
     aim,
     wild_mouse_aim,
 )
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.cricket import (
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.cricket import (
     BED,
     CRICKET_NUMBERS,
     DOUBLES,
@@ -22,7 +22,7 @@ from custom_components.autodarts.cricket import (
     wild_mouse_order,
     wild_mouse_target,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import board, dart, setup_local, state, throw
 

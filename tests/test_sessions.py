@@ -50,7 +50,7 @@ async def test_switch_ends_and_starts_sessions_with_events_and_history(
     assert float(last.state) == 180.0
     assert last.attributes["darts"] == 2
     assert len(last.attributes["sessions"]) == 1
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]
     assert saved["active"] is False and saved["auto_start"] is False
     assert saved["history"][0]["points"] == 120
 
@@ -74,7 +74,7 @@ async def test_switch_ends_and_starts_sessions_with_events_and_history(
     assert state(hass, "sensor", "training_darts") == "0"
     await switch(hass, "training_auto_start", True)
     assert state(hass, "switch", "training_auto_start") == "on"
-    assert hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["auto_start"]
+    assert hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["auto_start"]
 
 
 async def test_the_first_dart_starts_a_session_and_the_button_starts_anew(
@@ -157,7 +157,7 @@ async def test_unloading_cancels_a_pending_pause(
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
     # The session is still running: it ends with the pause after the next start.
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]
     assert saved["active"] is True and saved["darts"] == 1
 
 
@@ -165,13 +165,13 @@ async def test_an_overdue_pause_ends_the_session_after_a_restart(
     hass, aioclient_mock, hass_storage
 ):
     mock_board(aioclient_mock, state=board())
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     now = dt_util.utcnow()
     last_dart = (now - timedelta(hours=1)).isoformat()
-    hass_storage[f"autodarts.{entry.entry_id}.training"] = {
+    hass_storage[f"homedarts.{entry.entry_id}.training"] = {
         "version": 1,
-        "key": f"autodarts.{entry.entry_id}.training",
+        "key": f"homedarts.{entry.entry_id}.training",
         "data": {
             "started": (now - timedelta(hours=2)).isoformat(),
             "active": True,

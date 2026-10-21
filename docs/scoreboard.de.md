@@ -20,13 +20,13 @@ Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der 
 
 ## Den Bildschirm einrichten
 
-1. **Dashboard anlegen.** Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Das [automatische Dashboard](cards.de.md#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die [Anzeigetafel-Karte](cards.de.md#anzeigetafel) über den ganzen Bildschirm zeigt.
+1. **Dashboard anlegen.** Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → HomeDarts**. Das [automatische Dashboard](cards.de.md#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die [Anzeigetafel-Karte](cards.de.md#anzeigetafel) über den ganzen Bildschirm zeigt.
 2. **Ansicht auf dem Bildschirm öffnen.** Melde dich als Benutzer des Bildschirms an und öffne die Ansicht *Anzeigetafel* des Dashboards. Ihre Adresse endet auf `/scoreboard`, bei mehreren Boards auf `/scoreboard-1`, `/scoreboard-2` und so weiter; lege ein Lesezeichen an oder setze sie auf den Startbildschirm des Tablets.
 3. **Vollbild.** Nutze den Vollbildmodus des Browsers oder einen Kiosk-Browser, der die Adresse beim Start öffnet. Lass den Bildschirm am Ladegerät eingeschaltet, in den Einstellungen des Tablets oder des Kiosk-Browsers.
 4. **Einschalten, was dir gefällt.** Öffne das Menü des Dashboards (⋮) → **Dashboard bearbeiten**. Im Abschnitt *Ansicht Anzeigetafel* schaltest du den [Caller](#der-caller) und das [Tastenfeld](#darts-korrigieren-und-eingeben) ein und wählst die Spiele der [Spielauswahl](#das-nächste-spiel-wählen) und die Seiten des [Ruhemodus](#zwischen-den-spielen-ruhemodus); das Dashboard bleibt automatisch und bekommt die Ansichten späterer Versionen. Für jede andere Option baust du eine eigene Ansicht: eine Ansicht im Panel-Modus mit der Anzeigetafel und `full_height: true`, oder du wählst im Menü dieses Editors **Kontrolle übernehmen**, das aus dem Dashboard eines macht, das du selbst bearbeitest:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 full_height: true
 caller: true
 lobby_games: ["301", "501", cricket, killer, around_the_clock]
@@ -41,7 +41,7 @@ Die [Anleitung zu den Karten](cards.de.md#anzeigetafel) nennt jede Option.
 Ein Fernseher mit Chromecast oder ein Google Nest Hub zeigt die Anzeigetafel ohne eigenen Browser: [Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) bringt ein Dashboard darauf, und die Karten laden dort von selbst.
 
 1. **Home Assistant über HTTPS erreichen.** Cast braucht eine Adresse von Home Assistant, die mit `https://` beginnt, etwa die von Home Assistant Cloud.
-2. **Die Ansicht streamen.** Öffne [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome auf einem Computer oder einem Android-Handy im Netzwerk des Fernsehers, verbinde dein Home Assistant, wähle den Fernseher, dann das Autodarts-Dashboard und seine Ansicht *Anzeigetafel*. Oder lass eine Automation streamen, etwa wenn ein Spiel beginnt, mit der Aktion der Integration [Google Cast](https://www.home-assistant.io/integrations/cast/):
+2. **Die Ansicht streamen.** Öffne [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome auf einem Computer oder einem Android-Handy im Netzwerk des Fernsehers, verbinde dein Home Assistant, wähle den Fernseher, dann das HomeDarts-Dashboard und seine Ansicht *Anzeigetafel*. Oder lass eine Automation streamen, etwa wenn ein Spiel beginnt, mit der Aktion der Integration [Google Cast](https://www.home-assistant.io/integrations/cast/):
 
    ```yaml
    action: cast.show_lovelace_view
@@ -85,7 +85,7 @@ Tippe zwischen den Spielen auf **Neues Spiel** unter dem Punktestand, während e
 
 <img src="images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, Sam ab 301, drei Legs pro Satz, Double-Out und die Start-Taste" width="760">
 
-Die Auswahl startet das Spiel mit [`autodarts.start_game`](entities.de.md#übungsspiel-starten-autodartsstart_game), genau wie eine Automation oder ein Sprachbefehl. Die [Anleitung zu Spielen](games.de.md#ein-spiel-starten) zeigt die anderen Wege.
+Die Auswahl startet das Spiel mit [`homedarts.start_game`](entities.de.md#übungsspiel-starten-homedartsstart_game), genau wie eine Automation oder ein Sprachbefehl. Die [Anleitung zu Spielen](games.de.md#ein-spiel-starten) zeigt die anderen Wege.
 
 ## Während des Spiels
 
@@ -190,7 +190,7 @@ Ein Bildschirm, der weg war, auf einer anderen Ansicht oder ohne seine Verbindun
 Drei Optionen machen das Board spielbar, ohne es zu sehen: Der Caller sagt jeden Dart an, wohin ein Checkout geht und worauf du als Nächstes zielst. Sie sind anfangs aus. Schalte sie in den Caller-Optionen im Editor der Karte ein, oder beim automatischen Dashboard in seinen Einstellungen, *Ansicht Anzeigetafel*:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 caller: true
 call_darts: bed
 call_route: true
@@ -216,15 +216,15 @@ Die Aufnahmen des Bots bekommen die Darts, aber keinen Weg und kein Ziel. Mit ei
 
 ### Voice-Packs
 
-Die Stimme des Browsers klingt auf jedem Gerät anders und auf vielen wie ein Roboter. Ein Voice-Pack gibt dem Caller eine eigene Stimme: aufgenommene Ansagen im Medienordner von Home Assistant, die der Bildschirm über seinen Lautsprecher abspielt. Seine Dateien heißen wie in den Voice-Packs von [darts-caller](https://github.com/lbormann/darts-caller), daher funktioniert ein Pack von darts-caller so, wie es ist, und die Aktion [`autodarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-autodartsgenerate_voice_pack) nimmt eines mit einer Text-to-Speech-Engine von Home Assistant auf, etwa mit [Piper](https://www.home-assistant.io/integrations/piper/) für eine Stimme, die dein Zuhause nie verlässt.
+Die Stimme des Browsers klingt auf jedem Gerät anders und auf vielen wie ein Roboter. Ein Voice-Pack gibt dem Caller eine eigene Stimme: aufgenommene Ansagen im Medienordner von Home Assistant, die der Bildschirm über seinen Lautsprecher abspielt. Seine Dateien heißen wie in den Voice-Packs von [darts-caller](https://github.com/lbormann/darts-caller), daher funktioniert ein Pack von darts-caller so, wie es ist, und die Aktion [`homedarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-homedartsgenerate_voice_pack) nimmt eines mit einer Text-to-Speech-Engine von Home Assistant auf, etwa mit [Piper](https://www.home-assistant.io/integrations/piper/) für eine Stimme, die dein Zuhause nie verlässt.
 
-1. Lege das Pack in einen Ordner in `autodarts/voices` des Medienordners, etwa `/media/autodarts/voices/russ-bray/` unter Home Assistant OS, mit der App *Samba share* oder *File editor*. Oder nimm eines auf: **Entwicklerwerkzeuge → Aktionen**, *Autodarts: Voice-Pack erzeugen*, mit deiner Engine, ihrer Sprache und einem Namen wie `piper-de`; das dauert einige Minuten.
+1. Lege das Pack in einen Ordner in `homedarts/voices` des Medienordners, etwa `/media/homedarts/voices/russ-bray/` unter Home Assistant OS, mit der App *Samba share* oder *File editor*. Oder nimm eines auf: **Entwicklerwerkzeuge → Aktionen**, *HomeDarts for Autodarts: Voice-Pack erzeugen*, mit deiner Engine, ihrer Sprache und einem Namen wie `piper-de`; das dauert einige Minuten.
 2. Trage den Namen des Ordners als *Voice-Pack* in den Caller-Optionen im Editor der Karte ein, `caller_voice: russ-bray`, oder beim automatischen Dashboard in seinen Einstellungen, *Ansicht Anzeigetafel*.
 3. Tippe auf **Caller**. Jedes Tippen, das ihn einschaltet, fragt das Pack neu ab, sodass Dateien, die du inzwischen hinzugefügt hast, ab dann zählen.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/voice-packs-dark.png">
-  <img src="images/de/voice-packs-light.png" alt="So spricht der Caller mit einem Voice-Pack: Ein in den Medienordner kopiertes Pack von darts-caller oder eines, das autodarts.generate_voice_pack mit Piper aufgenommen hat, ist ein Ordner in autodarts/voices. Hat das Pack die Dateien einer Ansage, etwa 180, busted, gameshot, matchshot oder yr_40, lädt der Bildschirm sie mit seiner Anmeldung und spielt sie nacheinander ab, einen Namen ohne Datei mit der Stimme des Browsers. Fehlt dem Pack die Ansage oder lädt eine Datei nicht, sagt die Stimme des Browsers die ganze Ansage. Die nächste Ansage wartet, bis diese zu Ende ist" width="560">
+  <img src="images/de/voice-packs-light.png" alt="So spricht der Caller mit einem Voice-Pack: Ein in den Medienordner kopiertes Pack von darts-caller oder eines, das homedarts.generate_voice_pack mit Piper aufgenommen hat, ist ein Ordner in homedarts/voices. Hat das Pack die Dateien einer Ansage, etwa 180, busted, gameshot, matchshot oder yr_40, lädt der Bildschirm sie mit seiner Anmeldung und spielt sie nacheinander ab, einen Namen ohne Datei mit der Stimme des Browsers. Fehlt dem Pack die Ansage oder lädt eine Datei nicht, sagt die Stimme des Browsers die ganze Ansage. Die nächste Ansage wartet, bis diese zu Ende ist" width="560">
 </picture>
 
 | Ansage | Dateien des Packs |
@@ -256,7 +256,7 @@ Streame deine Spiele: Die Anzeigetafel allein, ohne ihre Karte, liegt über dem 
 <img src="images/de/scoreboard-overlay.png" alt="Das Stream-Overlay am unteren Rand des Bildes vom Board: Übungsspiel 501 mit drei Legs pro Satz, Alex am Board mit 84 Rest und dem Weg T20 D12, Sam mit 375, und daneben die Aufnahme mit T20 und 60 Punkten" width="760">
 
 1. **Ein Benutzer für OBS.** Lege unter **Einstellungen → Personen** eine Person mit *Anmelden erlauben* an, ohne Administratorrechte und mit *Kann sich nur aus dem lokalen Netzwerk anmelden*, damit OBS deine Einstellungen nicht ändern kann.
-2. **Die Ansicht.** Das [automatische Dashboard](cards.de.md#automatisches-dashboard) hat eine Ansicht *Stream-Overlay*, die bei seinen Tabs nicht steht. Ihre Adresse ist die des Dashboards mit `/overlay` am Ende, etwa `http://homeassistant.local:8123/dashboard-autodarts/overlay`; bei mehreren Boards `/overlay-1`, `/overlay-2` und so weiter.
+2. **Die Ansicht.** Das [automatische Dashboard](cards.de.md#automatisches-dashboard) hat eine Ansicht *Stream-Overlay*, die bei seinen Tabs nicht steht. Ihre Adresse ist die des Dashboards mit `/overlay` am Ende, etwa `http://homeassistant.local:8123/dashboard-homedarts/overlay`; bei mehreren Boards `/overlay-1`, `/overlay-2` und so weiter.
 3. **Die Browserquelle.** Füge in OBS eine Quelle **Browser** mit dieser Adresse hinzu, mit einer Breite von 1920 und einer Höhe von 1080, und schalte *Quelle herunterfahren, wenn nicht sichtbar* aus, damit sie angemeldet bleibt. Klicke die Quelle mit der rechten Maustaste an, wähle **Interagieren** und melde dich einmal als Benutzer für OBS an.
 4. **Platzieren.** Lege die Quelle in der Szene über die Kamera deines Streams. Das Overlay ist durchsichtig: Wo es nichts zeigt, zeigt OBS deine Kamera.
 
@@ -280,7 +280,7 @@ Für eine eigene Ansicht setzt du die [Anzeigetafel-Karte](cards.de.md#anzeigeta
 Die Karte:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 overlay: chroma
 overlay_layout: corner
 overlay_color: "#FF00FF"
@@ -305,7 +305,7 @@ overlay_color: "#FF00FF"
 | --- | --- |
 | Darts werden nicht gezählt | Die Erkennung ist gestoppt: Der Status oben rechts zeigt *Erkennung gestoppt*. Der Start in der Spielauswahl schaltet sie ein; sonst schaltest du sie im [Board-Status](cards.de.md#board-status) oder in der Live-Karte ein. Prüfe außerdem, dass *Übungsspiel* nicht auf *Aus* steht und kein [Online-Match](online-matches.de.md) das Board belegt. |
 | Der Caller bleibt stumm | Tippe nach jedem Neuladen der Seite einmal auf **Caller**: Browser spielen Ton erst nach einem Tippen ab. Prüfe die Lautstärke des Geräts. |
-| Der Caller spricht trotz Voice-Pack mit der Stimme des Browsers | Der Name des Packs ist der Name seines Ordners in `autodarts/voices` des Medienordners, in derselben Groß- und Kleinschreibung. Ansagen, für die das Pack keine Datei hat, spricht immer der Browser; siehe die [Dateien eines Packs](#voice-packs). Dateien, die nach dem Einschalten des Callers kopiert wurden, zählen nach dem nächsten Tippen auf **Caller**. |
+| Der Caller spricht trotz Voice-Pack mit der Stimme des Browsers | Der Name des Packs ist der Name seines Ordners in `homedarts/voices` des Medienordners, in derselben Groß- und Kleinschreibung. Ansagen, für die das Pack keine Datei hat, spricht immer der Browser; siehe die [Dateien eines Packs](#voice-packs). Dateien, die nach dem Einschalten des Callers kopiert wurden, zählen nach dem nächsten Tippen auf **Caller**. |
 | Die Spielauswahl öffnet sich nicht | Sie öffnet sich nie in der Vorschau des Karteneditors und nicht mit `lobby: false`. |
 | Nach einem Update zeigt der Bildschirm eine alte Version der Karte | Lade die Seite neu. In der Home-Assistant-App nutzt du *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*. |
 | Der Ruhemodus beginnt während eines Spiels | Der Ruhemodus wartet `idle_after` Sekunden ohne Darts und Tippen, und nur, wenn kein Spiel läuft oder das Spiel entschieden ist. Erhöhe `idle_after` oder setze `idle: false`. |

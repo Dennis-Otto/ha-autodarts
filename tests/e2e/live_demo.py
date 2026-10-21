@@ -25,7 +25,7 @@ from playwright.sync_api import Page, expect, sync_playwright
 DEMO = Path(__file__).resolve().parents[2] / "docs" / "demo"
 BRANDING = Path(__file__).resolve().parents[2] / "docs" / "branding"
 FRONTEND = (
-    Path(__file__).resolve().parents[2] / "custom_components" / "autodarts" / "frontend"
+    Path(__file__).resolve().parents[2] / "custom_components" / "homedarts" / "frontend"
 )
 ARTIFACTS = Path(os.environ.get("LIVE_DEMO_ARTIFACTS", "artifacts/live-demo"))
 LANGUAGES = ["en", "de", "nl", "fr", "es"]
@@ -37,7 +37,7 @@ CHAMPION = "Kim"
 # before the next one comes.
 EVERY_STEP = """
 async () => {
-  const replay = window.autodartsDemo;
+  const replay = window.homedartsDemo;
   replay.pause();
   for (let index = 0; index < replay.steps.length; index++) {
     replay._apply(index);
@@ -60,7 +60,7 @@ def website(folder: Path) -> Path:
     shutil.copytree(DEMO, folder / "demo")
     shutil.copytree(BRANDING, folder / "branding")
     shutil.copyfile(
-        FRONTEND / "autodarts-card.js", folder / "demo" / "autodarts-card.js"
+        FRONTEND / "homedarts-card.js", folder / "demo" / "homedarts-card.js"
     )
     shutil.copytree(FRONTEND / "text", folder / "demo" / "text")
     return folder
@@ -78,17 +78,17 @@ def check(page: Page, address: str, language: str, screen: str) -> None:
     page.goto(f"{address}/demo/index.html?lang={language}")
     expect(page.locator("html")).to_have_attribute("lang", language)
     # The games start on their own.
-    page.wait_for_function("window.autodartsDemo?.index > 1", timeout=20_000)
-    steps = page.evaluate("window.autodartsDemo.steps.length")
+    page.wait_for_function("window.homedartsDemo?.index > 1", timeout=20_000)
+    steps = page.evaluate("window.homedartsDemo.steps.length")
     assert page.evaluate(EVERY_STEP) == steps - 1
     page.wait_for_function(
-        f"document.querySelector('autodarts-scoreboard-card').shadowRoot"
+        f"document.querySelector('homedarts-scoreboard-card').shadowRoot"
         f".textContent.includes('{CHAMPION}')"
     )
     for tag in (
-        "autodarts-card",
-        "autodarts-training-card",
-        "autodarts-players-card",
+        "homedarts-card",
+        "homedarts-training-card",
+        "homedarts-players-card",
     ):
         assert page.evaluate(CARD_TEXT, tag).strip(), f"{tag} shows nothing"
     # The page fits the screen; only the cards' own boards may scroll inside them.
@@ -96,7 +96,7 @@ def check(page: Page, address: str, language: str, screen: str) -> None:
         f"the page is wider than the {screen}"
     )
     # A button of a card says that this is a recording.
-    page.locator("autodarts-card button[data-action='toggle']").click()
+    page.locator("homedarts-card button[data-action='toggle']").click()
     expect(page.locator("#notice")).to_be_visible()
     assert not errors, errors
 

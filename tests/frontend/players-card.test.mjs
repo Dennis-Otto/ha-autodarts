@@ -84,7 +84,7 @@ const MATCHES = [
 ];
 const setup = (states, config = {}, options = {}) => {
   const hass = makeHass({ states, ...options });
-  return { hass, card: mount("autodarts-players-card", hass, config) };
+  return { hass, card: mount("homedarts-players-card", hass, config) };
 };
 const rows = (profile) =>
   [...profile.querySelectorAll("dt")].map((term) => [term.textContent, term.nextElementSibling.textContent]);
@@ -203,7 +203,7 @@ test("player names are shown as text, never as markup", () => {
 
 test("the players card speaks German, also without a locale", () => {
   const hass = makeHass({ states: { ...profiles(ALEX), ...lastMatch({ matches: MATCHES.slice(0, 1) }) } });
-  const card = mount("autodarts-players-card", { ...hass, locale: undefined, language: "de" });
+  const card = mount("homedarts-players-card", { ...hass, locale: undefined, language: "de" });
   assert.equal(text(card, ".title"), "Spieler");
   assert.equal($(card, ".profile .muted").textContent, "Legs 12/20 · Matches 3/5");
   assert.deepEqual(rows($(card, ".profile")).slice(0, 3), [
@@ -224,8 +224,8 @@ test("the players card speaks German, also without a locale", () => {
 
 // Export ---------------------------------------------------------------------
 
-const NAME = "autodarts-all-20260927-201500-0123456789abcdef.zip";
-const DOWNLOAD = `/api/autodarts/export/${NAME}`;
+const NAME = "homedarts-all-20260927-201500-0123456789abcdef.zip";
+const DOWNLOAD = `/api/homedarts/export/${NAME}`;
 
 // Home Assistant's answers: the response of the action, then a signed path.
 function connection(response) {
@@ -271,8 +271,8 @@ test("the export button is off by default, and only administrators get it", () =
 
 test("the export button writes every table and downloads the file with the user's login", async () => {
   const { requests, callWS } = connection({
-    path: `/config/www/autodarts/${NAME}`,
-    url: `/local/autodarts/${NAME}`,
+    path: `/config/www/homedarts/${NAME}`,
+    url: `/local/homedarts/${NAME}`,
     download: DOWNLOAD,
   });
   const { card } = setup(
@@ -293,7 +293,7 @@ test("the export button writes every table and downloads the file with the user'
     assert.deepEqual(requests, [
       {
         type: "call_service",
-        domain: "autodarts",
+        domain: "homedarts",
         service: "export",
         service_data: { format: "csv", what: "all", config_entry_id: "entry-1" },
         return_response: true,
@@ -384,6 +384,6 @@ test("the export needs Home Assistant's connection and no preview", async () => 
 
 test("the export button speaks German", () => {
   const hass = makeHass({ language: "de", states: { ...profiles(ALEX), ...lastMatch({}) }, user: ADMIN });
-  const card = mount("autodarts-players-card", hass, { export: true });
+  const card = mount("homedarts-players-card", hass, { export: true });
   assert.equal(text(card, ".export"), "Exportieren");
 });

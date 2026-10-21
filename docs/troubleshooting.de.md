@@ -1,5 +1,5 @@
 ---
-description: "Häufige Probleme der Autodarts-Integration lösen: Einrichtung, Reparaturen, ein Board, das fehlt oder nicht aktualisiert, der Weg zu Autodarts 2 und Logs."
+description: "Probleme von HomeDarts lösen: Einrichtung, Reparaturen, ein Board, das fehlt oder nicht aktualisiert, der Wechsel vom alten Namen, Autodarts 2 und Logs."
 ---
 
 # Fehlerbehebung
@@ -26,6 +26,7 @@ description: "Häufige Probleme der Autodarts-Integration lösen: Einrichtung, R
 | *Diese Adresse gehört zu einem anderen Board.* | **Neu konfigurieren** hat unter der neuen Adresse ein anderes Board gefunden. Trage die Adresse des Boards ein, zu dem dieser Eintrag gehört, oder füge das andere Board als neuen Eintrag hinzu. |
 | *Das im Netzwerk gemeldete Board antwortet nicht.* | Ein entdecktes Board hat unter der gemeldeten Adresse nicht geantwortet, etwa weil der Board Manager inzwischen gestoppt ist. Starte den Board Manager und füge das Board erneut hinzu oder gib seine Adresse ein. |
 | *Die Einrichtung dieses Boards läuft bereits.* | Ein anderer Einrichtungsdialog für dasselbe Board ist offen, etwa der des entdeckten Boards. Schließe die Einrichtung ab oder brich sie ab. |
+| *Es gibt kein Board der Integration Autodarts mehr zum Übernehmen.* | Jedes Board, das unter dem früheren Namen von HomeDarts eingerichtet war, ist schon übernommen. HomeDarts übernimmt nur seine eigenen Boards, nicht die anderer Integrationen mit dem Namen Autodarts: Füge so ein Board als neues hinzu ([Umstieg von anderen Werkzeugen](coming-from.de.md)). |
 | Das Board wird nicht automatisch gefunden | Die automatische Erkennung braucht Board Manager 2 und mDNS im Netzwerk. Home Assistant in Docker braucht dafür `network_mode: host`; über VLAN-Grenzen hinweg funktioniert mDNS nur mit einem Repeater. Nutze sonst die Suche oder die Adresse. |
 
 ## Reparaturen
@@ -35,11 +36,13 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | Hinweis | Bedeutung und Lösung |
 | --- | --- |
 | **Autodarts-Board-Adresse zeigt auf ein anderes Board** | Unter der eingerichteten Adresse antwortet ein Board mit anderer Board-ID, etwa nach vertauschten IP-Adressen. Die Entitäten bleiben nicht verfügbar, damit sie nie Daten eines fremden Boards zeigen. Öffne die Integration, wähle **Neu konfigurieren** und das richtige Board. Der Hinweis verschwindet dann von selbst. |
-| **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten 100 Darts, bei mindestens 50 Darts insgesamt, mussten korrigiert werden, vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
+| **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten 100 Darts, bei mindestens 50 Darts insgesamt, mussten korrigiert werden, vom Board, auf der Anzeigetafel oder mit `homedarts.correct_dart`, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
 | **Board auf den neuen Autodarts Board Manager umstellen** | Das Board nutzt noch den klassischen Board Manager 1, den Autodarts abschalten wird. Installiere Board Manager 2 auf dem Board-PC; die Integration stellt sich selbst um, und der Hinweis verschwindet. |
 | **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet unter seiner eingestellten Adresse nicht mehr mit seiner Board-ID, aber unter einer anderen, unter der Board Manager 2 es angekündigt hat (mDNS), etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige nur, wenn es dein Board ist: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Siehe [Adresswechsel](how-it-works.de.md#adresswechsel). |
 | **Autodarts-Board verweigert den Zugriff** | Das Board antwortet mit HTTP 401 oder 403. Der Board Manager braucht keine Anmeldung, also blockiert ein Reverse Proxy, eine Firewall oder eine Anmeldung vor Port 3180 Home Assistant. Lass Home Assistant auf das Board zugreifen; der Hinweis verschwindet beim nächsten erfolgreichen Lesen. |
 | **Autodarts-Board antwortet in einem unbekannten Format** | Eine nötige Abfrage (Zustand, Einstellungen oder `/api/system`) hat dreimal hintereinander in einem Format geantwortet, das diese Version nicht versteht, meist nach einem Board-Manager-Update. Aktualisiere die Integration. Bleibt der Hinweis, [melde ihn](#fehler-melden) mit den Diagnosedaten; das Protokoll nennt die betroffenen Abfragen. |
+| **Einige Automationen, Skripte oder Dashboards nutzen noch den alten Namen** | HomeDarts hat deine Boards übernommen, aber die aufgeführten Automationen, Skripte und YAML-Dashboards rufen noch Aktionen wie `autodarts.start_game` auf oder nutzen Karten wie `custom:autodarts-card`. Ersetze in ihren Aktionen `autodarts.` durch `homedarts.` und in den Typen ihrer Karten `custom:autodarts` durch `custom:homedarts`, dann ignoriere den Hinweis. Siehe [Automationen laufen nach dem Wechsel nicht mehr](#automationen-laufen-nach-dem-wechsel-zu-homedarts-nicht-mehr). |
+| **Home Assistant neu starten, um den Wechsel zu HomeDarts abzuschließen** | Die Übernahme hat die Dateien der Integration unter ihrem früheren Namen entfernt; geladen bleibt sie bis zum Neustart von Home Assistant. Öffne den Hinweis und bestätige den Neustart. |
 
 ## Betrieb
 
@@ -51,7 +54,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 
 ### Meldungen am Eintrag des Boards
 
-**Einstellungen → Geräte & Dienste → Autodarts** zeigt, warum ein Board nicht geladen ist oder seine Entitäten nicht verfügbar sind:
+**Einstellungen → Geräte & Dienste → HomeDarts for Autodarts** zeigt, warum ein Board nicht geladen ist oder seine Entitäten nicht verfügbar sind:
 
 | Meldung | Ursache und Lösung |
 | --- | --- |
@@ -61,7 +64,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Der Board Manager verweigert den Zugriff.* | Siehe **Autodarts-Board verweigert den Zugriff** unter [Reparaturen](#reparaturen). |
 | *Das gespeicherte Training dieses Boards stammt aus einer neueren Version der Integration.* | Die Integration wurde auf eine ältere Version zurückgesetzt, nachdem eine neuere Training, Übungsspiel und Statistik gespeichert hatte. Installiere diese Version wieder oder stelle ein Backup von Home Assistant von vor dem Update wieder her. Bis dahin lädt das Board nicht, und die gespeicherten Daten bleiben unverändert. |
 | *Das gespeicherte Training dieses Boards kann gerade nicht gelesen werden.* | Home Assistant konnte seinen Ordner `.storage` nicht lesen, etwa weil der Speicher voll ist oder sich die Berechtigungen geändert haben. Prüfe den freien Speicher und die Berechtigungen von `.storage`; Home Assistant versucht es von selbst erneut und überschreibt bis dahin nichts. |
-| *Das gespeicherte Training dieses Boards kann nicht wiederhergestellt werden.* | Die gespeicherten Daten passen nicht zu dem, was diese Version erwartet. [Melde einen Fehler](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) mit dem Protokoll und den Diagnosedaten; die gespeicherten Daten bleiben unverändert. |
+| *Das gespeicherte Training dieses Boards kann nicht wiederhergestellt werden.* | Die gespeicherten Daten passen nicht zu dem, was diese Version erwartet. [Melde einen Fehler](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose) mit dem Protokoll und den Diagnosedaten; die gespeicherten Daten bleiben unverändert. |
 
 ### Eine Aktion schlägt fehl
 
@@ -70,35 +73,35 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Das Board hat die Aktion nicht angenommen.* | Das Board hat den Befehl abgelehnt oder nicht geantwortet. Prüfe die Verbindung und versuche es erneut. |
 | *Dieses Board unterstützt die Aktion nicht.* | Der Board Manager kennt diesen Befehl nicht, zum Beispiel die Kamerastreams bei Board Manager 1. |
 | *Der Board Manager verweigert den Zugriff.* | Siehe **Autodarts-Board verweigert den Zugriff** unter [Reparaturen](#reparaturen). |
-| *Es ist kein Autodarts-Board mit lokaler Verbindung geladen.* | Jede `autodarts`-Aktion braucht ein lokal verbundenes, geladenes Board. Prüfe den Eintrag unter **Einstellungen → Geräte & Dienste**. |
-| Home Assistant meldet, dass du dazu nicht berechtigt bist (*Unauthorized*) | `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` und `autodarts.unlink_player` löschen die Daten der Spieler oder schreiben sie heraus, deshalb dürfen nur Administratoren sie ausführen, etwa nicht der Benutzer des Bildschirms am Board. Automationen führen sie auch aus. |
+| *Es ist kein Autodarts-Board mit lokaler Verbindung geladen.* | Jede `homedarts`-Aktion braucht ein lokal verbundenes, geladenes Board. Prüfe den Eintrag unter **Einstellungen → Geräte & Dienste**. |
+| Home Assistant meldet, dass du dazu nicht berechtigt bist (*Unauthorized*) | `homedarts.delete_player`, `homedarts.export`, `homedarts.link_player` und `homedarts.unlink_player` löschen die Daten der Spieler oder schreiben sie heraus, deshalb dürfen nur Administratoren sie ausführen, etwa nicht der Benutzer des Bildschirms am Board. Automationen führen sie auch aus. |
 | *Es sind mehrere Autodarts-Boards eingerichtet. Wähle das Board.* | Bei mehreren Boards wählst du das Board in der Aktion, in YAML im Feld `config_entry_id`. |
 | Home Assistant meldet, dass der Konfigurationseintrag nicht gefunden wurde, zu einer anderen Integration gehört oder nicht geladen ist | Das in der Aktion gewählte Board wurde gelöscht, ist ein Eintrag einer anderen Integration oder ist nicht geladen. Wähle das Board neu; lädt ein Board nicht, steht der Grund an seinem Eintrag. |
 | *… steht mehrfach in der Spielerliste.* | Jeder Spieler braucht einen eigenen Namen. Spieler ohne Namen dürfen mehrfach vorkommen. |
 | *Ein Spielername darf keine geschweiften Klammern, kein Prozentzeichen, keine Raute (#) und keine Steuerzeichen enthalten.* | Home Assistant würde diese Zeichen als Beginn einer Vorlage lesen. Lass `{`, `}`, `%`, `#` und Steuerzeichen weg. |
 | *Killer braucht mindestens zwei Spieler.* | Nenne in der Aktion zwei bis vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 2 oder mehr. |
 | *Es gibt kein Spielerprofil mit dem Namen …* | Prüfe die Schreibweise; Groß- und Kleinschreibung spielen keine Rolle. Der Sensor *Spielerprofile* listet alle Profile. |
-| *Es gibt keine Person … in Home Assistant.* | `autodarts.link_player` braucht eine Personen-Entität, etwa `person.alex`. Lege die Person zuerst unter **Einstellungen → Personen** an. |
+| *Es gibt keine Person … in Home Assistant.* | `homedarts.link_player` braucht eine Personen-Entität, etwa `person.alex`. Lege die Person zuerst unter **Einstellungen → Personen** an. |
 | *Teams brauchen vier Spieler: Spieler 1 und 3 gegen Spieler 2 und 4.* | Nenne vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 4. |
 | *Teams spielen X01 und die Cricket-Spiele.* | Schalte *Teams* für Party- und Trainingsspiele aus. |
 | *Startpunkte sind 0 (die des Spiels) oder 2 bis 1001.* | Korrigiere `start_scores` in der Aktion oder die Einstellung *Übungsspiel Startpunkte Spieler N*. |
 | *Die Startpunkte nennen … Werte, es spielen aber nur … Spieler.* | `start_scores` hat höchstens einen Wert pro Spieler, in Wurfreihenfolge; mit dem Bot zählt auch sein Platz. Lass die überzähligen Werte weg. |
 | *Teams spielen von den Startpunkten der Spieler 1 und 2, ein Wert pro Team.* | Im Team-Match gilt der erste Wert für Team 1 und der zweite für Team 2. Gib höchstens zwei an. |
 | *Startpunkte von 3 lassen sich mit Double-In und Double-Out nicht auschecken: …* | Das einzige Eröffnungs-Double, D1, lässt 1 übrig, und die kann kein Double beenden. Wähle andere Startpunkte oder schalte Double-In oder Double-Out aus. |
-| *… ist kein Feld des Boards.* | `segment` von `autodarts.correct_dart` und `autodarts.throw_dart` nimmt S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS. |
-| *Nenne das Feld mit segment oder die Stelle des Darts mit x und y.* | `autodarts.correct_dart` und `autodarts.throw_dart` brauchen das Feld, die Position oder beides. |
+| *… ist kein Feld des Boards.* | `segment` von `homedarts.correct_dart` und `homedarts.throw_dart` nimmt S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS. |
+| *Nenne das Feld mit segment oder die Stelle des Darts mit x und y.* | `homedarts.correct_dart` und `homedarts.throw_dart` brauchen das Feld, die Position oder beides. |
 | *Gib die Position mit x und y an …* | Eine Position braucht `x` und `y`, beide von -3 bis 3: 0 ist die Mitte, 1 der äußere Rand des Doppelrings, und `y` zeigt zur 20. |
 | *Die angegebene Position liegt in …, nicht in …* | Das Feld ergibt sich aus der Position. Lass `segment` weg oder gib das Feld an dieser Stelle an. |
-| *Die aktuelle Aufnahme hat keinen Dart …* | `autodarts.correct_dart` korrigiert Dart 1, 2 oder 3 der aktuellen Aufnahme, sobald er im Board steckt. Eine Aufnahme, deren Darts gezogen sind, holst du mit `autodarts.undo_visit` zurück. |
+| *Die aktuelle Aufnahme hat keinen Dart …* | `homedarts.correct_dart` korrigiert Dart 1, 2 oder 3 der aktuellen Aufnahme, sobald er im Board steckt. Eine Aufnahme, deren Darts gezogen sind, holst du mit `homedarts.undo_visit` zurück. |
 | *Die Darts des Bots lassen sich nicht korrigieren.* | Die Darts des Bots kommen von Home Assistant, nicht vom Board. Korrigieren lassen sich nur die Darts eines Spielers. |
-| *Die manuelle Eingabe ist aus.* | `autodarts.throw_dart` nimmt Darts nur an, solange der Schalter *Übungsspiel manuelle Eingabe* an ist. Schalte ihn zuerst ein. |
-| *Der Bot ist am Board.* | Der Bot wirft gerade seine Aufnahme. Warte sie ab oder beende sie mit `autodarts.next_player`. |
-| *Die Aufnahme hat schon drei Darts.* | Gib mit `autodarts.next_player` weiter oder zieh die Darts, bevor du den nächsten Dart eingibst. |
-| *Die Aufnahme hat keine Darts zum Beenden.* | Ohne Darts gibt `autodarts.next_player` nur weiter, wo ein Spieler aussetzen darf: in X01, den Cricket- und den Partyspielen, nicht aber in Trainingsspielen, beim Ausbullen und während bei Killer die Zahlen gewählt werden. |
-| *Es gibt keine Aufnahme zum Zurücknehmen.* | `autodarts.undo_visit` nimmt die letzte abgeschlossene Aufnahme zurück, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainingssession seitdem geändert haben. Zieh zuerst die Darts; die Darts der aktuellen Aufnahme korrigierst du mit `autodarts.correct_dart`. |
+| *Die manuelle Eingabe ist aus.* | `homedarts.throw_dart` nimmt Darts nur an, solange der Schalter *Übungsspiel manuelle Eingabe* an ist. Schalte ihn zuerst ein. |
+| *Der Bot ist am Board.* | Der Bot wirft gerade seine Aufnahme. Warte sie ab oder beende sie mit `homedarts.next_player`. |
+| *Die Aufnahme hat schon drei Darts.* | Gib mit `homedarts.next_player` weiter oder zieh die Darts, bevor du den nächsten Dart eingibst. |
+| *Die Aufnahme hat keine Darts zum Beenden.* | Ohne Darts gibt `homedarts.next_player` nur weiter, wo ein Spieler aussetzen darf: in X01, den Cricket- und den Partyspielen, nicht aber in Trainingsspielen, beim Ausbullen und während bei Killer die Zahlen gewählt werden. |
+| *Es gibt keine Aufnahme zum Zurücknehmen.* | `homedarts.undo_visit` nimmt die letzte abgeschlossene Aufnahme zurück, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainingssession seitdem geändert haben. Zieh zuerst die Darts; die Darts der aktuellen Aufnahme korrigierst du mit `homedarts.correct_dart`. |
 | *Die Bot-Stärke ist 0 (kein Bot) oder ein 3-Dart-Average von 20 bis 120.* | Korrigiere `bot_level` in der Aktion oder die Einstellung *Übungsspiel Bot-Stärke*. |
 | *Mit dem Bot spielen bis zu drei Spieler: …* | Der Bot bekommt in X01 und den Cricket-Spielen einen eigenen Platz. Spiel mit höchstens drei Spielern oder stell die Bot-Stärke auf 0. |
-| *Der Exportordner … darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: …* | Lass den Ordner leer für `autodarts/exports` im Medienordner, oder wähle einen Ordner, der nicht mit einem Punkt beginnt, in `www`, in einem Medienordner oder in einem Ordner aus `allowlist_external_dirs`. |
+| *Der Exportordner … darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: …* | Lass den Ordner leer für `homedarts/exports` im Medienordner, oder wähle einen Ordner, der nicht mit einem Punkt beginnt, in `www`, in einem Medienordner oder in einem Ordner aus `allowlist_external_dirs`. |
 | *Der Export konnte nicht geschrieben werden: …* | Der Ordner ist nicht beschreibbar oder der Speicher voll; die Meldung nennt den Grund. |
 | *In der letzten Stunde wurden … Exporte geschrieben, mehr schreibt die Integration nicht.* | Die Integration schreibt nur eine begrenzte Zahl von Exporten pro Stunde. Versuche es später erneut. |
 | *Dieses Turnierformat braucht … bis … Spieler, nicht …* | Nenne so viele Spieler, wie das Format nimmt, jeden mit eigenem Namen: drei bis acht bei jeder gegen jeden, sechs bis 32 mit Gruppen, sonst drei bis 32. |
@@ -108,6 +111,16 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Das Turnier ist vorbei.* | Das Finale ist gespielt; *Nächstes Turniermatch* hat kein Match mehr. Beende das Turnier oder starte ein neues. |
 | *… spielt im Turnier mit.* | Einen Spieler des laufenden Turniers kannst du nicht löschen. Beende zuerst das Turnier. |
 | *Das Turniermatch … gegen … läuft noch.* | *Nächstes Turniermatch* wartet auf die Pause zwischen zwei Matches. Spiel das Match zu Ende oder beende das Turnier. |
+
+### Automationen laufen nach dem Wechsel zu HomeDarts nicht mehr
+
+Seit 2.0 beginnen die Aktionen der Integration mit `homedarts.`, etwa `homedarts.start_game`, und ihre Karten mit `custom:homedarts`. Sobald HomeDarts [deine Boards übernommen hat](new-name.de.md), gibt es die Aktionen des alten Namens, etwa `autodarts.start_game`, nicht mehr:
+
+- **Automationen und Skripte**, die sie aufrufen, schlagen fehl, weil Home Assistant die Aktion nicht findet. Ersetze `autodarts.` durch `homedarts.`; die Reparatur *Einige Automationen, Skripte oder Dashboards nutzen noch den alten Namen* listet sie auf.
+- **Dashboards in YAML** zeigen *Custom element doesn't exist: autodarts-card*. Ersetze in den Typen der Karten und der Strategie `custom:autodarts` durch `custom:homedarts` und `board_style: autodarts` durch `board_style: flat`.
+- **Auslöser und Bedingungen mit Entitäten** funktionieren weiter: Die Entitäts-IDs bleiben, etwa `event.autodarts_board_ereignisse`.
+
+Die Details stehen unter [Was du selbst änderst](new-name.de.md#was-du-selbst-änderst).
 
 ### Keine Echtzeitaktualisierung
 
@@ -138,8 +151,8 @@ Der Status bleibt *Darts werden entnommen*, obwohl das Board leer ist, und neue 
 
 ### Karte fehlt oder ist veraltet
 
-- **Custom element doesn't exist: autodarts-card:** Starte Home Assistant nach der Installation neu und lade die Seite neu.
-- **Nichts oder *Custom element doesn't exist* bei Home Assistant Cast:** Starte Home Assistant nach der Installation oder einem Update der Integration einmal neu und streame dann noch einmal. *Einstellungen → Dashboards → ⋮ → Ressourcen* listet `autodarts-strategy.js` und `autodarts-card.js` unter `/autodarts/`, im Ordner der Version; mit Ressourcen in YAML trägst du die [beiden Zeilen](cards.de.md#home-assistant-cast) selbst ein.
+- **Custom element doesn't exist: homedarts-card:** Starte Home Assistant nach der Installation neu und lade die Seite neu.
+- **Nichts oder *Custom element doesn't exist* bei Home Assistant Cast:** Starte Home Assistant nach der Installation oder einem Update der Integration einmal neu und streame dann noch einmal. *Einstellungen → Dashboards → ⋮ → Ressourcen* listet `homedarts-strategy.js` und `homedarts-card.js` unter `/homedarts/`, im Ordner der Version; mit Ressourcen in YAML trägst du die [beiden Zeilen](cards.de.md#home-assistant-cast) selbst ein.
 - **Alte Kartenversion nach einem Update:** Lade die Seite neu. In der Companion-App hilft *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*.
 - **Der Aufnahmeverlauf ist leer:** Er kommt aus dem Recorder und braucht daher die Integration `recorder` (standardmäßig aktiv). Er füllt sich mit abgeschlossenen Aufnahmen.
 
@@ -170,7 +183,7 @@ Ein Spieler hat einen Board-PC mit Ubuntu 24.04 und drei Kameras von Autodarts 1
 
 ### Diagnosedaten herunterladen
 
-**Einstellungen → Geräte & Dienste → Autodarts →** Menü des Boards (⋮) → **Diagnosedaten herunterladen**. Die Datei enthält:
+**Einstellungen → Geräte & Dienste → HomeDarts for Autodarts →** Menü des Boards (⋮) → **Diagnosedaten herunterladen**. Die Datei enthält:
 
 - den Board-Zustand und die Zusammenfassung der Einstellungen;
 - unter `local_readings` die Bewegung, ob die Kameras laufen, die Bildraten und die Last des Board-PCs;
@@ -189,18 +202,18 @@ Wähle auf der Integrationsseite **Debug-Protokollierung aktivieren**, stelle da
 logger:
   default: warning
   logs:
-    custom_components.autodarts: debug
+    custom_components.homedarts: debug
 ```
 
 ### Fehler melden
 
-Öffne ein [Issue](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) mit:
+Öffne ein [Issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose) mit:
 
 - Home-Assistant-Version und Board-Manager-Version;
 - den Diagnosedaten;
 - den passenden Protokollzeilen.
 
-Sicherheitsprobleme meldest du bitte vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
+Sicherheitsprobleme meldest du bitte vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/SECURITY.md) beschrieben.
 
 Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue-Assistent die Labels und schreibt eine Erstanalyse: eine Zusammenfassung, die wahrscheinliche Ursache oder die passende Stelle der Dokumentation, verwandte Issues und, wenn nötig, Rückfragen. Der Assistent nutzt derzeit Claude, eine KI von Anthropic; er liest den Text des Issues und das öffentliche Repository und kann sich irren. Der Maintainer liest jedes Issue ebenfalls und entscheidet.
 

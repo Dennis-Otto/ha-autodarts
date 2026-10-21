@@ -6,7 +6,7 @@ description: "The decisions that shape Autodarts for Home Assistant, each with i
 
 The decisions that shape this project, each with its reasons, so that a later change can see why things are as they are. A decision that changes an earlier one gets a new record, and the earlier one says which record replaces it.
 
-Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/decisions/0000-template.md) to the next free number and describe the decision in the pull request that makes it.
+Copy [the template](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/docs/decisions/0000-template.md) to the next free number and describe the decision in the pull request that makes it.
 
 | Record | Decision | Status |
 | --- | --- | --- |
@@ -35,3 +35,4 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0023](0023-blueprints-ship-with-the-integration.md) | Ship the blueprints with the integration and keep unchanged copies current | accepted |
 | [0024](0024-granboard-over-home-assistant-bluetooth.md) | Connect a Granboard through Home Assistant's Bluetooth, as a dartboard without Autodarts | accepted |
 | [0025](0025-no-cloud-link.md) | Remove the cloud link, since Autodarts issues no client IDs to third parties | accepted |
+| [0026](0026-a-name-of-its-own.md) | A name of its own: HomeDarts for Autodarts, with the domain homedarts | accepted |

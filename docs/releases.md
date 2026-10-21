@@ -14,7 +14,7 @@ Every pull request that changes something for users describes it under `## Unrel
 
 - **The version** follows from the titles of the pull requests merged since the last release: `fix` makes a patch, `feat` a minor and `!` or `BREAKING CHANGE` a major version. Every merge decides it anew. Pull requests of the types `docs`, `test`, `ci`, `chore`, `refactor`, `build` and `style` make no release on their own.
 - **The notes:** the text of *Unreleased* becomes the section of the release in `CHANGELOG.md`. The release notes show that text, followed by every pull request of the release.
-- **The files of the version:** `custom_components/autodarts/manifest.json`, `version.txt` and `.release-please-manifest.json`.
+- **The files of the version:** `custom_components/homedarts/manifest.json`, `version.txt` and `.release-please-manifest.json`.
 
 The release pull request needs the same required checks as every other one, the Docker end-to-end tests with Board Manager 1 and 2 and the oldest supported Home Assistant included, and it is always up to date with `main`, so its checks are those of the commit that becomes the release. Merging it publishes the release; until then, nothing reaches users. A release of dependency updates alone merges itself; every other release waits for the maintainer.
 
@@ -28,8 +28,8 @@ A line `Release-As: 2.0.0-beta.1` in the description of a pull request sets the 
 
 Merging the release pull request creates the release as a draft, with its tag `vx.y.z`, and then:
 
-1. The archive `autodarts.zip` is built from the folder `custom_components/autodarts` of the tagged commit with `git archive`, which HACS installs (`zip_release` and `filename` in `hacs.json`).
-2. Every asset gets its signed SLSA build provenance, and the release an SPDX SBOM.
+1. The archive `homedarts.zip` is built from the folder `custom_components/homedarts` of the tagged commit with `git archive`, which HACS installs (`zip_release` and `filename` in `hacs.json`).
+2. Every asset gets its signed SLSA build provenance, and the release an SBOM in SPDX and in CycloneDX and the licenses of its third-party components.
 3. The complete release is published; GitHub keeps it immutable from then on.
 4. The **Release verification** checks the release as its users can: the provenance of every asset, the SBOM, the immutability and the signed commit. It checks the latest release every week as well.
 
@@ -37,25 +37,27 @@ Merging the release pull request creates the release as a draft, with its tag `v
 
 | Asset | Contents |
 | --- | --- |
-| `autodarts.zip` | The folder `custom_components/autodarts` of the released commit, built reproducibly with `git archive` |
-| `ha-autodarts.spdx.json` | The software bill of materials of the release |
+| `homedarts.zip` | The folder `custom_components/homedarts` of the released commit, built reproducibly with `git archive` |
+| `homedarts-for-autodarts.spdx.json` | The software bill of materials of the release, in SPDX |
+| `homedarts-for-autodarts.cdx.json` | The same bill of materials in CycloneDX |
+| `THIRD_PARTY_NOTICES.md` | The licenses of the third-party components |
 | `provenance.sigstore.json` | A Sigstore bundle with the signed SLSA build provenance of every asset |
 | `provenance.intoto.jsonl` | The same signed provenance as in-toto JSON lines, for SLSA tools |
 
-The provenance proves that GitHub Actions built the archive from this repository and commit, so a HACS installation gets exactly the signed file; the download count of `autodarts.zip` shows how often each release was installed. To verify a download:
+The provenance proves that GitHub Actions built the archive from this repository and commit, so a HACS installation gets exactly the signed file; the download count of `homedarts.zip` shows how often each release was installed. To verify a download:
 
 ```sh
-gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts
+gh attestation verify homedarts.zip --repo Dennis-Otto/homedarts-for-autodarts
 ```
 
 Offline, with the downloaded bundle:
 
 ```sh
-gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts \
+gh attestation verify homedarts.zip --repo Dennis-Otto/homedarts-for-autodarts \
   --bundle provenance.sigstore.json
 ```
 
-Releases up to 1.9.0 carry their bundle as `autodarts.zip.sigstore.json`. Releases 1.0.0 and 1.0.1 were signed before the repository was renamed from `HACSAutodarts` to `ha-autodarts`; verify them with `--repo Dennis-Otto/HACSAutodarts`. Releases before 1.0.0 have no archive.
+Version 2.0.0 is the first release as HomeDarts for Autodarts. Up to 1.18.0 the integration was called Autodarts and its repository `ha-autodarts`: those releases carry the archive `autodarts.zip` and the SBOM `ha-autodarts.spdx.json`, and you verify them with `--repo Dennis-Otto/ha-autodarts`, such as `gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts`. Releases up to 1.9.0 carry their bundle as `autodarts.zip.sigstore.json`. Releases 1.0.0 and 1.0.1 were signed before the repository was renamed from `HACSAutodarts` to `ha-autodarts`; verify them with `--repo Dennis-Otto/HACSAutodarts`. Releases before 1.0.0 have no archive.
 
 ## Secrets and recovery
 

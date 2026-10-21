@@ -5,7 +5,7 @@ import pytest
 import voluptuous as vol
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import (
     T20,

@@ -10,7 +10,7 @@ import {
   celebrationOf,
   dartKey,
   visitCount,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const dart = (number, multiplier) => ({ number, multiplier });
 const visit = (...darts) => ({ state: "0", attributes: { throws: darts } });

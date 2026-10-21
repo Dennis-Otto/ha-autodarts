@@ -6,12 +6,12 @@ import { DEVICE, READY, loadCards, makeHass, mount, settle, window, withLanguage
 
 await loadCards();
 
-const CARDS = ["", "training-", "status-", "scoreboard-", "players-", "doubles-"].map((name) => `autodarts-${name}card`);
+const CARDS = ["", "training-", "status-", "scoreboard-", "players-", "doubles-"].map((name) => `homedarts-${name}card`);
 const formOf = (type) => customElements.get(type).getConfigForm();
 // Field names of a schema, with grids and sections as nested lists.
 const names = (schema) => schema.map((field) => (field.schema ? names(field.schema) : field.name));
 const labels = (field) => field.selector.select.options.map((option) => option.label);
-const DEVICE_FIELD = { name: "device_id", selector: { device: { filter: { integration: "autodarts" } } } };
+const DEVICE_FIELD = { name: "device_id", selector: { device: { filter: { integration: "homedarts" } } } };
 const TITLE_FIELD = { name: "title", selector: { text: {} } };
 const ACCENT_FIELD = { name: "accent_color", selector: { ui_color: { default_color: "primary" } } };
 
@@ -24,12 +24,12 @@ test("every card brings a form of Home Assistant and no editor element of its ow
     // Every card has its accent colour in the editor.
     assert.ok(JSON.stringify(form.schema).includes('"accent_color"'), type);
   }
-  class BareCard extends Object.getPrototypeOf(customElements.get("autodarts-card")) {}
+  class BareCard extends Object.getPrototypeOf(customElements.get("homedarts-card")) {}
   assert.equal(BareCard.getConfigForm(), undefined);
 });
 
 test("the live card form offers layout, board style, highlight, every switch and both colours", () => {
-  const form = formOf("autodarts-card");
+  const form = formOf("homedarts-card");
   assert.deepEqual(names(form.schema), [
     "device_id",
     "title",
@@ -55,7 +55,7 @@ test("the live card form offers layout, board style, highlight, every switch and
   assert.deepEqual(labels(layout), ["Automatic", "Board on the right", "Board below", "Board only"]);
   assert.deepEqual(layout.selector.select.options[0], { value: "auto", label: "Automatic" });
   assert.equal(layout.selector.select.mode, "dropdown");
-  assert.deepEqual(labels(style), ["Classic", "Autodarts"]);
+  assert.deepEqual(labels(style), ["Classic", "Flat"]);
   assert.deepEqual(labels(form.schema[3]), ["All darts of the visit", "Last dart only", "Off"]);
   // Switches show their default until the configuration sets them.
   assert.deepEqual(form.schema[4].schema[0], { name: "blink", selector: { boolean: {} }, default: true });
@@ -72,14 +72,14 @@ test("the live card form offers layout, board style, highlight, every switch and
 });
 
 test("fields are labelled and explained in the page's language, with the default of every list", () => {
-  const form = formOf("autodarts-card");
+  const form = formOf("homedarts-card");
   assert.equal(form.computeLabel({ name: "board_style" }), "Board style");
   assert.equal(form.computeLabel({ name: "" }), undefined);
   // A field without a text of its own reads as its name, and Home Assistant may add its own.
   assert.equal(form.computeLabel({ name: "grid_options" }), "grid_options");
   assert.equal(
     form.computeHelper({ name: "device_id" }),
-    "Optional. Without a selection, the card uses the first Autodarts board."
+    "Optional. Without a selection, the card uses the first board."
   );
   assert.match(form.computeHelper({ name: "accent_color" }), /^A theme color from the list, or any CSS color such as #00e5ff\./);
   assert.match(form.computeHelper({ name: "highlight_color" }), /gold \(#ffd60a\)/);
@@ -87,11 +87,11 @@ test("fields are labelled and explained in the page's language, with the default
   assert.equal(form.computeHelper({ name: "highlight" }), "Default: All darts of the visit");
   assert.equal(form.computeHelper({ name: "title" }), undefined);
   assert.equal(form.computeHelper({ name: "blink" }), undefined);
-  assert.equal(formOf("autodarts-training-card").computeHelper({ name: "board_style" }), "Default: Muted");
+  assert.equal(formOf("homedarts-training-card").computeHelper({ name: "board_style" }), "Default: Muted");
 
   // Home Assistant sets the page language; the form follows it.
   window.document.documentElement.lang = "de";
-  const german = formOf("autodarts-card");
+  const german = formOf("homedarts-card");
   assert.deepEqual(labels(german.schema[2].schema[0]), ["Automatisch", "Scheibe rechts", "Scheibe unten", "Nur Scheibe"]);
   assert.equal(german.computeLabel({ name: "layout" }), "Anordnung");
   assert.equal(german.computeHelper({ name: "layout" }), "Standard: Automatisch");
@@ -99,7 +99,7 @@ test("fields are labelled and explained in the page's language, with the default
 });
 
 test("every card has the form of its own options", () => {
-  const training = formOf("autodarts-training-card");
+  const training = formOf("homedarts-training-card");
   assert.deepEqual(names(training.schema), [
     "device_id",
     "title",
@@ -120,7 +120,7 @@ test("every card has the form of its own options", () => {
   ]);
   const [mode, style] = training.schema[2].schema;
   assert.deepEqual(labels(mode), ["Beds", "Numbers", "Positions", "Aim"]);
-  assert.deepEqual(labels(style), ["Muted", "Classic", "Autodarts"]);
+  assert.deepEqual(labels(style), ["Muted", "Classic", "Flat"]);
   // The heatmap's player has help of its own.
   assert.match(training.computeHelper(training.schema[3]), /this player's darts instead of the session's/);
   assert.deepEqual(training.schema[4], {
@@ -128,13 +128,13 @@ test("every card has the form of its own options", () => {
     selector: { number: { min: 5, max: 60, step: 1, mode: "slider" } },
     default: 20,
   });
-  assert.deepEqual(names(formOf("autodarts-status-card").schema), [
+  assert.deepEqual(names(formOf("homedarts-status-card").schema), [
     "device_id",
     "title",
     ["show_connection", "show_system", "show_cameras", "show_controls"],
     "accent_color",
   ]);
-  const players = formOf("autodarts-players-card");
+  const players = formOf("homedarts-players-card");
   assert.deepEqual(names(players.schema), [
     "device_id",
     "title",
@@ -148,7 +148,7 @@ test("every card has the form of its own options", () => {
   assert.deepEqual(players.schema[3].selector, { number: { min: 4, max: 12, step: 1, mode: "slider" } });
   assert.deepEqual(labels(players.schema[4]), ["CSV (a ZIP file with one table each)", "JSON"]);
   assert.equal(players.computeHelper({ name: "export_format" }), "Default: CSV (a ZIP file with one table each)");
-  const leaderboard = formOf("autodarts-leaderboard-card");
+  const leaderboard = formOf("homedarts-leaderboard-card");
   assert.deepEqual(names(leaderboard.schema), [
     "device_id",
     "title",
@@ -163,7 +163,7 @@ test("every card has the form of its own options", () => {
 });
 
 test("the caller's calls, the new game screen and idle mode wait in sections of their own", () => {
-  const form = formOf("autodarts-scoreboard-card");
+  const form = formOf("homedarts-scoreboard-card");
   assert.deepEqual(names(form.schema), [
     "device_id",
     "title",
@@ -204,7 +204,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   // The voice pack is a folder name, empty for the browser's voice.
   assert.deepEqual(caller.schema[2].selector, { text: {} });
   assert.equal(form.computeLabel(caller.schema[2]), "Voice pack");
-  assert.match(form.computeHelper(caller.schema[2]), /^A folder of \/media\/autodarts\/voices with recorded calls/);
+  assert.match(form.computeHelper(caller.schema[2]), /^A folder of \/media\/homedarts\/voices with recorded calls/);
 
   // The new game screen is on by default and offers every game, unless the card names some.
   assert.deepEqual([lobby.type, lobby.name, lobby.flatten], ["expandable", "lobby_section", true]);
@@ -253,7 +253,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
 });
 
 test("the overlay of a stream waits in a section of its own, off by default", () => {
-  const form = formOf("autodarts-scoreboard-card");
+  const form = formOf("homedarts-scoreboard-card");
   const overlay = form.schema.find((field) => field.name === "overlay_section");
   assert.deepEqual([overlay.type, overlay.flatten], ["expandable", true]);
   assert.equal(form.computeLabel(overlay), "Stream overlay");
@@ -284,20 +284,20 @@ test("the editor offers the games of the board on the page", () => {
   // The practice game of another integration does not count.
   const other = { entity_id: "select.other_game", platform: "other", translation_key: "practice_game" };
   hass.entities = { "select.other_game": other, ...hass.entities };
-  mount("autodarts-scoreboard-card", hass).remove();
-  const games = formOf("autodarts-scoreboard-card").schema[5].schema[1];
+  mount("homedarts-scoreboard-card", hass).remove();
+  const games = formOf("homedarts-scoreboard-card").schema[5].schema[1];
   assert.deepEqual(games.selector.select.options, [
     { value: "501", label: "501" },
     { value: "cricket", label: "Cricket" },
     { value: "bingo", label: "bingo" },
   ]);
   // A board without the practice game leaves the list of every game the card knows.
-  mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 29);
+  mount("homedarts-scoreboard-card", makeHass({ states: READY })).remove();
+  assert.equal(formOf("homedarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 29);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {
-  let form = formOf("autodarts-doubles-card");
+  let form = formOf("homedarts-doubles-card");
   assert.deepEqual(form.schema[2], {
     name: "player",
     selector: { select: { mode: "dropdown", custom_value: true, options: [] } },
@@ -310,23 +310,23 @@ test("the doubles form offers the named players and takes any other name", () =>
   const profiles = { state: "2", attributes: { players: [{ name: "Sam" }, { name: "Alex" }, { name: "" }, null] } };
   const hass = makeHass({ states: { ...READY, "sensor.player_profiles": profiles } });
   hass.entities["sensor.other_profiles"] = { entity_id: "sensor.other_profiles", platform: "other", translation_key: "player_profiles" };
-  hass.entities["sensor.empty_profiles"] = { entity_id: "sensor.empty_profiles", platform: "autodarts", translation_key: "player_profiles" };
-  mount("autodarts-doubles-card", hass).remove();
-  form = formOf("autodarts-doubles-card");
+  hass.entities["sensor.empty_profiles"] = { entity_id: "sensor.empty_profiles", platform: "homedarts", translation_key: "player_profiles" };
+  mount("homedarts-doubles-card", hass).remove();
+  form = formOf("homedarts-doubles-card");
   assert.deepEqual(form.schema[2].selector.select.options, [
     { value: "Alex", label: "Alex" },
     { value: "Sam", label: "Sam" },
   ]);
   // The language of that Home Assistant wins over the page's.
-  mount("autodarts-doubles-card", withLanguage(hass, "de")).remove();
-  assert.equal(formOf("autodarts-doubles-card").computeLabel({ name: "player" }), "Spieler");
-  mount("autodarts-doubles-card", hass).remove();
+  mount("homedarts-doubles-card", withLanguage(hass, "de")).remove();
+  assert.equal(formOf("homedarts-doubles-card").computeLabel({ name: "player" }), "Spieler");
+  mount("homedarts-doubles-card", hass).remove();
 });
 
 test("options the form cannot show send the editor to the code view", () => {
-  const form = formOf("autodarts-card");
+  const form = formOf("homedarts-card");
   for (const config of [
-    { type: "custom:autodarts-card" },
+    { type: "custom:homedarts-card" },
     { layout: "vertical", blink: false, accent_color: "#00e5ff", device_id: "", title: null },
     { highlight_color: "anything" },
   ]) {
@@ -336,11 +336,11 @@ test("options the form cannot show send the editor to the code view", () => {
     message: 'The option layout does not accept "diagonal".',
   });
   assert.throws(() => form.assertConfig({ blink: "yes" }), { message: 'The option blink does not accept "yes".' });
-  const training = formOf("autodarts-training-card");
+  const training = formOf("homedarts-training-card");
   assert.throws(() => training.assertConfig({ history_size: "many" }), /history_size/);
   assert.doesNotThrow(() => training.assertConfig({ history_size: 40 }));
   // The doubles card takes any player name.
-  assert.doesNotThrow(() => formOf("autodarts-doubles-card").assertConfig({ player: "Somebody new" }));
+  assert.doesNotThrow(() => formOf("homedarts-doubles-card").assertConfig({ player: "Somebody new" }));
   assert.doesNotThrow(() => form.assertConfig(undefined));
 });
 
@@ -348,18 +348,18 @@ test("options the form cannot show send the editor to the code view", () => {
 class FakeForm extends HTMLElement {}
 
 test("the dashboard strategy has an editor with the board and the title", async () => {
-  const Strategy = customElements.get("ll-strategy-dashboard-autodarts");
+  const Strategy = customElements.get("ll-strategy-dashboard-homedarts");
   // Without card helpers the editor just waits for the form.
   delete window.loadCardHelpers;
   const waiting = await Strategy.getConfigElement();
-  assert.equal(waiting.localName, "autodarts-strategy-editor");
+  assert.equal(waiting.localName, "homedarts-strategy-editor");
   window.loadCardHelpers = async () => {
     throw new Error("helpers unavailable");
   };
   const failing = await Strategy.getConfigElement();
   const hass = makeHass({ states: READY });
   for (const element of [waiting, failing]) {
-    element.setConfig({ type: "custom:autodarts" });
+    element.setConfig({ type: "custom:homedarts" });
     element.hass = hass;
     document.body.append(element);
     assert.equal(element.querySelector("ha-form"), null);
@@ -385,7 +385,7 @@ test("the dashboard strategy has an editor with the board and the title", async 
   await Strategy.getConfigElement();
   delete window.loadCardHelpers;
 
-  loading.setConfig({ type: "custom:autodarts", title: "Darts" });
+  loading.setConfig({ type: "custom:homedarts", title: "Darts" });
   document.body.append(loading);
   assert.equal(loading.querySelector("ha-form"), null);
   loading.hass = hass;
@@ -417,12 +417,12 @@ test("the dashboard strategy has an editor with the board and the title", async 
   );
   assert.equal(scoreboard.schema[4].name, "lobby_games");
   assert.equal(scoreboard.schema[5].selector.select.options[0].label, "Tournament");
-  assert.deepEqual(form.data, { type: "custom:autodarts", title: "Darts" });
+  assert.deepEqual(form.data, { type: "custom:homedarts", title: "Darts" });
   assert.equal(form.hass, hass);
   assert.equal(form.computeLabel({ name: "device_id" }), "Board");
   assert.equal(
     form.computeHelper({ name: "device_id" }),
-    "Optional. Without a selection, the dashboard shows every Autodarts board."
+    "Optional. Without a selection, the dashboard shows every board."
   );
   assert.equal(form.computeHelper({ name: "title" }), undefined);
   assert.equal(form.computeLabel({ name: "theme" }), "theme");
@@ -441,10 +441,10 @@ test("the dashboard strategy has an editor with the board and the title", async 
   form.dispatchEvent(
     new CustomEvent("value-changed", {
       bubbles: true,
-      detail: { value: { type: "custom:autodarts", title: "", device_id: DEVICE } },
+      detail: { value: { type: "custom:homedarts", title: "", device_id: DEVICE } },
     })
   );
-  assert.deepEqual(changes, [{ type: "custom:autodarts", device_id: DEVICE }]);
+  assert.deepEqual(changes, [{ type: "custom:homedarts", device_id: DEVICE }]);
   assert.deepEqual(outside, []);
   // Scoreboard options that are set stay; an empty list or a section without any goes.
   for (const [scoreboard, expected] of [
@@ -457,9 +457,9 @@ test("the dashboard strategy has an editor with the board and the title", async 
     [{ lobby_games: [], caller_voice: "" }, undefined],
   ]) {
     form.dispatchEvent(
-      new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", scoreboard } } })
+      new CustomEvent("value-changed", { detail: { value: { type: "custom:homedarts", scoreboard } } })
     );
-    assert.deepEqual(changes.at(-1), { type: "custom:autodarts", ...(expected ? { scoreboard: expected } : {}) });
+    assert.deepEqual(changes.at(-1), { type: "custom:homedarts", ...(expected ? { scoreboard: expected } : {}) });
   }
   // The overlay view's own section, stored under "overlay_view", with no choice to switch it off.
   const overlay = form.schema[3];
@@ -475,14 +475,14 @@ test("the dashboard strategy has an editor with the board and the title", async 
     [{ overlay: "", overlay_layout: "full" }, { overlay_layout: "full" }],
     [{ overlay: "", overlay_color: "" }, null],
   ]) {
-    form.dispatchEvent(new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", overlay_view: view } } }));
+    form.dispatchEvent(new CustomEvent("value-changed", { detail: { value: { type: "custom:homedarts", overlay_view: view } } }));
     const stored = expected === undefined ? view : expected;
-    assert.deepEqual(changes.at(-1), { type: "custom:autodarts", ...(stored ? { overlay_view: stored } : {}) });
+    assert.deepEqual(changes.at(-1), { type: "custom:homedarts", ...(stored ? { overlay_view: stored } : {}) });
   }
   // A new configuration keeps the form.
-  loading.setConfig({ type: "custom:autodarts" });
+  loading.setConfig({ type: "custom:homedarts" });
   assert.equal(loading.querySelector("ha-form"), form);
-  assert.deepEqual(form.data, { type: "custom:autodarts" });
+  assert.deepEqual(form.data, { type: "custom:homedarts" });
   loading.hass = withLanguage(hass, "de");
   assert.equal(form.computeLabel({ name: "title" }), "Titel");
 });

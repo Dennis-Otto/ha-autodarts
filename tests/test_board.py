@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.autodarts import (
+from custom_components.homedarts import (
     aim,
     bot,
     cricket,
@@ -17,7 +17,7 @@ from custom_components.autodarts import (
     services,
     training,
 )
-from custom_components.autodarts.board import (
+from custom_components.homedarts.board import (
     BULL_MM,
     DOUBLE_MM,
     OUTER_BULL_MM,
@@ -30,11 +30,11 @@ from custom_components.autodarts.board import (
     segment_at,
     top_bed,
 )
-from custom_components.autodarts.scoring import SCORE_BEDS, bounded_count
-from custom_components.autodarts.training import hit_key
+from custom_components.homedarts.scoring import SCORE_BEDS, bounded_count
+from custom_components.homedarts.training import hit_key
 
 CARD = (
-    Path(__file__).parents[1] / "custom_components/autodarts/frontend/autodarts-card.js"
+    Path(__file__).parents[1] / "custom_components/homedarts/frontend/homedarts-card.js"
 ).read_text(encoding="utf-8")
 
 

@@ -3,7 +3,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Ask anything about setting up or using the integration. Please check the [documentation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md) first. English and German are both welcome.
+        Ask anything about setting up or using the integration. Please check the [documentation](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/docs/README.md) first. English and German are both welcome.
   - type: textarea
     id: question
     attributes:

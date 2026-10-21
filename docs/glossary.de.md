@@ -40,6 +40,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 
 | Begriff | Bedeutung | Englisch |
 | --- | --- | --- |
+| **HomeDarts** | Kurz für HomeDarts for Autodarts, der Name dieser Integration seit Version 2.0; bis Version 1.18 hieß sie Autodarts ([der neue Name](new-name.de.md)) | HomeDarts |
 | **Board Manager** | Die Software von Autodarts auf dem Board-PC, die die Darts erkennt; Generation 1 ist die klassische App, Generation 2 ist Autodarts 2 ohne Bildschirm (headless). Autodarts Desktop funktioniert laut dem Bericht eines Spielers unter Linux; unter Windows ist es noch nicht getestet, ebenso wenig die Winmau-Autodarts-Geräte | Board Manager |
 | **Erkennung** | Die Dart-Erkennung des Board Managers mit den Kameras; sie lässt sich starten, stoppen, zurücksetzen und kalibrieren | Detection |
 | **Erkennungsstatus** | Was das Board gerade tut: bereit zum Werfen, Entnahme, gestoppt, Kalibrierung und so weiter | Detection status |

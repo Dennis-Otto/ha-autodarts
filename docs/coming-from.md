@@ -1,12 +1,14 @@
 ---
-description: "Switch from Autodarts Local, another Autodarts integration, an MQTT bridge or darts-caller: what takes its place, what can stay and how to remove it."
+description: "Switch to HomeDarts from Autodarts Local, another integration for Autodarts, an MQTT bridge or darts-caller: what takes its place and how to switch."
 ---
 
 # Coming from another tool
 
 [← Documentation](README.md) · [Deutsch](coming-from.de.md)
 
-Other projects bring an Autodarts board into Home Assistant or next to it. This page compares them with this integration and shows, for each one, the entities, events and blueprints that take its place, whether it can stay installed and how to remove it. The facts are as of October 2026, from each project's own documentation and code, which the links lead to. If a project has changed since then, [tell us](https://github.com/Dennis-Otto/ha-autodarts/discussions) so that this page stays fair.
+Other projects bring an Autodarts board into Home Assistant or next to it. This page compares them with HomeDarts and shows, for each one, the entities, events and blueprints that take its place, and how to switch while it stays installed. The facts are as of October 2026, from each project's own documentation and code, which the links lead to. If a project has changed since then, [tell us](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions) so that this page stays fair.
+
+Used HomeDarts up to version 1.18, when it was called Autodarts? That is no other tool: HomeDarts takes over your boards with everything they have, as [From Autodarts to HomeDarts](new-name.md) shows.
 
 **Jump to:** [At a glance](#at-a-glance) · [Can it stay?](#can-it-stay) · [Autodarts Local](#autodarts-local) · [Quevinsta's integration](#autodarts-for-home-assistant-by-quevinsta) · [belese's integration](#autodarts-by-belese) · [Autodarts Connect Online](#autodarts-connect-online) · [Darts Hub](#darts-hub) · [MQTT bridges](#mqtt-bridges) · [darts-caller and darts-wled](#darts-caller-and-darts-wled) · [Tools for Autodarts](#tools-for-autodarts) · [The original integration](#the-original-integration)
 
@@ -14,7 +16,7 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 
 <!-- --8<-- [start:compare] -->
 
-| Feature | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
+| Feature | HomeDarts | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](coming-from.md#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
@@ -24,7 +26,7 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 | **Statistics kept at home** | [Yes](statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
 | **Without an Autodarts board** | Yes, on a [keypad](without-autodarts.md) or a [Granboard over Bluetooth](granboard.md) *(experimental)* | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
 | **Online matches** | Your darts, and the moments of the match through the [online bridge](online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
-| **License and cost** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), free | Autodarts: a free plan and the paid [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Free, no license stated | MIT, Apache 2.0 or no license file |
+| **License and cost** | [MIT](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/LICENSE), free | Autodarts: a free plan and the paid [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Free, no license stated | MIT, Apache 2.0 or no license file |
 
 <!-- --8<-- [end:compare] -->
 
@@ -32,18 +34,18 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 
 ## Can it stay?
 
-Home Assistant loads one integration per domain, so two integrations with the domain `autodarts` can't be installed at the same time. One with a domain of its own can stay while you move your automations, and go when nothing uses it any more.
+Yes, every one of them. Home Assistant loads one integration per domain, and HomeDarts has a domain of its own, `homedarts`. So each of the others can stay installed beside it while you move your automations, and go when nothing uses it any more. HomeDarts leaves their entries as they are: it takes over only the boards it set up under its former name, Autodarts.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/coming-from-dark.png">
-  <img src="images/en/coming-from-light.png" alt="Switching from another Autodarts integration: the original HACSAutodarts uses the autodarts domain; replace it in HACS and keep its entry, which is migrated. Quevinsta's and belese's integrations use the autodarts domain too; delete their entries, remove them in HACS, check that custom_components/autodarts is gone and restart. Autodarts Local, Autodarts Connect Online, Darts Hub and MQTT bridges have a domain of their own and can stay for now. Then install this integration, add the board, move the automations to its events and blueprints, and remove what nothing uses any more" width="520">
+  <img src="images/en/coming-from-light.png" alt="Switching from another integration for Autodarts: The integration under its former name, Autodarts, up to version 1.18, is no other tool: update it, and HomeDarts takes over its boards. Every other integration, such as the original HACSAutodarts, Quevinsta's, belese's, Autodarts Local, Autodarts Connect Online, Darts Hub or an MQTT bridge, can stay while you switch, because HomeDarts has a domain of its own, homedarts. Install HomeDarts beside it and add the board, move the automations to the events and blueprints of HomeDarts, then delete the entries of the old integration, remove it in HACS and restart Home Assistant" width="520">
 </picture>
 
-| Project | Domain | Reads the board through | Next to this integration |
+| Project | Domain | Reads the board through | Next to HomeDarts |
 | --- | --- | --- | --- |
-| [Original integration](#the-original-integration) by Trkal | `autodarts` | The Board Manager, locally | Replaced: its entry is migrated |
-| [Autodarts for Home Assistant](#autodarts-for-home-assistant-by-quevinsta) by Quevinsta | `autodarts` | The Board Manager, locally | [Remove it first](#remove-an-integration-with-the-same-domain) |
-| [autodarts](#autodarts-by-belese) by belese | `autodarts` | The Autodarts cloud | [Remove it first](#remove-an-integration-with-the-same-domain) |
+| [Original integration](#the-original-integration) by Trkal | `autodarts` | The Autodarts cloud, and the Board Manager for the darts | Can stay |
+| [Autodarts for Home Assistant](#autodarts-for-home-assistant-by-quevinsta) by Quevinsta | `autodarts` | The Board Manager, locally | Can stay |
+| [autodarts](#autodarts-by-belese) by belese | `autodarts` | The Autodarts cloud | Can stay |
 | [Autodarts Local](#autodarts-local) | `autodarts_local` | The Board Manager, locally | Can stay |
 | [Autodarts Connect Online](#autodarts-connect-online) | `autodarts_connect` | The Autodarts cloud | Can stay |
 | [Darts Hub](#darts-hub) | `darts_hub` | darts-hub or darts-caller, and the Board Manager | Can stay |
@@ -51,19 +53,13 @@ Home Assistant loads one integration per domain, so two integrations with the do
 | [darts-caller and darts-wled](#darts-caller-and-darts-wled) | Outside Home Assistant | The Autodarts cloud | Can stay; let one caller speak |
 | [Tools for Autodarts](#tools-for-autodarts) | In the browser | The Autodarts web app | Stays; the online bridge uses it |
 
-### Remove an integration with the same domain
+### Switch step by step
 
-1. **Note what uses it.** The dialog of an entity lists the automations and scripts that use it under **Related**.
-2. **Delete its entries** in **Settings → Devices & services**: open the integration and, for every entry, its menu (⋮) → **Delete**. Do this first: after the switch, Home Assistant would hand the entries to this integration, which doesn't know their settings.
-3. **Remove the code.** In HACS, open the integration, then its menu (⋮) → **Remove**. If you added it as a custom repository, delete it as well under the menu (⋮) → **Custom repositories**, so that a search for *Autodarts* in HACS finds only this integration. For a manual installation, delete the folder `config/custom_components/autodarts`. Check that the folder is gone.
-4. **Restart Home Assistant.**
-5. **Install this integration** and add your board, as the [installation guide](installation.md#add-your-board) describes.
-
-### Keep one with a domain of its own
-
-1. Install this integration beside it and add your board. Both read the same Board Manager.
-2. Move your automations, one at a time, with the tables below.
-3. When nothing uses the old integration any more, delete its entry in **Settings → Devices & services**, remove it in HACS and restart Home Assistant.
+1. **Install HomeDarts beside it** and add your board, as the [installation guide](installation.md#add-your-board) describes. Both follow the same board.
+2. **Move your automations,** one at a time, with the tables below. The dialog of an entity lists the automations and scripts that use it under **Related**.
+3. **Delete the entries of the old integration** in **Settings → Devices & services** when nothing uses it any more: open the integration and, for every entry, its menu (⋮) → **Delete**.
+4. **Remove its code.** In HACS, open the integration, then its menu (⋮) → **Remove**. If you added it as a custom repository, delete it as well under the menu (⋮) → **Custom repositories**. For a manual installation, delete its folder in `config/custom_components`, such as `config/custom_components/autodarts`.
+5. **Restart Home Assistant.**
 
 The entity IDs below are those of a board named *Autodarts Board* in a Home Assistant set to English, as in the [examples of the automations](automations.md#examples). You find yours on the device page of the board.
 
@@ -81,7 +77,7 @@ The entity IDs below are those of a board named *Autodarts Board* in a Home Assi
 | The buttons *Start Detection*, *Stop Detection* and *Reset Detection* | The buttons *Start detection*, *Stop detection* and *Reset detection*, and the *Detection* switch, under [Controls](entities.md#controls) |
 | The example automation *Takeout Light* | The [takeout actions](automations.md#takeout-actions) blueprint, or the example [Light up the board while you pull the darts](automations.md#light-up-the-board-while-you-pull-the-darts) |
 
-**Can stay.** Both call the device *Autodarts Board*, as this integration does for a board added by its address. While both are installed, the buttons here get IDs ending in `_2`, such as `button.autodarts_board_start_detection_2`. Remove Autodarts Local before you add the board here, and the buttons get the IDs your automations already use, such as `button.autodarts_board_start_detection`.
+**Can stay.** Both call the device *Autodarts Board*, as HomeDarts does for a board added by its address. While both are installed, the buttons here get IDs ending in `_2`, such as `button.autodarts_board_start_detection_2`. Remove Autodarts Local before you add the board here, and the buttons get the IDs your automations already use, such as `button.autodarts_board_start_detection`.
 
 ## Autodarts for Home Assistant by Quevinsta
 
@@ -97,7 +93,7 @@ The entity IDs below are those of a board named *Autodarts Board* in a Home Assi
 
 Here, Home Assistant counts the practice game itself: X01 from 101 to 1001, the Cricket games, the party games and the training games. A game on play.autodarts.io is counted in the browser, and its score doesn't reach Home Assistant: Autodarts issues no client IDs to third-party integrations, so there is no cloud link ([decision 0025](decisions/0025-no-cloud-link.md)).
 
-**Same domain:** [remove it first](#remove-an-integration-with-the-same-domain).
+**Can stay.** Its domain is `autodarts`, that of HomeDarts `homedarts`, so you [switch step by step](#switch-step-by-step).
 
 ## autodarts by belese
 
@@ -109,9 +105,9 @@ Here, Home Assistant counts the practice game itself: X01 from 101 to 1001, the 
 | Players, current player | `players`, `player` and `name` of *Practice remaining score* in a practice game, and the event `turn_changed` |
 | Winner | The event `match_won` and the `winner` attribute of *Practice remaining score* |
 
-This integration needs no Autodarts account and stores no password.
+HomeDarts needs no Autodarts account and stores no password.
 
-**Same domain:** [remove it first](#remove-an-integration-with-the-same-domain).
+**Can stay.** Its domain is `autodarts`, that of HomeDarts `homedarts`, so you [switch step by step](#switch-step-by-step). Delete its entry at the end: it holds the password of your account.
 
 ## Autodarts Connect Online
 
@@ -124,7 +120,7 @@ This integration needs no Autodarts account and stores no password.
 | Cricket marks | The `marks`, `points` and `mpr` of every player in the `scores` of *Practice remaining score*, in the [Cricket games](entities.md#cricket) |
 | Online matches | Your darts as usual, and busts, won legs and matches through the [online bridge](online-matches.md) *(experimental)* |
 
-**Can stay.** It sees more of an online match than this integration does today, such as the darts and scores of your opponents. If you play online most of the time, keep it beside this one.
+**Can stay.** It sees more of an online match than HomeDarts does today, such as the darts and scores of your opponents. If you play online most of the time, keep it beside HomeDarts.
 
 ## Darts Hub
 
@@ -137,7 +133,7 @@ This integration needs no Autodarts account and stores no password.
 | Dart 1 to 3 and the last dart, with value, multiplier, field and position | The `throws` attribute of *Detected visit score*, with `segment`, `multiplier`, `score`, `bed` and the position `x`/`y` |
 | The buttons *Reset Board* and *Calibrate Board* | *Reset detection* and *Start automatic calibration* |
 
-**Can stay.** This integration needs neither darts-hub nor darts-caller.
+**Can stay.** HomeDarts needs neither darts-hub nor darts-caller.
 
 ## MQTT bridges
 
@@ -150,7 +146,7 @@ MQTT bridges, such as [Autodarts MQTT](https://github.com/Quevinsta/autodarts-mq
 | 3-dart average | *Training 3-dart average* of the [training session](entities.md#training-session) |
 | Leg average | The `average` of the event `leg_won` |
 
-**Can stay.** This integration needs neither a broker nor a program of its own. To remove a bridge, stop it and delete its device in **Settings → Devices & services → MQTT**.
+**Can stay.** HomeDarts needs neither a broker nor a program of its own. To remove a bridge, stop it and delete its device in **Settings → Devices & services → MQTT**.
 
 ## darts-caller and darts-wled
 
@@ -164,7 +160,7 @@ What Home Assistant does now:
 | WLED effects for a 180, a bust or a game shot | The [light show](automations.md#light-show) blueprint with your [WLED presets or other lights](automations.md#light-show-with-wled-and-other-lights) |
 | Game events for other programs | [Board events](entities.md#board-events) for every dart, visit, takeout, bust, won leg and match, for every automation of Home Assistant |
 
-**Can stay.** darts-caller follows the cloud and this integration the board, so both work at the same time. Two callers talk over each other, though, and two programs that drive the same WLED lights fight over them: let one of each speak and light. In online matches, darts-caller also calls your opponents' scores, which this integration doesn't see.
+**Can stay.** darts-caller follows the cloud and HomeDarts the board, so both work at the same time. Two callers talk over each other, though, and two programs that drive the same WLED lights fight over them: let one of each speak and light. In online matches, darts-caller also calls your opponents' scores, which HomeDarts doesn't see.
 
 ## Tools for Autodarts
 
@@ -174,4 +170,16 @@ What Home Assistant does now:
 
 ## The original integration
 
-This integration started as a fork of [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts) and uses the same domain `autodarts`. Replace it in HACS and keep its entry: [Update from the original integration](installation.md#update-from-the-original-integration) explains the steps.
+HomeDarts started as a fork of [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts), a prototype from April 2026 with the domain `autodarts`. It follows the board through the Autodarts cloud, signed in with your Autodarts account, and with the address of the board it reads the darts from the Board Manager too. It shows the board state, the last detection event, the mode, state and round of the match, the visit score and the darts.
+
+| The original integration | Here |
+| --- | --- |
+| *Board Status* | The *Local connection* binary sensor |
+| *Board Event*, such as *Throw* or *Takeout* | *Detection status*, with the event `status_changed` |
+| *Last Throw*, *Throws in Turn* | The *Last dart* sensor, *Darts in visit* and the event `dart_detected` |
+| *Visit Score* | *Detected visit score*, and the event `visit_thrown` the moment the third dart lands |
+| *Game Mode*, *Match State*, *Round*, *Total Turns* | *Practice game* and the `game`, `round` and `winner` of *Practice remaining score*, in a [practice game](entities.md#practice-game) that Home Assistant counts itself, with the events `leg_won` and `match_won` |
+
+A game on play.autodarts.io doesn't reach Home Assistant here, as the [section on Quevinsta's integration](#autodarts-for-home-assistant-by-quevinsta) explains.
+
+**Can stay.** Up to version 1.18 HomeDarts had the domain `autodarts` too; since 2.0 it has `homedarts`, so both run side by side, and HomeDarts leaves the entry of the original as it is. [Switch from the original integration](installation.md#switch-from-the-original-integration) has the steps.

@@ -16,10 +16,10 @@
 import { execFileSync } from "node:child_process";
 import vm from "node:vm";
 
-export const TRANSLATIONS = "custom_components/autodarts/translations";
-export const CARD = "custom_components/autodarts/frontend/autodarts-card.js";
+export const TRANSLATIONS = "custom_components/homedarts/translations";
+export const CARD = "custom_components/homedarts/frontend/homedarts-card.js";
 // The texts of the cards, a module per language; earlier commits had them in CARD.
-export const TEXTS = "custom_components/autodarts/frontend/text";
+export const TEXTS = "custom_components/homedarts/frontend/text";
 export const cardFile = (language) => `${TEXTS}/${language}.js`;
 export const SOURCE = "en";
 // The issues of the bot: the GitHub token of a workflow opens them as this user.
@@ -38,7 +38,7 @@ const KEYS_BUDGET = 8_000;
 
 // The two places of the texts, each with the forms of its files: a commit has the
 // texts of the first form whose file it has. The integration has a file per language.
-// So have the cards, in TEXTS; before, one TEXT dictionary in autodarts-card.js held
+// So have the cards, in TEXTS; before, one TEXT dictionary in homedarts-card.js held
 // every language, and the history of a text goes on across the move.
 const SOURCES = [
   {
@@ -81,7 +81,7 @@ const WORDS = {
     label: "Deutsch:",
     title: (count) => `Deutsch: ${count} ${count === 1 ? "Text" : "Texte"} zu aktualisieren`,
     intro:
-      "Hallo! Die deutsche Übersetzung von Autodarts für Home Assistant hinkt dem englischen Original hinterher. Wenn du Deutsch sprichst, kannst du helfen, ganz ohne Programmierkenntnisse: Die Schritte stehen unten auf Englisch, und du kannst hier auch gern auf Deutsch kommentieren.",
+      "Hallo! Die deutsche Übersetzung von HomeDarts for Autodarts hinkt dem englischen Original hinterher. Wenn du Deutsch sprichst, kannst du helfen, ganz ohne Programmierkenntnisse: Die Schritte stehen unten auf Englisch, und du kannst hier auch gern auf Deutsch kommentieren.",
     done: "Alle deutschen Texte sind jetzt aktuell. Danke an alle, die geholfen haben!",
   },
   es: {
@@ -89,7 +89,7 @@ const WORDS = {
     label: "Español:",
     title: (count) => `Español: ${count} ${count === 1 ? "texto" : "textos"} por actualizar`,
     intro:
-      "¡Hola! La traducción al español de Autodarts para Home Assistant se ha quedado atrás respecto al original en inglés. Si hablas español, puedes ayudar sin saber programar: los pasos están en inglés más abajo, y también puedes comentar aquí en español.",
+      "¡Hola! La traducción al español de HomeDarts for Autodarts se ha quedado atrás respecto al original en inglés. Si hablas español, puedes ayudar sin saber programar: los pasos están en inglés más abajo, y también puedes comentar aquí en español.",
     done: "Todos los textos en español están al día. ¡Gracias a todas las personas que han ayudado!",
   },
   fr: {
@@ -97,7 +97,7 @@ const WORDS = {
     label: "Français\u00a0:",
     title: (count) => `Français\u00a0: ${count} ${count === 1 ? "texte" : "textes"} à mettre à jour`,
     intro:
-      "Bonjour\u00a0! La traduction française d'Autodarts pour Home Assistant n'est plus à jour par rapport à l'original anglais. Si vous parlez français, vous pouvez aider sans savoir programmer\u00a0: les étapes sont décrites en anglais ci-dessous, et vous pouvez aussi commenter ici en français.",
+      "Bonjour\u00a0! La traduction française de HomeDarts for Autodarts n'est plus à jour par rapport à l'original anglais. Si vous parlez français, vous pouvez aider sans savoir programmer\u00a0: les étapes sont décrites en anglais ci-dessous, et vous pouvez aussi commenter ici en français.",
     done: "Tous les textes français sont maintenant à jour. Merci à toutes les personnes qui ont aidé\u00a0!",
   },
   nl: {
@@ -105,7 +105,7 @@ const WORDS = {
     label: "Nederlands:",
     title: (count) => `Nederlands: ${count} ${count === 1 ? "tekst" : "teksten"} bij te werken`,
     intro:
-      "Hallo! De Nederlandse vertaling van Autodarts voor Home Assistant loopt achter op het Engelse origineel. Spreek je Nederlands? Dan kun je helpen, zonder te programmeren: de stappen staan hieronder in het Engels, en je mag hier ook gewoon in het Nederlands reageren.",
+      "Hallo! De Nederlandse vertaling van HomeDarts for Autodarts loopt achter op het Engelse origineel. Spreek je Nederlands? Dan kun je helpen, zonder te programmeren: de stappen staan hieronder in het Engels, en je mag hier ook gewoon in het Nederlands reageren.",
     done: "Alle Nederlandse teksten zijn nu bijgewerkt. Bedankt aan iedereen die heeft geholpen!",
   },
 };
@@ -388,7 +388,7 @@ export function render(result, links) {
   const parts = [`<!-- translation-bot: ${language} -->`];
   if (words) parts.push(`**${words.label}** ${words.intro}`);
   parts.push(
-    `**English:** Hello! ${plural(count, `${name} text`)} of Autodarts for Home Assistant ${count === 1 ? "is" : "are"} ${state}. If you speak ${name}, you can help, no programming needed: the steps are below.`,
+    `**English:** Hello! ${plural(count, `${name} text`)} of HomeDarts for Autodarts ${count === 1 ? "is" : "are"} ${state}. If you speak ${name}, you can help, no programming needed: the steps are below.`,
     "## Texts"
   );
   let length = parts.join("\n\n").length;
@@ -512,7 +512,7 @@ export async function sync(request, results, links, log) {
 }
 
 export async function main(args, env, { cwd = process.cwd(), fetch = globalThis.fetch, log = console.log } = {}) {
-  const repository = env.GITHUB_REPOSITORY || "Dennis-Otto/ha-autodarts";
+  const repository = env.GITHUB_REPOSITORY || "Dennis-Otto/homedarts-for-autodarts";
   const server = env.GITHUB_SERVER_URL || "https://github.com";
   const links = { blob: `${server}/${repository}/blob/main`, edit: `${server}/${repository}/edit/main` };
   const results = findings(cwd);

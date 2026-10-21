@@ -66,6 +66,6 @@ It reads every route above, then records the socket for 60 seconds
 darts and take them out. It writes the folder of the version the board reports, such
 as `tests/fixtures/board_manager/2.0.2/`, replacing the files of an earlier recording.
 Look through the files before you share them, then attach the folder as a zip file to
-a [board compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml)
+a [board compatibility report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml)
 or open a pull request with it; `tests/test_board_contract.py` takes up a new folder
 by itself.

@@ -11,7 +11,7 @@ from .test_manual_board import act, setup_manual, value
 async def say(hass, service: str, **data) -> dict:
     """The answer of an action asked for a response, as a voice assistant asks."""
     response = await hass.services.async_call(
-        "autodarts", service, data, blocking=True, return_response=True
+        "homedarts", service, data, blocking=True, return_response=True
     )
     await hass.async_block_till_done()
     return response

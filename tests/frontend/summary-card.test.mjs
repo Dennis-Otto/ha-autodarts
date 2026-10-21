@@ -66,7 +66,7 @@ const rows = (card) =>
 
 test("a won match shows its summary on the scoreboard until the next game", () => {
   const hass = makeHass({ states: { ...READY, ...finished() } });
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.equal(text(card, ".banner"), "Alex wins the match 2 : 1!");
   assert.equal($(card, ".main .players"), null);
   assert.deepEqual(
@@ -101,7 +101,7 @@ test("a won match shows its summary on the scoreboard until the next game", () =
 test("the summary can stay for some seconds only, or not show at all", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1_000_000 });
   const hass = makeHass({ states: { ...READY, ...finished() } });
-  const card = mount("autodarts-scoreboard-card", hass, { summary_seconds: 30 });
+  const card = mount("homedarts-scoreboard-card", hass, { summary_seconds: 30 });
   assert.notEqual($(card, ".summary"), null);
   // Other updates keep the time the card first showed the summary.
   t.mock.timers.tick(20_000);
@@ -114,7 +114,7 @@ test("the summary can stay for some seconds only, or not show at all", (t) => {
   assert.equal($(card, ".main .player.winner .name").textContent, "Alex Winner");
 
   // A card that was away while the time ran out shows the players when it returns.
-  const away = mount("autodarts-scoreboard-card", hass, { summary_seconds: 5 });
+  const away = mount("homedarts-scoreboard-card", hass, { summary_seconds: 5 });
   assert.notEqual($(away, ".summary"), null);
   away.remove();
   t.mock.timers.tick(6_000);
@@ -122,14 +122,14 @@ test("the summary can stay for some seconds only, or not show at all", (t) => {
   document.body.append(away);
   assert.equal($(away, ".summary"), null);
 
-  const off = mount("autodarts-scoreboard-card", hass, { show_summary: false });
+  const off = mount("homedarts-scoreboard-card", hass, { show_summary: false });
   assert.equal($(off, ".summary"), null);
   assert.equal(text(off, ".banner"), "Alex wins the match 2 : 1!");
 });
 
 test("a card that left the page starts no timer for the summary when it gets a new state", () => {
   const hass = makeHass({ states: { ...READY, ...finished() } });
-  for (const type of ["autodarts-scoreboard-card", "autodarts-card"]) {
+  for (const type of ["homedarts-scoreboard-card", "homedarts-card"]) {
     // Without idle mode, the time of the summary is the only timer of the card.
     const card = mount(type, hass, { summary_seconds: 30, idle: false });
     card.remove();
@@ -147,7 +147,7 @@ test("a card that left the page starts no timer for the summary when it gets a n
 test("the live card shows the result and the summary of a won match", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1_000_000 });
   const hass = makeHass({ states: { ...READY, ...finished() } });
-  const card = mount("autodarts-card", hass, { summary_seconds: 10 });
+  const card = mount("homedarts-card", hass, { summary_seconds: 10 });
   assert.equal(text(card, ".practice-remaining"), "2 : 1");
   assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match 2 : 1!");
   assert.equal($(card, ".practice .scoreboard").hidden, false);
@@ -158,13 +158,13 @@ test("the live card shows the result and the summary of a won match", (t) => {
   assert.equal($$(card, ".player-score").length, 2);
 
   // A match of one leg has no result to tell: the big number stays.
-  const single = mount("autodarts-card", update(hass, finished({ legs_to_win: 1 })));
+  const single = mount("homedarts-card", update(hass, finished({ legs_to_win: 1 })));
   assert.equal(text(single, ".practice-remaining"), "0");
   assert.equal(text(single, ".practice-route .note.won"), "Alex wins the match!");
   assert.notEqual($(single, ".summary"), null);
 
   // Without the practice game, the live card has no summary either.
-  const plain = mount("autodarts-card", hass, { show_practice: false });
+  const plain = mount("homedarts-card", hass, { show_practice: false });
   assert.equal($(plain, ".summary"), null);
 });
 
@@ -176,7 +176,7 @@ test("the summary comes before the new game screen and needs the room of the vis
     ...states,
   });
   const hass = makeHass({ states: board(nextMatch()) });
-  const card = mount("autodarts-scoreboard-card", hass, { summary_seconds: 20 });
+  const card = mount("homedarts-scoreboard-card", hass, { summary_seconds: 20 });
   card.hass = update(hass, finished());
   assert.equal($(card, ".visit").hidden, true);
   // A game that ends opens the screen after eight seconds; its summary goes first.
@@ -193,7 +193,7 @@ test("the summary comes before the new game screen and needs the room of the vis
 
   // Until the next game, the summary stays; a tap opens the screen.
   const other = makeHass({ states: board(nextMatch()) });
-  const stay = mount("autodarts-scoreboard-card", other);
+  const stay = mount("homedarts-scoreboard-card", other);
   stay.hass = update(other, finished());
   t.mock.timers.tick(60000);
   assert.notEqual($(stay, ".summary"), null);
@@ -223,7 +223,7 @@ test("party games keep their scores on screen", () => {
       },
     },
   };
-  const card = mount("autodarts-scoreboard-card", makeHass({ states: { ...READY, ...killer } }));
+  const card = mount("homedarts-scoreboard-card", makeHass({ states: { ...READY, ...killer } }));
   assert.equal($(card, ".summary"), null);
   assert.equal($(card, ".main .player.winner .name").textContent, "Sam Winner");
   assert.equal(text(card, ".banner"), "Sam wins the match!");
@@ -231,7 +231,7 @@ test("party games keep their scores on screen", () => {
 
 test("the summary speaks German", () => {
   const hass = makeHass({ language: "de", states: { ...READY, ...finished() } });
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.equal(text(card, ".banner"), "Alex gewinnt das Match 2 : 1!");
   assert.equal(text(card, ".summary thead .caption"), "Match-Zusammenfassung");
   assert.deepEqual(
@@ -258,7 +258,7 @@ test("a summary time beyond the form's ten minutes counts as ten minutes", (t) =
   t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1_000_000 });
   const hass = makeHass({ states: { ...READY, ...finished() } });
   // Weeks of seconds would overflow the timer, which then fires at once, again and again.
-  const card = mount("autodarts-scoreboard-card", hass, { summary_seconds: 3_000_000 });
+  const card = mount("homedarts-scoreboard-card", hass, { summary_seconds: 3_000_000 });
   const updates = t.mock.method(card, "_update");
   t.mock.timers.tick(1);
   assert.equal(updates.mock.callCount(), 0);
@@ -287,7 +287,7 @@ test("in a team match both partners of the winning team are the winners of the s
     { player: 4, name: "Lea", remaining: 61, legs: 1, sets: 0, average: 40, team: 2 },
   ];
   const hass = makeHass({ states: { ...READY, ...finished({ teams, scores, summary }) } });
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.equal(text(card, ".banner"), "Alex & Kim win the match 2 : 1!");
   assert.deepEqual(
     $$(card, ".summary thead th").map((cell) => [cell.className, cell.textContent]),
@@ -304,7 +304,7 @@ test("in a team match both partners of the winning team are the winners of the s
     ["winner", "", "winner", ""]
   );
   // The live card marks both partners, too.
-  const live = mount("autodarts-card", hass);
+  const live = mount("homedarts-card", hass);
   assert.deepEqual(
     $$(live, ".summary thead th.winner").map((cell) => cell.textContent),
     ["Alex Winner", "Kim Winner"]

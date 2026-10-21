@@ -11,10 +11,10 @@ import {
   frontendReady,
   personLinks,
   pictureUrl,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
-import { appReady } from "../../custom_components/autodarts/frontend/autodarts-strategy.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
+import { appReady } from "../../custom_components/homedarts/frontend/homedarts-strategy.js";
 
-const STRATEGY = "ll-strategy-dashboard-autodarts";
+const STRATEGY = "ll-strategy-dashboard-homedarts";
 const HOME_ASSISTANT = "https://homeassistant.example.org:8123";
 // Home Assistant's own addresses for its pictures, as the frontend and the receiver have it.
 const hassUrl = (path = "") => new URL(path, HOME_ASSISTANT).toString();
@@ -22,11 +22,11 @@ const hassUrl = (path = "") => new URL(path, HOME_ASSISTANT).toString();
 test("the strategy and the cards register in the receiver of Home Assistant Cast", async () => {
   await settle();
   assert.equal(customElements.get(STRATEGY), undefined);
-  assert.equal(customElements.get("autodarts-scoreboard-card"), undefined);
+  assert.equal(customElements.get("homedarts-scoreboard-card"), undefined);
 
   customElements.define("hc-main", class extends HTMLElement {});
   await customElements.whenDefined(STRATEGY);
-  await customElements.whenDefined("autodarts-scoreboard-card");
+  await customElements.whenDefined("homedarts-scoreboard-card");
   assert.equal(customElements.get("home-assistant"), undefined);
   const dashboard = await customElements.get(STRATEGY).generate({}, makeHass({ states: READY }));
   assert.ok(dashboard.views.some((view) => view.path === "scoreboard"));
@@ -36,7 +36,7 @@ test("modules that the receiver loads while it runs register at once", async (t)
   // Defined by the test before, unless this one runs alone.
   if (!customElements.get("hc-main")) customElements.define("hc-main", class extends HTMLElement {});
   await customElements.whenDefined(STRATEGY);
-  await customElements.whenDefined("autodarts-scoreboard-card");
+  await customElements.whenDefined("homedarts-scoreboard-card");
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const timers = t.mock.method(globalThis, "setTimeout");
   // The receiver loads its dashboard resources after hc-main is defined.

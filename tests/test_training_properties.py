@@ -3,7 +3,7 @@
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from custom_components.autodarts.training import (
+from custom_components.homedarts.training import (
     COUNTERS,
     TrainingSession,
     hit_key,

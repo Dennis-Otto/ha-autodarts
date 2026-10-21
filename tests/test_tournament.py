@@ -10,8 +10,8 @@ from homeassistant.exceptions import ServiceValidationError
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.practice import PracticeGame, valid_settings
-from custom_components.autodarts.tournament import (
+from custom_components.homedarts.practice import PracticeGame, valid_settings
+from custom_components.homedarts.tournament import (
     FINISHED,
     KNOCKOUT,
     MAX_ENTRANTS,
@@ -480,7 +480,7 @@ def test_the_draw_takes_the_order_or_a_seed():
     assert sorted(seeded.tournament.players) == sorted(NAMES[:4])
     assert seeded.tournament.seed == 42
     with patch(
-        "custom_components.autodarts.tournament._RANDOM.randint", return_value=7
+        "custom_components.homedarts.tournament._RANDOM.randint", return_value=7
     ):
         drawn, _ = director(4, random_draw=True)
     assert drawn.tournament.seed == 7 and drawn.setup.random_draw is True

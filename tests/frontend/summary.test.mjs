@@ -8,7 +8,7 @@ import {
   summaryTable,
   summaryView,
   targetText,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const ui = {
   t: (key) => ({ unit_darts: "{value} darts" })[key] ?? key,

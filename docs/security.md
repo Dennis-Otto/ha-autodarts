@@ -1,12 +1,12 @@
 ---
-description: "How the Autodarts integration protects your data and your board: what it protects, whom it trusts, the threats it counters and the risks that remain."
+description: "How HomeDarts protects your data and your board: what it protects, whom it trusts, the threats it counters and the risks that remain."
 ---
 
 # Security design
 
 [← Documentation](README.md) · [Deutsch](security.de.md)
 
-This page explains how the integration protects your data and your board, what it trusts, and which risks remain. Report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).
+This page explains how the integration protects your data and your board, what it trusts, and which risks remain. Report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/SECURITY.md).
 
 ## What is protected
 
@@ -15,7 +15,7 @@ This page explains how the integration protects your data and your board, what i
 | Board API key, TLS key, camera device paths | Board Manager configuration | Dropped as soon as a configuration is read; never stored, logged, shown or included in diagnostics |
 | Board ID, board address | Home Assistant config entry | Redacted from diagnostics; the connection history in diagnostics holds counts, kinds of errors and durations, never addresses or error messages |
 | Training sessions, practice games and tournaments, personal bests, player names and profiles with head-to-head records, match history, doubles statistics, progress with dart positions, achievements and linked persons, weekly report and training calendar | Home Assistant `.storage` ([stored data](how-it-works.md#stored-data)) | Local only; deleted together with the integration; player names are redacted from diagnostics |
-| Exports with player names | By default `autodarts/exports` in the media folder; on request `www`, another media folder or a folder of `allowlist_external_dirs` | Written only by administrators and automations, at most 20 in an hour; only into folders where Home Assistant allows writing, never into hidden ones; unguessable file names; downloads for administrators only |
+| Exports with player names | By default `homedarts/exports` in the media folder; on request `www`, another media folder or a folder of `allowlist_external_dirs` | Written only by administrators and automations, at most 20 in an hour; only into folders where Home Assistant allows writing, never into hidden ones; unguessable file names; downloads for administrators only |
 | Control of the board | Board Manager API | Actions only on request of a user or an automation, sent once |
 | Address of the online bridge (optional) | Options of the Home Assistant config entry | A random secret of 64 hexadecimal characters, shown only in the options; never logged by the integration or included in diagnostics; replaceable with a new one in the options, which stops the old one at once, also while the bridge is switched off |
 
@@ -24,7 +24,7 @@ This page explains how the integration protects your data and your board, what i
 ```text
  Board PC                      Home Assistant                    Internet
 ┌────────────────────┐        ┌──────────────────────────┐       ┌──────────────────────┐
-│ Board Manager      │  LAN   │ Autodarts integration    │ HTTPS │ Autodarts discovery  │
+│ Board Manager      │  LAN   │ HomeDarts                │ HTTPS │ Autodarts discovery  │
 │ port 3180, no login├───────►│ validates every answer   ├──────►│ service, only when   │
 └────────────────────┘        │ dashboard cards (browser)│       │ you search for boards│
                               └──────────────────────────┘       └──────────────────────┘
@@ -32,7 +32,7 @@ This page explains how the integration protects your data and your board, what i
 
 1. **Board Manager → integration.** The local API has no login. The integration treats every answer as untrusted input: types, ranges and structures are checked before any value reaches an entity, and unexpected data reads as *unknown* instead of raising errors. Version numbers must look like version numbers, texts longer than 255 characters read as unknown, and realtime notifications are reduced to the same known values as reads. An answer in an unknown format is logged once; if a required read keeps answering like that, a repair notice appears. HTTP 401 or 403 is reported as refused access; the integration never sends credentials to the board.
 2. **Integration → dashboard.** The cards render board data in the browser. Every text from the board or the entity registry is escaped, and numbers are validated before they become SVG geometry.
-3. **Integration → internet.** Nothing leaves the local network in local mode. *Search for boards* contacts the public Autodarts discovery service once, on request; the integration never contacts it on its own. There is no link to the Autodarts cloud and no Autodarts login ([decision 0025](decisions/0025-no-cloud-link.md)).
+3. **Integration → internet.** Nothing leaves the local network in local mode. *Search for boards* contacts the public Autodarts discovery service once, on request; the integration never contacts it on its own. There is no link to the Autodarts cloud and no Autodarts login ([decision 0025](decisions/0025-no-cloud-link.md)). Taking over the boards set up under the former name of the integration, Autodarts, happens inside Home Assistant as well ([how](how-it-works.md#taken-over-from-the-former-name)).
 4. **Network → integration (mDNS).** Any device in the network can announce an Autodarts board. The integration contacts only the addresses the announcement was sent from, never loopback, link-local or multicast addresses, and never an address named only in the announcement's properties. An existing board never moves on its own: when its configured address no longer answers with its board ID, a repair notice offers the new address, and the entry moves only once you confirm it, after the board has been identified there again.
 5. **Browser → integration (online bridge, optional).** Off by default. When switched on, Home Assistant accepts the calls of the browser extension Tools for Autodarts at a secret webhook address, by default only from the home network. The integration accepts only the known triggers, fields of limited length and at most 20 calls per second and 120 per minute. A call can only fire an `online_*` board event: it never controls the board or changes stored data. [Online matches](online-matches.md).
 
@@ -50,8 +50,9 @@ This page explains how the integration protects your data and your board, what i
 | Faulty board data or a bug in a game rule cuts the connection | Errors in the training and the games are contained and logged once; high-rate values never run the game logic; reads never overlap | `tests/test_connection.py` |
 | An export writes where it should not, overwrites a file or fills the disk | Only administrators and automations export; the folder is resolved before writing, so neither `..` nor a symbolic link leads elsewhere, and it must be one where Home Assistant allows writing (`www`, the media folders, `allowlist_external_dirs`); hidden folders and control characters are refused; at most 20 exports in an hour; every export is a new file | `tests/test_reports_setup.py` |
 | A highlight photo writes where it should not or overwrites a file | Only administrators and automations save highlight photos; the folder follows the rules of the exports; a file name keeps only safe characters of the player and the label; every photo is a new file, and one that is cut off is deleted | `tests/test_highlights.py` |
-| A voice pack writes or deletes where it should not, or replaces a recorded pack | Only administrators and automations generate voice packs; the folder follows the rules of the exports; a pack name is a plain folder name, without `/` or `..`; the sounds are recorded into a hidden folder beside the pack, which replaces only a pack the integration generated itself (marked with `.autodarts-voice-pack`), checked again right before; one pack at a time | `tests/test_voices.py` |
-| The user of a shared wall tablet deletes, relinks or exports the players' data, or saves what a camera sees | `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export`, `autodarts.save_highlight` and `autodarts.generate_voice_pack` are administrator actions, which automations still run; only administrators download exports | `tests/test_services.py`, `tests/test_reports_setup.py`, `tests/test_highlights.py` |
+| A voice pack writes or deletes where it should not, or replaces a recorded pack | Only administrators and automations generate voice packs; the folder follows the rules of the exports; a pack name is a plain folder name, without `/` or `..`; the sounds are recorded into a hidden folder beside the pack, which replaces only a pack the integration generated itself (marked with `.homedarts-voice-pack`), checked again right before; one pack at a time | `tests/test_voices.py` |
+| Taking over the boards of the former name changes or deletes what is not its own | Only entries that the integration made under its former name are taken over, never those of another integration with the domain `autodarts`; the takeover deletes only the folder `autodarts` in `custom_components` whose manifest names this project; stores, registry entries and media move inside Home Assistant, without a login or a connection to the internet; a media file that is there already stays | `tests/test_takeover.py` |
+| The user of a shared wall tablet deletes, relinks or exports the players' data, or saves what a camera sees | `homedarts.delete_player`, `homedarts.link_player`, `homedarts.unlink_player`, `homedarts.export`, `homedarts.save_highlight` and `homedarts.generate_voice_pack` are administrator actions, which automations still run; only administrators download exports | `tests/test_services.py`, `tests/test_reports_setup.py`, `tests/test_highlights.py` |
 | A player name runs as a formula in a spreadsheet | CSV cells that start like a formula get a leading apostrophe | `tests/test_reports_setup.py` |
 | An action runs twice, for example a restart or a reset | Actions are sent once and never retried automatically | `tests/test_local_api.py` |
 | A compromised dependency or build | Hash-pinned dependencies, pinned Actions and images, Dependabot, dependency review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](development.md#continuous-integration) |
@@ -80,12 +81,12 @@ How the integration counters the weaknesses of the [CWE Top 25](https://cwe.mitr
 - **Fail safe:** unknown data becomes *unknown*, an unreachable board makes entities unavailable, and a wrong board never shows its data.
 - **Local first:** the integration talks to the Board Manager in your network and needs no Autodarts account; the board search and the online bridge are optional.
 - **Small attack surface:** no Python dependencies at runtime and no open ports of its own. What the integration adds to Home Assistant's own web server:
-  - the files of the cards under `/autodarts/`, such as `/autodarts/<version>/autodarts-card.js`, `autodarts-strategy.js` and the texts of each language in `text/`, served without a login like every other frontend file; they contain code and texts, no data;
-  - the sixteen `autodarts.*` actions, which need a login like every action: `start_game`, `correct_dart`, `throw_dart`, `enter_visit`, `next_player`, `undo_visit`, `start_tournament`, `next_tournament_match`, `stop_tournament` and `voice_sound`, which only reads which sounds a voice pack has, for every user, and `delete_player`, `link_player`, `unlink_player`, `export`, `save_highlight` and `generate_voice_pack` for administrators, automations and scripts started by them;
-  - the downloads of this run's exports at `/api/autodarts/export/`, for administrators or with their signed link that expires after a minute;
-  - small copies of the highlight photos at `/api/autodarts/highlights/`, for logged-in users like the photos themselves; only plain file names of photos in the highlight folder are served;
-  - the WebSocket command `autodarts/positions`, with which the cards read the dart positions, for logged-in users;
-  - the WebSocket command `autodarts/voice_pack`, with which the scoreboard lists the sounds of a voice pack (at most 10,000 files are looked at), for logged-in users;
+  - the files of the cards under `/homedarts/`, such as `/homedarts/<version>/homedarts-card.js`, `homedarts-strategy.js` and the texts of each language in `text/`, served without a login like every other frontend file; they contain code and texts, no data;
+  - the sixteen `homedarts.*` actions, which need a login like every action: `start_game`, `correct_dart`, `throw_dart`, `enter_visit`, `next_player`, `undo_visit`, `start_tournament`, `next_tournament_match`, `stop_tournament` and `voice_sound`, which only reads which sounds a voice pack has, for every user, and `delete_player`, `link_player`, `unlink_player`, `export`, `save_highlight` and `generate_voice_pack` for administrators, automations and scripts started by them;
+  - the downloads of this run's exports at `/api/homedarts/export/`, for administrators or with their signed link that expires after a minute;
+  - small copies of the highlight photos at `/api/homedarts/highlights/`, for logged-in users like the photos themselves; only plain file names of photos in the highlight folder are served;
+  - the WebSocket command `homedarts/positions`, with which the cards read the dart positions, for logged-in users;
+  - the WebSocket command `homedarts/voice_pack`, with which the scoreboard lists the sounds of a voice pack (at most 10,000 files are looked at), for logged-in users;
   - only while the online bridge is on, one secret webhook address.
 
 ## Residual risks

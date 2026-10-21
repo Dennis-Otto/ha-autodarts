@@ -6,9 +6,9 @@ from unittest.mock import patch
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.board import RADIUS_MM
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.positions import AIMS
+from custom_components.homedarts.board import RADIUS_MM
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.positions import AIMS
 
 from .local_helpers import (
     BULL,
@@ -56,7 +56,7 @@ def device_id(hass, entry) -> str:
 
 
 async def positions(hass, client, **data) -> dict:
-    await client.send_json_auto_id({"type": "autodarts/positions", **data})
+    await client.send_json_auto_id({"type": "homedarts/positions", **data})
     return await client.receive_json()
 
 
@@ -147,7 +147,7 @@ async def test_progress_survives_a_restart_and_leaves_with_the_player(
     await throw(hass, coordinator, T20, T20, T20)
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    saved = hass_storage["autodarts.progress-entry.training"]["data"]["progress"]
+    saved = hass_storage["homedarts.progress-entry.training"]["data"]["progress"]
     assert saved["players"][0]["counters"]["maximums"] == 1
     coordinator = entry.runtime_data.local
     assert coordinator.games.progress.players["alex"].counters["maximums"] == 1
@@ -199,9 +199,9 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
         for x, y, aim in normal(random.Random(1), ["T20"], 40, sd=(5, 5))
         for value in (round(x * scale), round(y * scale), AIMS.index(aim) + 1)
     ]
-    hass_storage["autodarts.aim-entry.training"] = {
+    hass_storage["homedarts.aim-entry.training"] = {
         "version": 1,
-        "key": "autodarts.aim-entry.training",
+        "key": "homedarts.aim-entry.training",
         "data": {
             "practice": {"profiles": {"players": [{"name": "Alex"}]}},
             "progress": {"players": [{"name": "Alex", "log": log}]},

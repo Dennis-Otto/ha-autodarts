@@ -14,9 +14,9 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts import async_unload_entry
-from custom_components.autodarts.local_api import AutodartsLocalAuthError
-from custom_components.autodarts.local_coordinator import ISSUES
+from custom_components.homedarts import async_unload_entry
+from custom_components.homedarts.local_api import AutodartsLocalAuthError
+from custom_components.homedarts.local_coordinator import ISSUES
 
 from .local_helpers import (
     BASE,
@@ -37,14 +37,14 @@ from .local_helpers import (
 
 
 def issue(hass, name, entry):
-    return ir.async_get(hass).async_get_issue("autodarts", f"{name}_{entry.entry_id}")
+    return ir.async_get(hass).async_get_issue("homedarts", f"{name}_{entry.entry_id}")
 
 
 def create_every_issue(hass, entry):
     for name in ISSUES:
         ir.async_create_issue(
             hass,
-            "autodarts",
+            "homedarts",
             f"{name}_{entry.entry_id}",
             is_fixable=False,
             severity=ir.IssueSeverity.WARNING,
@@ -65,7 +65,7 @@ def problems(caplog) -> list[str]:
         logged.getMessage()
         for logged in caplog.records
         if logged.levelno >= logging.WARNING
-        and logged.name.startswith("custom_components.autodarts")
+        and logged.name.startswith("custom_components.homedarts")
     ]
 
 
@@ -113,13 +113,13 @@ async def test_update_notice_appears_for_a_known_classic_board(hass, aioclient_m
     """Entries created by the setup store the generation, which never changes."""
     mock_board(aioclient_mock)
     data = {**local_entry_data(), "api_generation": 1}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert issue(hass, "board_manager_1", entry) is not None
     # Issues are not kept across restarts, so every start reports it again.
-    ir.async_delete_issue(hass, "autodarts", f"board_manager_1_{entry.entry_id}")
+    ir.async_delete_issue(hass, "homedarts", f"board_manager_1_{entry.entry_id}")
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert issue(hass, "board_manager_1", entry) is not None
@@ -291,7 +291,7 @@ async def test_entity_categories_and_classes(hass, aioclient_mock):
     # Session totals start from zero with the session, and a correction or an
     # undone visit can lower them.
     assert darts.attributes["state_class"] == "total"
-    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    coordinator = hass.config_entries.async_entries("homedarts")[0].runtime_data.local
     assert darts.attributes["last_reset"] == coordinator.games.training.started
     session = hass.states.get(entity_id(hass, "sensor", "training_started"))
     assert "last_reset" not in session.attributes
@@ -301,7 +301,7 @@ async def test_entity_categories_and_classes(hass, aioclient_mock):
 
 
 def test_board_event_and_darts_in_visit_values():
-    from custom_components.autodarts import sensor
+    from custom_components.homedarts import sensor
 
     data = {"local": {"event": "Throw detected", "status": "Throw", "numThrows": 2}}
     assert sensor._get_board_event(data) == "Throw detected"

@@ -1,6 +1,6 @@
 # Docker end-to-end test
 
-The suite mounts `custom_components/autodarts` read-only into a real Home Assistant
+The suite mounts `custom_components/homedarts` read-only into a real Home Assistant
 container and connects it to a deterministic Board Manager double. The double runs
 from the same pinned Home Assistant image, so it needs no additional image. It
 answers like the [recorded Board Manager](../fixtures/board_manager/README.md) 1.0.7
@@ -50,7 +50,7 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   and the `match_won` event, and double out switched during a leg, which applies
   from the next leg
 - a round robin tournament of three players at 101, started by
-  `autodarts.start_tournament` and played on the board: the order of play, the
+  `homedarts.start_tournament` and played on the board: the order of play, the
   pause between the matches, the table, the tournament events and the profiles
 - diagnostics without the board ID, API key, webhook address or player names, and
   logs without errors, tracebacks or secrets
@@ -67,7 +67,7 @@ Optional environment variables:
 
 - `E2E_PORT`: host port for Home Assistant on `127.0.0.1`, default `18123`
 - `DOCKER_BIN`: Docker CLI path, default `docker`
-- `E2E_PROJECT_NAME`: Compose project name, default `autodarts_e2e`
+- `E2E_PROJECT_NAME`: Compose project name, default `homedarts_e2e`
 - `HOME_ASSISTANT_IMAGE`: pinned Home Assistant image override
 - `KEEP_E2E=1`: keep containers and the disposable volume after the suite
 

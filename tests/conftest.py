@@ -44,9 +44,9 @@ def hypothesis_profile(environ: Mapping[str, str]) -> str:
 settings.load_profile(hypothesis_profile(os.environ))
 
 # The modules of the integration, by the names they are imported with.
-INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
+INTEGRATION = Path(__file__).parents[1] / "custom_components" / "homedarts"
 MODULES = tuple(
-    "custom_components.autodarts" + ("" if path.stem == "__init__" else f".{path.stem}")
+    "custom_components.homedarts" + ("" if path.stem == "__init__" else f".{path.stem}")
     for path in sorted(INTEGRATION.glob("*.py"))
 )
 
@@ -172,7 +172,7 @@ def shipped_blueprints(request):
     if request.node.get_closest_marker("installs_blueprints"):
         yield
         return
-    with patch("custom_components.autodarts.async_install_blueprints"):
+    with patch("custom_components.homedarts.async_install_blueprints"):
         yield
 
 
@@ -185,7 +185,7 @@ def local_stream():
         yield  # pragma: no cover
 
     with patch(
-        "custom_components.autodarts.local_api.AutodartsLocalClient.events", idle_stream
+        "custom_components.homedarts.local_api.AutodartsLocalClient.events", idle_stream
     ):
         yield
 
@@ -212,14 +212,14 @@ def freezer(request, freezer):
 # and those of the WebSocket commands and webhooks it offers, which answer a
 # crashing handler with an error of their own.
 WATCHED_LOGGERS = (
-    "custom_components.autodarts",
+    "custom_components.homedarts",
     "homeassistant.helpers.entity",
     "homeassistant.helpers.entity_platform",
     "homeassistant.components.websocket_api",
     "homeassistant.components.webhook",
 )
 # How the coordinator reports a board that is away, once per outage.
-UNAVAILABLE = re.compile(r"Error fetching autodarts_local data: ")
+UNAVAILABLE = re.compile(r"Error fetching homedarts_local data: ")
 
 
 # The log of a test whose errors pytest_runtest_teardown checks.
@@ -262,14 +262,14 @@ async def blueprint_folder(hass, tmp_path):
     from .local_helpers import BLUEPRINTS
 
     hass.config.config_dir = str(tmp_path)
-    shutil.copytree(BLUEPRINTS, tmp_path / "blueprints" / "automation" / "autodarts")
+    shutil.copytree(BLUEPRINTS, tmp_path / "blueprints" / "automation" / "homedarts")
     assert await async_setup_component(hass, "event", {})
 
 
 @pytest.fixture
 async def client(hass, aioclient_mock):
     """A client for the board at the address of local_entry_data."""
-    from custom_components.autodarts.local_api import AutodartsLocalClient
+    from custom_components.homedarts.local_api import AutodartsLocalClient
 
     return AutodartsLocalClient("192.0.2.10", 3180, async_get_clientsession(hass))
 
@@ -292,7 +292,7 @@ async def two_boards(hass, aioclient_mock):
     entries = []
     for board_id, host in (("board-1", "192.0.2.10"), ("board-2", "192.0.2.20")):
         entry = MockConfigEntry(
-            domain="autodarts",
+            domain="homedarts",
             version=2,
             unique_id=board_id,
             title=f"Autodarts ({host})",

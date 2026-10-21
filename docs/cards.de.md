@@ -12,9 +12,9 @@ Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; 
 - passt sich ihrer Breite an, vom Handy bis zum Wandtablet;
 - findet dein Board selbst. Bei mehreren Boards wählst du eines im Editor aus.
 
-**[Probier sie live aus](https://dennis-otto.github.io/ha-autodarts/demo/index.html?lang=de)**: Die Anzeigetafel, die Live-, Trainings- und Spielerkarte spielen ein 501 gegen den Bot, ein Cricket-Spiel und ein Turnier in deinem Browser, ohne Home Assistant.
+**[Probier sie live aus](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html?lang=de)**: Die Anzeigetafel, die Live-, Trainings- und Spielerkarte spielen ein 501 gegen den Bot, ein Cricket-Spiel und ein Turnier in deinem Browser, ohne Home Assistant.
 
-Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und suchst nach **Autodarts**. Die Kartenauswahl nennt die Karten in deiner Sprache und verlinkt jede auf ihren Abschnitt unten.
+Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und suchst nach **HomeDarts**. Die Kartenauswahl nennt die Karten **HomeDarts**, **HomeDarts-Training**, **HomeDarts-Board-Status**, **HomeDarts-Anzeigetafel**, **HomeDarts-Spieler**, **HomeDarts-Doubles** und **HomeDarts-Bestenliste**, in deiner Sprache, und verlinkt jede auf ihren Abschnitt unten.
 
 **Auf dieser Seite:** [Live-Karte](#live-karte) · [Trainingskarte](#trainingskarte) · [Board-Status](#board-status) · [Anzeigetafel](#anzeigetafel) · [Doubles-Karte](#doubles-karte) · [Spielerkarte](#spielerkarte) · [Bestenliste](#bestenliste) · [Automatisches Dashboard](#automatisches-dashboard) · [Home Assistant Cast](#home-assistant-cast) · [Karteneditor](#karteneditor) · [Barrierefreiheit](#barrierefreiheit) · [Tipps](#tipps)
 
@@ -22,7 +22,7 @@ Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](games.de.md), 
 
 ## Live-Karte
 
-`custom:autodarts-card` zeigt die aktuelle Aufnahme Dart für Dart auf einer Scheibe mit der Geometrie des Autodarts Board Managers.
+`custom:homedarts-card` zeigt die aktuelle Aufnahme Dart für Dart auf einer Scheibe mit der Geometrie des Autodarts Board Managers.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/de/card-light.png">
@@ -66,7 +66,7 @@ Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
 | `device_id` | Gerät | erstes Board | Das angezeigte Board |
 | `title` | Text | Board-Name | Kartentitel |
 | `layout` | `auto`, `horizontal`, `vertical`, `board` | `auto` | Scheibe rechts, Scheibe unten oder nur die Scheibe. `auto` wechselt bei schmalen Karten auf unten |
-| `board_style` | `classic`, `autodarts` | `classic` | Klassische Scheibe mit Drähten oder der flache Autodarts-Stil |
+| `board_style` | `classic`, `flat` | `classic` | Klassische Scheibe mit Drähten oder die flache Optik (*Flach* im Editor) |
 | `highlight` | `visit`, `last`, `none` | `visit` | Alle Darts der Aufnahme, nur den letzten oder keinen hervorheben |
 | `blink` | Wahrheitswert | `true` | Getroffene Felder blinken |
 | `show_markers` | Wahrheitswert | `true` | Dart-Positionen anzeigen |
@@ -83,25 +83,25 @@ Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Haupttaste |
 | `highlight_color` | [Farbe](#farben) | `#ffd60a` (Gold) | Getroffene Felder und jüngster Dart |
 
-Mit `layout: vertical` und `board_style: autodarts` steht die Scheibe unter der Aufnahme, im flachen Autodarts-Stil:
+Mit `layout: vertical` und `board_style: flat` steht die Scheibe unter der Aufnahme, in der flachen Optik:
 
-<img src="images/de/card-autodarts-style.png" alt="Die Live-Karte mit der Scheibe unten im Autodarts-Stil: über der Scheibe die Aufnahme aus T20, S5 und Bull mit 115 Punkten, darunter die Trainingssession und die Steuerung" width="400">
+<img src="images/de/card-flat-style.png" alt="Die Live-Karte mit der Scheibe unten in der flachen Optik: über der Scheibe die Aufnahme aus T20, S5 und Bull mit 115 Punkten, darunter die Trainingssession und die Steuerung" width="400">
 
 Mit `layout: board` zeigt die Karte nur die Scheibe:
 
 <img src="images/de/card-board-only.png" alt="Die Live-Karte mit nur der Scheibe: die drei Darts der Aufnahme und die getroffenen Felder hervorgehoben" width="400">
 
 ```yaml
-type: custom:autodarts-card
+type: custom:homedarts-card
 layout: vertical
-board_style: autodarts
+board_style: flat
 highlight: last
 highlight_color: "#00e5ff"
 ```
 
 ## Trainingskarte
 
-`custom:autodarts-training-card` macht aus der lokalen [Trainingssession](entities.de.md#trainingssession) ein Dashboard, das du nach jedem Training ansehen willst.
+`custom:homedarts-training-card` macht aus der lokalen [Trainingssession](entities.de.md#trainingssession) ein Dashboard, das du nach jedem Training ansehen willst.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/de/training-card-light.png">
@@ -123,7 +123,7 @@ highlight_color: "#00e5ff"
 - **Letzte Aufnahmen:** ein Balkendiagramm deiner letzten Aufnahmen mit dem Average der Session als gestrichelter Linie.
   - Farben: grau unter 60, Akzentfarbe ab 60, grün ab 100, orange ab 140 und gold für 180.
   - Die Aufnahmen kommen aus dem Recorder und bleiben daher auch nach dem Neuladen der Seite erhalten, und jede Aufnahme erscheint, auch wenn im selben Moment der nächste Spieler an der Reihe ist wie im Übungsspiel.
-  - Eine [zurückgenommene Aufnahme](entities.de.md#aufnahme-zurücknehmen-autodartsundo_visit) verschwindet aus dem Diagramm; korrigiert kommt sie als neue Aufnahme zurück. Die Aufnahmen des Bots fehlen, denn sie zählen für niemanden.
+  - Eine [zurückgenommene Aufnahme](entities.de.md#aufnahme-zurücknehmen-homedartsundo_visit) verschwindet aus dem Diagramm; korrigiert kommt sie als neue Aufnahme zurück. Die Aufnahmen des Bots fehlen, denn sie zählen für niemanden.
 - **Vergangene Sessions:** Ende, Dauer, Darts, 3-Dart-Average und höchste Aufnahme deiner letzten fünf beendeten Sessions.
 - **Session-Steuerung:**
   - *Session starten* und *Session beenden* schalten die [Trainingssession](entities.de.md#trainingssession) ein und aus. Das Beenden braucht einen zweiten Tipp zur Bestätigung.
@@ -138,7 +138,7 @@ highlight_color: "#00e5ff"
 | `title` | Text | *Training · Board-Name* | Kartentitel |
 | `mode` | `beds`, `numbers`, `positions`, `aim` | `beds` | Trefferbild pro Feld, pro Zahl, der Dart-Positionen oder wohin zielen |
 | `player` | Text | die Session | Ein Spielername: Das Trefferbild beginnt mit den Darts dieses Spielers. Der Editor listet die benannten Spieler und nimmt auch jeden anderen Namen |
-| `board_style` | `muted`, `classic`, `autodarts` | `muted` | Die dezente Scheibe lässt das Trefferbild hervortreten |
+| `board_style` | `muted`, `classic`, `flat` | `muted` | Die dezente Scheibe lässt das Trefferbild hervortreten |
 | `history_size` | 5–60 | `20` | Aufnahmen im Diagramm; Zahlen stehen bis 30 Aufnahmen darüber |
 | `show_heatmap` | Wahrheitswert | `true` | Trefferbild anzeigen |
 | `show_heatmap_controls` | Wahrheitswert | `true` | Die Umschalter für den Modus und wessen Darts das Trefferbild zeigt anzeigen |
@@ -151,7 +151,7 @@ highlight_color: "#00e5ff"
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Aufnahmen ab 60 |
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: numbers
 history_size: 40
 show_reset: false
@@ -171,7 +171,7 @@ Die Umschalter über der Scheibe wählen den Modus und wessen Darts das Trefferb
 
 ## Board-Status
 
-`custom:autodarts-status-card` zeigt den Zustand des Boards und bündelt die Wartung an einem Ort.
+`custom:homedarts-status-card` zeigt den Zustand des Boards und bündelt die Wartung an einem Ort.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="images/de/status-card-light.png">
@@ -200,13 +200,13 @@ Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat nichts davon; die
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Erkennungsschalter |
 
 ```yaml
-type: custom:autodarts-status-card
+type: custom:homedarts-status-card
 show_system: false
 ```
 
 ## Anzeigetafel
 
-`custom:autodarts-scoreboard-card` ist für ein Tablet oder einen Fernseher neben dem Board gemacht: groß genug, um sie vom Abwurf aus zu lesen, und sie zeigt immer, was gerade gespielt wird.
+`custom:homedarts-scoreboard-card` ist für ein Tablet oder einen Fernseher neben dem Board gemacht: groß genug, um sie vom Abwurf aus zu lesen, und sie zeigt immer, was gerade gespielt wird.
 
 <img src="images/de/scoreboard.webp" alt="Animation: die Anzeigetafel in einem 501-Match. Nach jeder Aufnahme wechselt der Wurf zwischen Alex und Sam, und Alex checkt 141 mit T20 T19 D12 zum Matchgewinn" width="760">
 
@@ -220,7 +220,7 @@ show_system: false
 - **Sieger:** Ein Banner nennt den Matchgewinner mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, bis zum nächsten Dart. Das Ergebnis zählt Legs, in einem Match mit Sätzen die Sätze; ein Match über ein Leg hat keins.
 - **Match-Zusammenfassung:** Endet ein X01- oder Cricket-Match, tritt die [Match-Zusammenfassung](#match-zusammenfassung) an die Stelle der Spieler.
 - **Turniere:** die Runde des Matches und zwischen den Matches Tabelle oder Turnierbaum; siehe [Turniere](#turniere).
-- **Bilder:** Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
+- **Bilder:** Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-homedartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
 - **Aufnahme:** Unten stehen die drei Darts der aktuellen Aufnahme und daneben ihre Punkte. Solange das Board leer ist, und zwischen den Spielen, wo die große Zahl die Aufnahme ist, zeigt diese Kachel stattdessen die letzte Aufnahme, die ein Tipp zurücknimmt. Ein Tipp auf einen Dart korrigiert ihn; siehe [Darts korrigieren und eingeben](#darts-korrigieren-und-eingeben). Während eines Spiels ändert nichts auf der Karte seine Höhe: Die Zeilen für Weg, Hinweis und Details behalten ihren Platz auch leer, und eine schmale Kachel hält von Anfang an zwei Zeilen für einen langen Weg frei.
 - **Caller:** Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, in der Sprache von Home Assistant: Deutsch, Englisch, Niederländisch, Französisch oder Spanisch (andere Sprachen hören Englisch). Er sagt nur an, was zählt:
   - X01: die Punkte, die eine Aufnahme gebracht hat, „Überworfen“ nach dem Überwerfen, „Keine Punkte“ für eine Aufnahme vor dem öffnenden Double, „du brauchst 81“, sobald sich der Rest beenden lässt (bis 170 mit Double-Out, 180 ohne), „stell dir die 32“, wenn nur ein [Stellwurf](entities.de.md#stellwürfe) möglich ist, das Game shot von Leg und Match und eine Fanfare bei einer 180, die gezählt hat. Der Bot heißt *Bot*.
@@ -253,10 +253,10 @@ Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spiele
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Auswahl, Cricket wird gewählt, Sam kommt zu Alex, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
 - **Spiel:** jedes Spiel von *Übungsspiel*, gruppiert in X01, Cricket, Partyspiele und Trainingsspiele. `lobby_games` schränkt die Auswahl ein.
-- **Spieler:** bis zu vier, bei einem Partyspiel bis zu acht, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Bei X01 und den Cricket-Spielen setzt *+ Bot* den [Bot](entities.de.md#bot) nach den Spielern dazu, mit Stärke 60; − und + ändern seine Stärke in Zehnerschritten von 20 bis 120, und ✕ schickt ihn nach Hause. Mit dem Bot spielen bis zu drei Spieler. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](games.de.md#startpunkte-handicap) in Schritten von 100 ein, von 101 bis 1001.
+- **Spieler:** bis zu vier, bei einem Partyspiel bis zu acht, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-homedartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Bei X01 und den Cricket-Spielen setzt *+ Bot* den [Bot](entities.de.md#bot) nach den Spielern dazu, mit Stärke 60; − und + ändern seine Stärke in Zehnerschritten von 20 bis 120, und ✕ schickt ihn nach Hause. Mit dem Bot spielen bis zu drei Spieler. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](games.de.md#startpunkte-handicap) in Schritten von 100 ein, von 101 bis 1001.
 - **Format:** Legs pro Satz und Sätze zum Sieg, für ein Match mehrerer Spieler.
 - **Optionen:** bei X01 der In- und Out-Modus, *Straight*, *Double* oder *Master*, der Bull-Modus *25/50* oder *50/50* und *Maximale Runden* in Stufen bis 50, bei einem Turnier nur Straight oder Double In und Out; und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet. Mit vier Spielern bei X01 oder einem Cricket-Spiel spielt *Teams* Spieler 1 und 3 gegen 2 und 4.
-- **Start:** startet das Spiel mit [`autodarts.start_game`](entities.de.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Ist die Erkennung gestoppt, schaltet der Start sie ein, denn ohne sie zählt kein Dart; die Auswahl sagt es vorher über der Taste. Die Starttaste bleibt am unteren Bildschirmrand, während die Seite scrollt. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
+- **Start:** startet das Spiel mit [`homedarts.start_game`](entities.de.md#übungsspiel-starten-homedartsstart_game), und die Anzeigetafel zeigt es sofort. Ist die Erkennung gestoppt, schaltet der Start sie ein, denn ohne sie zählt kein Dart; die Auswahl sagt es vorher über der Taste. Die Starttaste bleibt am unteren Bildschirmrand, während die Seite scrollt. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
 
 In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
 
@@ -270,7 +270,7 @@ Die Darts der Aufnahme unten sind Tasten, solange `corrections` an ist, und das 
 
 <img src="images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
-- **Dart korrigieren:** Tippe auf einen Dart, den das Board falsch erkannt hat. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Fehlwurf; S, D oder T steht auf dem Feld des Darts. Tippe den Multiplikator und dann die Zahl, oder 25, Bull oder Fehlwurf, und [`autodarts.correct_dart`](entities.de.md#dart-korrigieren-autodartscorrect_dart) legt den Dart dorthin. Restpunkte und Aufnahme folgen sofort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld. Die Darts des Bots lassen sich nicht korrigieren.
+- **Dart korrigieren:** Tippe auf einen Dart, den das Board falsch erkannt hat. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Fehlwurf; S, D oder T steht auf dem Feld des Darts. Tippe den Multiplikator und dann die Zahl, oder 25, Bull oder Fehlwurf, und [`homedarts.correct_dart`](entities.de.md#dart-korrigieren-homedartscorrect_dart) legt den Dart dorthin. Restpunkte und Aufnahme folgen sofort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld. Die Darts des Bots lassen sich nicht korrigieren.
 - **Wo der Dart steckt:** *Tasten | Scheibe* oben im Tastenfeld wechselt von den Tasten zur Scheibe. Tippe die Stelle an, an der der Dart steckt: Das Feld ergibt sich daraus, und der Dart wird dort in den [Dart-Positionen](how-it-works.de.md#dart-positionen) gespeichert. Der gestrichelte Ring zeigt, wo das Board den Dart gesehen hat. Ein mit den Tasten korrigierter Dart hat keine Position, weil das Board auch die Stelle falsch gesehen hat. Die Scheibe bleibt die Ansicht des Tastenfelds, bis du *Tasten* wählst, und das Tastenfeld für die Eingabe nutzt sie auch.
 
   <img src="images/de/correct-dart-board.webp" alt="Animation: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf öffnet das Tastenfeld, Scheibe zeigt die Scheibe mit einem gestrichelten Ring, wo das Board den Dart gesehen hat, und ein Tipp auf das Single 20 darüber korrigiert die Aufnahme auf 140" width="760">
@@ -279,9 +279,9 @@ Die Darts der Aufnahme unten sind Tasten, solange `corrections` an ist, und das 
 
   <img src="images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
 
-- **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es immer, außer die Karte setzt `keypad: false`, etwa auf einem Fernseher ohne Touch. Jeder Tipp auf ein Feld gibt mit [`autodarts.throw_dart`](entities.de.md#dart-eingeben-autodartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme; er braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
-- **Punkte:** In X01 hat *Tasten | Scheibe | Punkte* eine dritte Ansicht, die Punkte einer Aufnahme: die Ziffern in so vielen Reihen wie die Zahlen der Tasten, die getippten Punkte und ihr Rest im Kopf, und **OK**, das [`autodarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-autodartsenter_visit) schickt. Punkte, die keine Aufnahme vom Rest des Spielers aus ergibt, etwa 179, oder 180 vor dem Eröffnungs-Double mit Double-In, sagen das, und **OK** wartet auf andere. Ein Checkout fragt nach seinen Darts, wo er weniger als drei brauchen könnte, und nach den Darts auf ein Doppel, wo sie sich unterscheiden können; eine Aufnahme, die ein Doppel in Reichweite lässt, fragt nach den Darts darauf. Die Antworten behalten die Reihen der Ziffern, sodass das Tastenfeld seine Höhe behält, und *Abbrechen* geht zurück zu den Punkten. Auch eine Tastatur tippt die Punkte: Öffnet sich die Ansicht der Punkte, nimmt das Tastenfeld den Fokus; Ziffern tippen die Punkte, die Rücktaste nimmt eine Ziffer zurück, und Enter schickt sie, auch während eine Ziffer des Tastenfelds den Fokus hat. Bei einer Frage beantworten die Ziffern ihrer Antworten sie, und Escape oder die Rücktaste gehen zurück zu den Punkten. Das Tastenfeld behält den Fokus, nachdem eine Aufnahme eingegangen ist, sodass du die nächste gleich tippen kannst, und während der Bot wirft, warten die Tasten wie das Tastenfeld. Auf einem schmalen Tastenfeld, etwa auf einem Handy mit 360 Pixeln, zeigen die drei Ansichten Symbole, die Punkte eines Tastenfelds, die Ringe der Scheibe und eine Summe, damit sie in der Zeile von S, D und T bleiben; ihre Namen bleiben ihre Beschriftung für Screenreader.
-- **Zurücknehmen:** Die Kachel *Zuletzt* neben den Darts zeigt die letzte Aufnahme mit einem gebogenen Pfeil, solange [`autodarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-autodartsundo_visit) sie zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt, oder einen Vertipper auf dem Tastenfeld. Ein Tipp färbt sie rot und fragt *Zurück?*, ein zweiter Tipp nimmt die Aufnahme zurück; sie kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`autodarts.next_player`](entities.de.md#weitergeben-autodartsnext_player) beendet sie wieder. Auch mit dem Tastenfeld ist die Kachel das Zurücknehmen, sodass das Tastenfeld nach jeder Aufnahme dieselben Tasten behält.
+- **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es immer, außer die Karte setzt `keypad: false`, etwa auf einem Fernseher ohne Touch. Jeder Tipp auf ein Feld gibt mit [`homedarts.throw_dart`](entities.de.md#dart-eingeben-homedartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme; er braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
+- **Punkte:** In X01 hat *Tasten | Scheibe | Punkte* eine dritte Ansicht, die Punkte einer Aufnahme: die Ziffern in so vielen Reihen wie die Zahlen der Tasten, die getippten Punkte und ihr Rest im Kopf, und **OK**, das [`homedarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-homedartsenter_visit) schickt. Punkte, die keine Aufnahme vom Rest des Spielers aus ergibt, etwa 179, oder 180 vor dem Eröffnungs-Double mit Double-In, sagen das, und **OK** wartet auf andere. Ein Checkout fragt nach seinen Darts, wo er weniger als drei brauchen könnte, und nach den Darts auf ein Doppel, wo sie sich unterscheiden können; eine Aufnahme, die ein Doppel in Reichweite lässt, fragt nach den Darts darauf. Die Antworten behalten die Reihen der Ziffern, sodass das Tastenfeld seine Höhe behält, und *Abbrechen* geht zurück zu den Punkten. Auch eine Tastatur tippt die Punkte: Öffnet sich die Ansicht der Punkte, nimmt das Tastenfeld den Fokus; Ziffern tippen die Punkte, die Rücktaste nimmt eine Ziffer zurück, und Enter schickt sie, auch während eine Ziffer des Tastenfelds den Fokus hat. Bei einer Frage beantworten die Ziffern ihrer Antworten sie, und Escape oder die Rücktaste gehen zurück zu den Punkten. Das Tastenfeld behält den Fokus, nachdem eine Aufnahme eingegangen ist, sodass du die nächste gleich tippen kannst, und während der Bot wirft, warten die Tasten wie das Tastenfeld. Auf einem schmalen Tastenfeld, etwa auf einem Handy mit 360 Pixeln, zeigen die drei Ansichten Symbole, die Punkte eines Tastenfelds, die Ringe der Scheibe und eine Summe, damit sie in der Zeile von S, D und T bleiben; ihre Namen bleiben ihre Beschriftung für Screenreader.
+- **Zurücknehmen:** Die Kachel *Zuletzt* neben den Darts zeigt die letzte Aufnahme mit einem gebogenen Pfeil, solange [`homedarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-homedartsundo_visit) sie zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt, oder einen Vertipper auf dem Tastenfeld. Ein Tipp färbt sie rot und fragt *Zurück?*, ein zweiter Tipp nimmt die Aufnahme zurück; sie kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`homedarts.next_player`](entities.de.md#weitergeben-homedartsnext_player) beendet sie wieder. Auch mit dem Tastenfeld ist die Kachel das Zurücknehmen, sodass das Tastenfeld nach jeder Aufnahme dieselben Tasten behält.
 - **Markierungen:** Ein Dart, den ein Tipp korrigiert, hat einen Rahmen und einen Stift oben rechts; ein von Hand eingegebener oder korrigierter einen gestrichelten Rahmen, und die Darts des Bots sind in der Akzentfarbe getönt. An einer Dartscheibe ohne Autodarts, wo jeder Dart von Hand kommt, bekommen nur korrigierte Darts den gestrichelten Rahmen.
 
 Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und Korrektur neben den Punkten, sodass Spieler, Aufnahme und Tastenfeld zusammen auf den Bildschirm passen. Tastenfeld und Korrektur machen Platz für die Spielauswahl, den Ruhemodus, die Match-Zusammenfassung und die Tabelle eines Turniers und reagieren in der Vorschau des Karteneditors nie.
@@ -298,7 +298,7 @@ Während eines [Turniers](entities.de.md#turniere) folgt ihm die Anzeigetafel:
 - **Turnierbaum:** eine Spalte pro Runde, das Spiel um Platz 3 unter dem Finale; Freilose, offene Plätze und Ergebnisse; das nächste Match ist umrandet. Wer weiterkommt, gleitet in die nächste Runde; auf Geräten, die weniger Bewegung wünschen, füllen sich die Plätze ohne Bewegung.
 - **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
 - **Caller:** Mit eingeschaltetem Caller und `call_results` sagt er jedes Match beim Start an, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
-- **Spielauswahl:** *Turnier* schaltet die Auswahl auf ein Turnier mit Spielern mit Namen um, bis zu acht bei jeder gegen jeden und 32 in den anderen Formaten: X01, mit Startpunkten als Handicap, oder ein Cricket-Spiel, jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen und K.-o.-System, bei Gruppen die Zahl der Gruppen (*Automatisch* lässt das Board wählen) und wie viele aus jeder weiterkommen, beide zuerst wie in *Turniergruppen* und *Turnier Weiter je Gruppe*, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung. *Turnier starten* startet es mit [`autodarts.start_tournament`](entities.de.md#turnier-starten-autodartsstart_tournament). Während eines Turniers beendet *Turnier beenden* es samt seinem Spiel nach einem zweiten Tippen. Ein neues Turnier, das während eines laufenden startet, beendet zuerst das laufende: Die Auswahl sagt es vorher, und der Start braucht einen zweiten Tipp.
+- **Spielauswahl:** *Turnier* schaltet die Auswahl auf ein Turnier mit Spielern mit Namen um, bis zu acht bei jeder gegen jeden und 32 in den anderen Formaten: X01, mit Startpunkten als Handicap, oder ein Cricket-Spiel, jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen und K.-o.-System, bei Gruppen die Zahl der Gruppen (*Automatisch* lässt das Board wählen) und wie viele aus jeder weiterkommen, beide zuerst wie in *Turniergruppen* und *Turnier Weiter je Gruppe*, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung. *Turnier starten* startet es mit [`homedarts.start_tournament`](entities.de.md#turnier-starten-homedartsstart_tournament). Während eines Turniers beendet *Turnier beenden* es samt seinem Spiel nach einem zweiten Tippen. Ein neues Turnier, das während eines laufenden startet, beendet zuerst das laufende: Die Auswahl sagt es vorher, und der Start braucht einen zweiten Tipp.
 - **Mehrere Boards:** In einem [Turnier auf mehreren Boards](games.de.md#ein-turnier-auf-mehreren-boards) spielt die Anzeigetafel jedes Boards ihr eigenes Match. Über Tabelle oder Turnierbaum zeigt ein Kasten je Board die Spieler seines Matches oder wann sein nächstes Match beginnt, der Kasten des eigenen Boards umrandet, und unter den Kästen das voraussichtliche Ende des Turniers.
 - **Ruhemodus:** Die Seite `tournament` zeigt Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers, auf mehreren Boards mit den Kästen der Boards.
 
@@ -344,7 +344,7 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `call_darts` | `off`, `score`, `bed` | `off` | [Jeden Dart](scoreboard.de.md#für-blinde-und-sehbehinderte-spieler) ansagen, sobald er steckt: mit seinen Punkten, etwa 60, oder seinem Feld, etwa Triple 20 |
 | `call_route` | Wahrheitswert | `false` | Den Weg eines Checkouts ansagen, auch nach jedem Dart, der einen anderen lässt |
 | `call_target` | Wahrheitswert | `false` | Das nächste Ziel eines Trainings- oder Partyspiels ansagen, etwa Doppel 16 |
-| `caller_voice` | Text | leer | Ein [Voice-Pack](scoreboard.de.md#voice-packs): der Name eines Ordners in `/media/autodarts/voices` mit aufgenommenen Ansagen, etwa eines Packs von darts-caller; leer ist die Stimme des Browsers |
+| `caller_voice` | Text | leer | Ein [Voice-Pack](scoreboard.de.md#voice-packs): der Name eines Ordners in `/media/homedarts/voices` mit aufgenommenen Ansagen, etwa eines Packs von darts-caller; leer ist die Stimme des Browsers |
 | `lobby` | Wahrheitswert | `true` | Die [Spielauswahl](#spielauswahl) anbieten |
 | `lobby_games` | Liste von Spielen | jedes Spiel | Die Spiele, die die Spielauswahl anbietet, etwa `["501", cricket, killer]` |
 | `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |
@@ -364,7 +364,7 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Ruhemodus, Darts korrigieren und eingeben sowie das Stream-Overlay haben eigene eingeklappte Abschnitte. Ein Overlay lässt Status, Caller, Spielauswahl, Ruhemodus, Tastenfeld und Korrekturen weg, die auf einem Stream niemand antippt, und die Match-Zusammenfassung, solange es nicht das ganze Bild einnimmt.
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 full_height: true
 caller: true
 lobby_games: ["301", "501", cricket, killer]
@@ -387,7 +387,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 
 ## Doubles-Karte
 
-`custom:autodarts-doubles-card` zeigt die [Doppelanalyse](entities.de.md#doppelanalyse): jedes getroffene Double auf dem Doppelring der Scheibe, gefärbt nach seiner Quote von Rot (selten getroffen) bis Grün (etwa jeder zweite Dart), wo Darts darauf zielten, und sonst in der Akzentfarbe, je kräftiger, desto öfter getroffen. Die Liste darunter zeigt jedes Double, die beste Quote zuerst, mit den Treffern aller Darts, den Treffern und Darts beim Zielen darauf und der Quote. Das Lieblingsdouble ist ausgefüllt. Mit `player` zeigt sie die Doubles eines benannten Spielers statt die aller; ein Name ohne Profil bekommt den Hinweis, die Schreibweise zu prüfen.
+`custom:homedarts-doubles-card` zeigt die [Doppelanalyse](entities.de.md#doppelanalyse): jedes getroffene Double auf dem Doppelring der Scheibe, gefärbt nach seiner Quote von Rot (selten getroffen) bis Grün (etwa jeder zweite Dart), wo Darts darauf zielten, und sonst in der Akzentfarbe, je kräftiger, desto öfter getroffen. Die Liste darunter zeigt jedes Double, die beste Quote zuerst, mit den Treffern aller Darts, den Treffern und Darts beim Zielen darauf und der Quote. Das Lieblingsdouble ist ausgefüllt. Mit `player` zeigt sie die Doubles eines benannten Spielers statt die aller; ein Name ohne Profil bekommt den Hinweis, die Schreibweise zu prüfen.
 
 <img src="images/de/doubles-card.png" alt="Doubles-Karte: der Doppelring nach Quote von Rot bis Grün gefärbt und eine Liste der Doubles mit Treffern, Darts und Quote, das beste zuerst" width="760">
 
@@ -402,7 +402,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 
 ## Spielerkarte
 
-`custom:autodarts-players-card` zeigt die [Spielerprofile](entities.de.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Ergebnis und dem Sieger in Fett: die Legs, die jeder Spieler gewonnen hat, in einem Match mit Sätzen die Sätze, etwa *Cricket · Sätze*. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter; nur Administratoren sehen sie, denn der Export ist eine Aktion für Administratoren.
+`custom:homedarts-players-card` zeigt die [Spielerprofile](entities.de.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entities.de.md#spieler-mit-einer-person-verknüpfen-homedartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Ergebnis und dem Sieger in Fett: die Legs, die jeder Spieler gewonnen hat, in einem Match mit Sätzen die Sätze, etwa *Cricket · Sätze*. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter; nur Administratoren sehen sie, denn der Export ist eine Aktion für Administratoren.
 
 <img src="images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
@@ -427,13 +427,13 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 | `show_trends` | Wahrheitswert | `true` | Trends anzeigen |
 | `trend_weeks` | 4–12 | `12` | Wochen in den Trends |
 | `show_spread` | Wahrheitswert | `true` | Streuung anzeigen |
-| `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`autodarts.export`](entities.de.md#trainingsdaten-exportieren-autodartsexport) nach `autodarts/exports` im Medienordner und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, deshalb dürfen nur Administratoren exportieren und herunterladen; für andere Benutzer, etwa den eines Wandtablets, schlägt der Export fehl. |
+| `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`homedarts.export`](entities.de.md#trainingsdaten-exportieren-homedartsexport) nach `homedarts/exports` im Medienordner und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, deshalb dürfen nur Administratoren exportieren und herunterladen; für andere Benutzer, etwa den eines Wandtablets, schlägt der Export fehl. |
 | `export_format` | `csv`, `json` | `csv` | Format des Exports; CSV kommt als ZIP-Datei mit je einer Tabelle |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen, Balken, Fortschritt und Trendlinien |
 
 ## Bestenliste
 
-`custom:autodarts-leaderboard-card` ordnet die Rekorde aller benannten Spieler. Der Führende jedes Rekords bekommt die Krone, die nächsten Plätze folgen.
+`custom:homedarts-leaderboard-card` ordnet die Rekorde aller benannten Spieler. Der Führende jedes Rekords bekommt die Krone, die nächsten Plätze folgen.
 
 <img src="images/de/leaderboard-card.png" alt="Bestenliste mit dem Umschalter des Zeitraums und den Rekorden bester Average, höchster Checkout, meiste 180er, wenigste Darts bei 501, beste Cricket-MPR, längste Serie, meiste Abzeichen und meiste Darts, jeweils mit dem Führenden und zwei weiteren Plätzen" width="760">
 
@@ -462,7 +462,7 @@ Ein Zeitraum umfasst ganze Wochen ab Montag: *Diese Woche* die laufende Woche, *
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und der Umschalter des Zeitraums |
 
 ```yaml
-type: custom:autodarts-leaderboard-card
+type: custom:homedarts-leaderboard-card
 period: month
 limit: 5
 ```
@@ -472,7 +472,7 @@ limit: 5
 Statt die Karten selbst anzuordnen, kann die Integration ein komplettes Dashboard erzeugen:
 
 1. Öffne **Einstellungen → Dashboards → Dashboard hinzufügen**.
-2. Wähle **Autodarts**.
+2. Wähle **HomeDarts**.
 
 Pro Board entstehen bis zu sechs Ansichten in den Tabs und das Stream-Overlay. Sie aktualisieren sich selbst, wenn du ein Board hinzufügst oder Entitäten aktivierst:
 
@@ -498,7 +498,7 @@ In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title`, `scoreboard` u
 
 ```yaml
 strategy:
-  type: custom:autodarts
+  type: custom:homedarts
   device_id: 0123456789abcdef   # nur dieses Board
   title: Darts
   scoreboard:
@@ -518,7 +518,7 @@ Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, st
 
 ## Home Assistant Cast
 
-[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) zeigt ein Dashboard über einen Chromecast auf einem Fernseher oder auf einem Google Nest Hub, ohne Browser auf dem Gerät. Die Karten und das automatische Dashboard funktionieren dort auch: Cast lädt die Dashboard-Ressourcen von Home Assistant, und die Integration hält ihre beiden Module dort, `autodarts-strategy.js` und `autodarts-card.js`, im Ordner ihrer Version unter `/autodarts/`, etwa `/autodarts/1.16.0-0123abcd/autodarts-card.js`. Sie bringt sie mit jedem Start von Home Assistant auf den neuesten Stand und entfernt sie mit ihrem letzten Board. *Einstellungen → Dashboards → ⋮ → Ressourcen* listet sie, wenn in deinem Benutzerprofil der erweiterte Modus an ist. Im Browser ändert sich nichts: Er lädt jedes Modul einmal, als Ressource wie als Teil von Home Assistant.
+[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) zeigt ein Dashboard über einen Chromecast auf einem Fernseher oder auf einem Google Nest Hub, ohne Browser auf dem Gerät. Die Karten und das automatische Dashboard funktionieren dort auch: Cast lädt die Dashboard-Ressourcen von Home Assistant, und die Integration hält ihre beiden Module dort, `homedarts-strategy.js` und `homedarts-card.js`, im Ordner ihrer Version unter `/homedarts/`, etwa `/homedarts/1.16.0-0123abcd/homedarts-card.js`. Sie bringt sie mit jedem Start von Home Assistant auf den neuesten Stand und entfernt sie mit ihrem letzten Board. *Einstellungen → Dashboards → ⋮ → Ressourcen* listet sie, wenn in deinem Benutzerprofil der erweiterte Modus an ist. Im Browser ändert sich nichts: Er lädt jedes Modul einmal, als Ressource wie als Teil von Home Assistant.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/cast-dark.png">
@@ -531,9 +531,9 @@ Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, st
   lovelace:
     resource_mode: yaml
     resources:
-      - url: /autodarts/autodarts-strategy.js
+      - url: /homedarts/homedarts-strategy.js
         type: module
-      - url: /autodarts/autodarts-card.js
+      - url: /homedarts/homedarts-card.js
         type: module
   ```
 
@@ -546,7 +546,7 @@ Die Anleitung [Anzeigetafel am Board](scoreboard.de.md#auf-dem-fernseher-mit-hom
 
 Alle Optionen lassen sich im visuellen Editor einstellen. Er ist ein Formular von Home Assistant und sieht daher aus und funktioniert wie die Editoren der eingebauten Karten:
 
-- Die Geräteauswahl bietet nur Autodarts-Boards an.
+- Die Geräteauswahl bietet nur die Boards von HomeDarts an.
 - Schalter zeigen ihren Standard, bis du sie änderst; Listen nennen ihren Standard unter dem Feld.
 - Caller-Optionen, Spielauswahl, Ruhemodus sowie Darts korrigieren und eingeben der Anzeigetafel stehen in eingeklappten Abschnitten; die Doubles-Karte bietet die benannten Spieler an.
 - Eine Option, die das Formular nicht darstellen kann, etwa ein vertipptes `layout`, schickt den Editor in die Code-Ansicht, mit einer Meldung, die sie nennt.
@@ -579,4 +579,5 @@ Die Karten funktionieren mit Tastatur, mit Screenreader und ohne Animationen:
 - **Kombinieren:** Setze Live-Karte und Trainingskarte in einer Abschnittsansicht mit zwei Spalten nebeneinander.
 - **Mehrere Boards:** Lege pro Board eine Karte an und wähle das Board im Editor der Karte.
 - **Alte Version im Cache:** Nach einem Update ändert sich die Adresse der Karte automatisch. Zeigt ein Browser trotzdem eine alte Karte, lade die Seite neu. In der Companion-App hilft *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*.
+- **Dashboards aus Version 1.x:** Bis Version 1.18 hießen die Karten `custom:autodarts-card` und so weiter, und die flache Optik war `board_style: autodarts`. Die Übernahme benennt sie in den Dashboards um, die Home Assistant verwaltet; in einem Dashboard in YAML ersetzt du `custom:autodarts` durch `custom:homedarts` und `board_style: autodarts` durch `board_style: flat` ([was du selbst änderst](new-name.de.md#was-du-selbst-änderst)).
 - **Download-Größe:** Alle Karten kommen in einem Modul und ihre Texte in einer kleinen Datei je Sprache, zusammen komprimiert etwa 175 KB. Ein Browser lädt sie beim ersten Besuch und nach einem Update und behält sie bis zum nächsten; bei einer langsamen Verbindung wartet daher nur das erste Laden eines Dashboards auf sie.

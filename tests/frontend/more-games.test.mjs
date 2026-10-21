@@ -22,7 +22,7 @@ import {
   practiceView,
   scoreboardHtml,
   visitCount,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const ui = {
   t: (key) => key,
@@ -474,7 +474,7 @@ test("the history names the new games and both winners of a team match", () => {
 });
 
 test("the game settings offer the team switch, the Golf and Count-Up options and the start scores", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "homedarts" });
   const entities = [
     entity("select.board_practice_game", "practice_game"),
     entity("switch.board_teams", "practice_teams"),
