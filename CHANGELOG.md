@@ -4,6 +4,18 @@ All notable changes of HomeDarts for Autodarts, called Autodarts up to version 1
 
 ## Unreleased
 
+## [2.0.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.18.0...v2.0.0) (2026-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* HomeDarts for Autodarts, a name of its own ([#442](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/442))
+
+### Features
+
+* an icon of its own in place of the Autodarts logo ([#438](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/438)) ([e26c118](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/e26c118a76aafa11398b6476ddd1042a7a93459e))
+* HomeDarts for Autodarts, a name of its own ([#442](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/442)) ([984b834](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/984b834c53915bb7c6db1e3bfaaadc5ae7c719c5))
+
 ## [1.18.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
 
 ### Fixed
