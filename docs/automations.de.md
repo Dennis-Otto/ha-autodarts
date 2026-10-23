@@ -406,7 +406,7 @@ Frag zum Beispiel:
 - auf Französisch „Quelle est ma moyenne aujourd'hui ?“, „Combien de 180 ai-je faits cette semaine ?“, „Qui est en tête du classement ?“ oder „Où dois-je viser ?“
 - auf Niederländisch „Wat is mijn gemiddelde vandaag?“, „Hoeveel 180's heb ik deze week gegooid?“, „Wie staat bovenaan de ranglijst?“ oder „Waar moet ik op mikken?“
 
-Assist antwortet aus den Statistiken des Boards, in der Sprache deiner Frage: „Heute: 3-Dart-Average 120,2 aus 18 Darts.“, „180er diese Woche: 2.“, „Heute 18 Darts. Noch 2 bis zu deinem Tagesziel von 20.“, „Dein höchster Checkout ist 141.“, „Ein Tag in Folge. Dein Rekord: 1.“, „Alex führt die Bestenliste an, mit einem 3-Dart-Average von 167.“ oder „Sam, ziel auf Bull: 11,8 Punkte pro Dart.“. Vor dem ersten Dart sagt es, was fehlt, etwa „Heute noch keine Darts.“.
+Assist antwortet aus den Statistiken des Boards, in der Sprache deiner Frage: „Heute: 3-Dart-Average 120,2 aus 18 Darts.“, „180er diese Woche: 2.“, „Heute 18 Darts. Noch 2 bis zu deinem Tagesziel von 20.“, „Dein höchster Checkout ist 141.“, „Ein Tag in Folge. Dein Rekord: 1.“, „Alex führt die Bestenliste mit einem 3-Dart-Average von 167 an.“ oder „Sam, ziel auf Bull: 11,8 Punkte pro Dart.“. Vor dem ersten Dart sagt es, was fehlt, etwa „Heute noch keine Darts.“.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/ask-assist-dark.png">
