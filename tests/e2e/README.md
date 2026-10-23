@@ -25,6 +25,10 @@ bash tests/e2e/run.sh
 The log shows the seconds of every phase of the scenario, such as
 `Scenario phase: resilience (46.3 s)`.
 
+The script pulls the image of Home Assistant before the containers start, up to
+three times 10 seconds apart, so that a pull the registry cuts off doesn't fail the
+scenario.
+
 The scenario uses only Home Assistant's public REST and WebSocket APIs and verifies:
 
 - onboarding and local config flow, including invalid-host, unreachable-board and
@@ -70,6 +74,7 @@ Optional environment variables:
 - `E2E_PROJECT_NAME`: Compose project name, default `homedarts_e2e`
 - `HOME_ASSISTANT_IMAGE`: pinned Home Assistant image override
 - `KEEP_E2E=1`: keep containers and the disposable volume after the suite
+- `E2E_PULL_PAUSE`: seconds between the attempts to pull the images, default `10`
 
 All users, passwords, board IDs and API keys are synthetic. Renovate keeps the
 pinned Home Assistant image up to date.

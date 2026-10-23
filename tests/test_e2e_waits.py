@@ -534,3 +534,59 @@ def test_the_browser_test_runs_the_clock_through_the_timers_of_the_cards():
         "page.clock.install() before the page loads, or the timers of the cards run "
         "on the real clock"
     )
+
+
+def unwaited_summaries(source: str) -> list[tuple[str, int]]:
+    """Each function and line that runs the clock of its page through the summary of a
+    match without waiting first for the summary to show. The timer of the summary
+    starts only once the checkout has reached the card, over the websocket and on the
+    real clock: run_until() runs the clock of the page through its fifteen seconds in
+    a moment, so a clock that runs before then finds no timer to fire."""
+    found = []
+    for function in ast.walk(ast.parse(source)):
+        if not isinstance(function, ast.FunctionDef):
+            continue
+        calls = sorted(
+            (node for node in ast.walk(function) if isinstance(node, ast.Call)),
+            key=lambda node: node.lineno,
+        )
+        waited = False
+        for call in calls:
+            called = ast.unparse(call.func)
+            if called.endswith(".wait_for") and "table.summary" in called:
+                waited = True
+            elif called == "run_until":
+                what = ast.unparse(call.args[3]) if len(call.args) > 3 else ""
+                if "summary of the match" in what and not waited:
+                    found.append((function.name, call.lineno))
+                waited = False
+    return found
+
+
+def test_a_clock_run_through_the_summary_that_does_not_wait_for_it_is_found():
+    source = "\n".join(
+        [
+            "def waits(page):",
+            "    page.locator(f'{card} table.summary').wait_for(timeout=15000)",
+            "    run_until(page, table, 15000, 'The table after the summary of the match', c)",
+            "def hurries(page):",
+            "    control({'event': 'Throw detected'})",
+            "    run_until(page, table, 15000, 'The table after the summary of the match', c)",
+            "def waits_once(page):",
+            "    page.locator(f'{card} table.summary').wait_for(timeout=15000)",
+            "    run_until(page, table, 15000, 'The table after the summary of the match', c)",
+            "    run_until(page, table, 15000, 'The table after the summary of the match', c)",
+            "def idles(page):",
+            "    run_until(page, panel, 20000, 'Idle mode', c)",
+        ]
+    )
+    assert unwaited_summaries(source) == [("hurries", 6), ("waits_once", 10)]
+
+
+def test_the_browser_test_waits_for_the_summary_before_it_runs_the_clock_through_it():
+    found = unwaited_summaries((E2E / "browser.py").read_text("utf-8"))
+    assert found == [], (
+        f"A step runs the clock through the summary of a match before the summary "
+        f"shows: {found}; wait for f'{{card}} table.summary' first, as the step "
+        "tournament does"
+    )
