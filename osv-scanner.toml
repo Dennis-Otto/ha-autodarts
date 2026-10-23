@@ -2,11 +2,39 @@
 #
 # An advisory goes here only for a dependency that just the test environment installs
 # (requirements-test.txt), such as one that Home Assistant pins exactly; the integration
-# itself ships no Python dependencies. Each entry is an [[IgnoredVulns]] table with the
-# advisory's `id` and a `reason` that starts with the package and its pinned version
-# ("cryptography 48.0.1: ..."), and tests/test_consistency.py fails once the test base
-# moves past that version, so an entry leaves with the update that fixes it.
-# .github/dependency-review.yml lists the same advisories under allow-ghsas.
+# itself ships no Python dependencies. OSV-Scanner reads the osv-scanner.toml in the
+# folder of each lock file, so this one covers requirements-test.txt beside it.
 #
-# Home Assistant 2026.10 pins cryptography 50.0.1 and PyJWT 2.15.1, which fixed the
-# advisories that the 2026.9 test base needed here, so there are none.
+# A version that Home Assistant pins is a [[PackageOverrides]] table with
+# vulnerability.ignore, which accepts every advisory of that version, also those that
+# are published later, with its `reason` and `effectiveUntil`, after which OSV-Scanner
+# reports it again and a person looks again. `python3 .github/blueprint.py advisories
+# --fix` writes a rule of Renovate for each into .github/renovate-accepted.json5, so that
+# Renovate tries no fix that the lock file can't take. tests/test_consistency.py fails
+# once the test base moves past the version, so an entry leaves with the update that
+# fixes it.
+#
+# A single advisory that no update can move is an [[IgnoredVulns]] table with the
+# advisory's `id` and a `reason` that starts with the package and its pinned version
+# ("cryptography 48.0.1: ..."); .github/dependency-review.yml lists the same advisories
+# under allow-ghsas.
+
+[[PackageOverrides]]
+name = "pillow"
+version = "12.3.0"
+ecosystem = "PyPI"
+vulnerability.ignore = true
+effectiveUntil = 2026-11-22
+reason = """Home Assistant 2026.10 pins Pillow 12.3.0, which only its test plugin
+installs here, for the tests of the integration; the next update of
+pytest-homeassistant-custom-component that brings Pillow 13 ends this."""
+
+[[PackageOverrides]]
+name = "uv"
+version = "0.12.23"
+ecosystem = "PyPI"
+vulnerability.ignore = true
+effectiveUntil = 2026-11-22
+reason = """Home Assistant 2026.10 pins uv 0.12.23, which only its test plugin installs
+here, for the tests of the integration; the next update of
+pytest-homeassistant-custom-component that brings uv 0.13.4 ends this."""

@@ -835,3 +835,19 @@ def test_osv_exceptions_cover_only_the_pinned_versions():
             f"remove {vulnerability['id']} from osv-scanner.toml and .github/dependency-review.yml"
         )
     assert review["allow-ghsas"] == [vulnerability["id"] for vulnerability in accepted]
+
+
+def test_osv_overrides_accept_only_the_pinned_versions():
+    # A [[PackageOverrides]] entry accepts every advisory of one version that Home
+    # Assistant pins in the test base; once the test base moves on, it has to go, or it
+    # would accept the advisories of a version that nothing here installs any more.
+    config = tomllib.loads((ROOT / "osv-scanner.toml").read_text(encoding="utf-8"))
+    test_base = (ROOT / "requirements-test.txt").read_text(encoding="utf-8")
+    for override in config.get("PackageOverrides", []):
+        name, version = override["name"], override["version"]
+        versions = re.findall(rf"^{re.escape(name)}==(\S+)", test_base, re.M | re.I)
+        assert versions == [version], (
+            f"requirements-test.txt pins {name} {versions or 'no more'}: remove the "
+            f"override of {name} {version} from osv-scanner.toml and run "
+            "python3 .github/blueprint.py advisories --fix"
+        )

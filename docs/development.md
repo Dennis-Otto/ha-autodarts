@@ -378,12 +378,17 @@ Dependencies are pinned:
 - Node tools by `package-lock.json`.
 
 Home Assistant pins its own dependencies exactly, so the test environment can carry a
-version with a known advisory that no update here can raise. Such advisories are listed
-with their reason in `osv-scanner.toml`, which OSV-Scanner and the OpenSSF Scorecard
-read, and in `allow-ghsas` of the dependency review. Each reason starts with the pinned
-version, and a consistency test fails as soon as the test base moves past it, so an
-exception leaves with the update that fixes it. The integration itself ships no Python
-dependencies.
+version with a known advisory that no update here can raise, such as the Pillow 12.3.0
+and the uv 0.12.23 of Home Assistant 2026.10. `osv-scanner.toml`, which OSV-Scanner and
+the OpenSSF Scorecard read, accepts such a version with every advisory as a
+`[[PackageOverrides]]` entry, with its reason and an `effectiveUntil` date, after which
+OSV-Scanner reports it again and someone looks again. `python3 .github/blueprint.py
+advisories --fix` writes a rule of Renovate for each into
+`.github/renovate-accepted.json5`, so that Renovate tries no fix that the lock file can't
+take. A single advisory goes into `[[IgnoredVulns]]` with a reason that starts with the
+pinned version, and into `allow-ghsas` of the dependency review. A consistency test fails
+as soon as the test base moves past an accepted version, so an exception leaves with the
+update that fixes it. The integration itself ships no Python dependencies.
 
 Renovate keeps the Python and Node tools, the Actions, the new commits of the HACS
 and hassfest actions, which follow a branch instead of releases, and the images
