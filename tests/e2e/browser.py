@@ -1399,7 +1399,10 @@ def tablet_screen(browser: Browser) -> None:
     for count in range(1, 4):
         control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    # The table follows the eight seconds of the match summary.
+    # The table follows the eight seconds of the match summary, whose timer starts
+    # only once the checkout has reached the card: running the clock before that
+    # runs it out without a timer to fire.
+    page.locator(f"{card} table.summary").wait_for(timeout=15000)
     run_until(
         page,
         page.locator(f"{card} .standings"),
