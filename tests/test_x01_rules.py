@@ -26,7 +26,7 @@ from custom_components.homedarts.scoring import (
     visit_darts,
 )
 
-from .local_helpers import dart, playing, throw
+from .local_helpers import NOW, dart, playing, throw
 from .test_bot import RecordingBot
 
 
@@ -273,16 +273,16 @@ def test_a_50_50_bull_game_routes_50_through_the_outer_bull_too():
 
 def test_the_bulls_aim_where_the_route_goes():
     game = playing(501, 90, bull_mode=BULL_50_50)
-    game.track(darts("25", "D20"))
+    game.track(darts("25", "D20"), now=NOW)
     assert game.booking().booked_aims == ["BULL", "D20"]
     game = playing(501, 60, out_mode=MASTER)
-    game.track(darts("S20", "S20", "S20"))
+    game.track(darts("S20", "S20", "S20"), now=NOW)
     assert game.booking().booked_aims == ["T20", "D20", "D10"]
     game = playing(501, 61, out_mode=MASTER)
-    game.track(darts("T20", "S1"))
+    game.track(darts("T20", "S1"), now=NOW)
     assert game.booking().booked_aims == [None, None]
     game = playing(501, in_mode=MASTER)
-    game.track(darts("S20", "T20", "T20"))
+    game.track(darts("S20", "T20", "T20"), now=NOW)
     assert game.booking().booked_aims == [None, None, "T20"]
 
 
@@ -376,7 +376,7 @@ def test_a_pass_and_a_bust_count_for_the_round_limit():
     game = match(max_rounds=1)
     game.players[0].remaining = 40
     throw(game, "T20")
-    assert game.finish_visit(empty=True)[0][0] == "leg_won"
+    assert game.finish_visit(empty=True, now=NOW)[0][0] == "leg_won"
     assert game.winner == 0 and game.players[1].remaining == 501
 
 
@@ -389,7 +389,7 @@ def test_a_restored_or_rewound_leg_keeps_its_rounds():
     assert restored.leg_visits == 3 and restored.snapshot()["round"] == 2
     saved = restored.checkpoint()
     throw(restored, *THREE)
-    restored.rewind(saved, [], [])
+    restored.rewind(saved, [], [], now=NOW)
     assert restored.leg_visits == 3
     broken = {**game.stored(), "leg_visits": -1}
     restored.restore(broken)
@@ -553,8 +553,8 @@ def test_a_leg_of_the_bot_ends_as_the_out_mode_says(out_mode, bull_mode, ends):
 def test_a_leg_the_round_limit_decides_after_passes_survives_a_restart():
     game = match(max_rounds=1)
     game.set_start(1, 301)
-    game.finish_visit(empty=True)
-    events = game.finish_visit(empty=True)
+    game.finish_visit(empty=True, now=NOW)
+    events = game.finish_visit(empty=True, now=NOW)
     won = next(details for kind, details in events if kind == "leg_won")
     assert (won["player"], won["darts"], won["average"]) == (2, 0, None)
     restored = PracticeGame()

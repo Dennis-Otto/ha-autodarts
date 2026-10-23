@@ -14,7 +14,7 @@ from custom_components.homedarts.checkout import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import dart, playing
+from .local_helpers import NOW, dart, playing
 
 SCORES = {bed.name: bed.score for bed in BEDS}
 
@@ -118,13 +118,13 @@ def test_the_practice_game_shows_the_setup_instead_of_an_empty_checkout():
     snapshot = game.snapshot()
     assert snapshot["checkout"] is None
     assert snapshot["setup"] == {"route": "T20 T20 S17", "leave": 32}
-    game.track([dart("T20")])
+    game.track([dart("T20")], now=NOW)
     assert game.snapshot()["setup"] == {"route": "T20 S17", "leave": 32}
     # A single 20 instead of the treble: the last dart still leaves 32.
-    game.track([dart("T20"), dart("S20")])
+    game.track([dart("T20"), dart("S20")], now=NOW)
     assert game.snapshot()["setup"] == {"route": "T19", "leave": 32}
     # 32 is left: the next visit finishes on D16.
-    game.track([dart("T20"), dart("S20"), dart("T19")])
+    game.track([dart("T20"), dart("S20"), dart("T19")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["checkout"] == "D16" and snapshot["setup"] is None
 
@@ -134,7 +134,7 @@ def test_no_setup_without_double_out_before_double_in_or_after_the_leg():
     game = playing(501, 169, double_in=True)
     assert game.snapshot()["setup"] is None
     game = playing(301, 40)
-    game.track([dart("D20")])
+    game.track([dart("D20")], now=NOW)
     assert game.snapshot()["setup"] is None
 
 
@@ -143,8 +143,8 @@ def test_the_next_player_hears_the_setup_with_the_turn():
     game.set_players(2)
     game.play(301)
     game.players[1].remaining = 169
-    game.track([dart("S1")])
-    ((kind, turn),) = game.finish_visit()
+    game.track([dart("S1")], now=NOW)
+    ((kind, turn),) = game.finish_visit(now=NOW)
     assert kind == "turn_changed" and turn["checkout"] is None
     assert turn["setup"] == {"route": "T20 T20 S17", "leave": 32}
 
@@ -152,7 +152,7 @@ def test_the_next_player_hears_the_setup_with_the_turn():
 def test_personal_routes_set_up_the_players_strongest_double():
     game = playing(501, 82, personal_routes=True)
     game.set_name(0, "Alex")
-    game.track([dart("S1"), dart("S1")])
+    game.track([dart("S1"), dart("S1")], now=NOW)
     assert game.snapshot()["setup"] == {"route": "T16", "leave": 32}
-    game.profiles.doubles("Alex", [("D10", True)] * 10)
+    game.profiles.doubles("Alex", [("D10", True)] * 10, now=NOW)
     assert game.snapshot()["setup"] == {"route": "T20", "leave": 20}

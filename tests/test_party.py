@@ -12,7 +12,7 @@ from custom_components.homedarts.party import (
 )
 from custom_components.homedarts.practice import MAX_PLAYERS, PracticeGame
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 
 def game_of(kind: str | int, players: int = 1, **names: str) -> PracticeGame:
@@ -43,7 +43,7 @@ def test_double_in_scores_from_the_first_double():
     game = game_of(301)
     game.double_in = True
     game.new_match()
-    game.track([dart("S20"), dart("T20")])
+    game.track([dart("S20"), dart("T20")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["remaining"] == 301 and snapshot["opened"] is False
     assert snapshot["checkout"] is None
@@ -61,11 +61,11 @@ def test_a_bust_takes_the_opening_double_back():
     game.double_in = True
     game.new_match()
     game.players[0].remaining = 50
-    game.track([dart("D20"), dart("T20")])
+    game.track([dart("D20"), dart("T20")], now=NOW)
     # The card shows the double taken back while the bust is on the board.
     assert game.snapshot()["opened"] is False
     assert game.snapshot()["scores"][0]["opened"] is False
-    assert kinds(game.finish_visit()) == ["turn_changed"]
+    assert kinds(game.finish_visit(now=NOW)) == ["turn_changed"]
     assert game.players[0].remaining == 50 and game.players[0].opened is False
 
 
@@ -109,14 +109,14 @@ def test_shanghai_ends_after_seven_rounds_and_a_tie_replays_the_leg():
 
 def test_shanghai_counts_no_miss_next_to_the_number():
     game = game_of("shanghai", 2)
-    game.track([missed(1), missed(1), dart("S1")])
+    game.track([missed(1), missed(1), dart("S1")], now=NOW)
     assert game.snapshot()["points"] == 1
-    game.finish_visit()
-    game.track([])
+    game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     assert game.party.hits == [1, 0] and game.party.points == [1, 0]
     # A miss next to the number completes no Shanghai either.
     game.party.restore({"turns": 2})
-    game.track([dart("S2"), dart("D2"), missed(2)])
+    game.track([dart("S2"), dart("D2"), missed(2)], now=NOW)
     assert game.snapshot()["won"] is False and game.snapshot()["darts"] == 3
 
 
@@ -166,7 +166,7 @@ def test_killer_picks_numbers_then_the_killers_take_lives():
     assert [score["number"] for score in snapshot["scores"]] == [7, 12, 3]
     assert snapshot["target"] == "D7"
     # Alex becomes a killer and hunts the others from the next dart on.
-    game.track([dart("D7")])
+    game.track([dart("D7")], now=NOW)
     assert game.snapshot()["target"] is None
     # ... and takes two of Sam's lives.
     throw(game, "D7", "D12", "D12")
@@ -189,9 +189,9 @@ def test_killer_picks_numbers_then_the_killers_take_lives():
 def test_killer_numbers_need_a_bed_of_the_number():
     game = game_of("killer", 2)
     # A miss next to the 7 picks nothing: throw again.
-    game.track([missed(7)])
-    game.finish_visit()
-    game.track([])
+    game.track([missed(7)], now=NOW)
+    game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     assert game.party.numbers == [None, None] and game.snapshot()["player"] == 1
     throw(game, "T7")
     assert game.party.numbers == [7, None]
@@ -213,12 +213,12 @@ def test_a_killer_out_of_lives_does_nothing_with_the_rest_of_the_visit():
 def test_darts_after_the_winning_dart_do_not_count():
     game = game_of("killer", 2)
     game.party.restore({"numbers": [1, 2], "lives": [3, 1], "killers": [True, False]})
-    game.track([dart("D2")])
+    game.track([dart("D2")], now=NOW)
     assert game.snapshot()["darts"] == 1
-    game.track([dart("D2"), dart("S5"), dart("S5")])
+    game.track([dart("D2"), dart("S5"), dart("S5")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["won"] and snapshot["darts"] == 1
-    events = game.finish_visit()
+    events = game.finish_visit(now=NOW)
     assert kinds(events) == []
     assert game.players[0].darts == 1 and game.legs[0]["darts"] == 1
 
@@ -233,7 +233,7 @@ def test_only_killers_take_lives_and_a_killer_can_lose_the_last_one():
     throw(game, "MISS")
     game.party.killers[0], game.party.lives[0] = True, 1
     # With the last life, Alex hits the own double: Sam is the last one left.
-    events = game.track([dart("D7")])
+    events = game.track([dart("D7")], now=NOW)
     assert kinds(events) == ["leg_won", "match_won"]
     assert dict(events)["leg_won"]["name"] == "Sam"
     alex = game.snapshot()["scores"][0]
@@ -243,11 +243,11 @@ def test_only_killers_take_lives_and_a_killer_can_lose_the_last_one():
 def test_a_correction_can_take_a_shanghai_back():
     game = game_of("shanghai", 2)
     shanghai = [dart("S1"), dart("D1"), dart("T1")]
-    assert kinds(game.track(shanghai)) == ["leg_won", "match_won"]
+    assert kinds(game.track(shanghai, now=NOW)) == ["leg_won", "match_won"]
     # The board corrects the treble to a single: no Shanghai after all.
-    assert game.track([dart("S1"), dart("D1"), dart("S1")]) == []
+    assert game.track([dart("S1"), dart("D1"), dart("S1")], now=NOW) == []
     assert game.snapshot()["winner"] is None
-    assert kinds(game.finish_visit()) == ["turn_changed"]
+    assert kinds(game.finish_visit(now=NOW)) == ["turn_changed"]
     assert game.snapshot()["player"] == 2 and game.winner is None
 
 
@@ -331,7 +331,7 @@ def test_a_bull_off_decides_who_starts():
             },
         )
     ]
-    game.track([dart("BULL")])
+    game.track([dart("BULL")], now=NOW)
     throws = game.snapshot()["bull_off"]["throws"]
     assert throws == [
         {"player": 1, "name": None, "distance": None, "hit": "25"},
@@ -421,7 +421,7 @@ def test_the_bull_off_rule_and_a_rethrow_show_in_the_snapshot():
     game.set_players(2)
     game.play(501)
     throw(game, "BULL")
-    game.track([dart("BULL")], [(0.02, 0.0)])
+    game.track([dart("BULL")], [(0.02, 0.0)], now=NOW)
     snapshot = game.snapshot()["bull_off"]
     assert snapshot["rethrow"] is False and snapshot["by_distance"] is False
     assert snapshot["throws"][1] == {
@@ -430,24 +430,24 @@ def test_the_bull_off_rule_and_a_rethrow_show_in_the_snapshot():
         "distance": 3.4,
         "hit": "BULL",
     }
-    assert kinds(game.finish_visit()) == ["turn_changed"]
-    game.track([])
+    assert kinds(game.finish_visit(now=NOW)) == ["turn_changed"]
+    game.track([], now=NOW)
     snapshot = game.snapshot()["bull_off"]
     assert snapshot["rethrow"] and snapshot["player"] == 2
     assert [item["player"] for item in snapshot["throws"]] == [2, 1]
     assert snapshot["throws"][0]["hit"] is None
     game.bull_off_distance = True
     throw(game, "BULL")
-    game.track([dart("BULL")], [(0.0, 0.01)])
-    events = game.finish_visit()
+    game.track([dart("BULL")], [(0.0, 0.01)], now=NOW)
+    events = game.finish_visit(now=NOW)
     # Player 2 threw without a position: the darts cannot be compared, so again.
     assert kinds(events) == ["turn_changed"] and game.bulling.order == [0, 1]
-    game.track([])
-    game.track([dart("BULL")], [(0.02, 0.0)])
-    game.finish_visit()
-    game.track([])
-    game.track([dart("BULL")], [(0.0, 0.01)])
-    events = game.finish_visit()
+    game.track([], now=NOW)
+    game.track([dart("BULL")], [(0.02, 0.0)], now=NOW)
+    game.finish_visit(now=NOW)
+    game.track([], now=NOW)
+    game.track([dart("BULL")], [(0.0, 0.01)], now=NOW)
+    events = game.finish_visit(now=NOW)
     assert events[0] == (
         "bull_off_won",
         {

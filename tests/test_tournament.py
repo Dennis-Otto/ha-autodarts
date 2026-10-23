@@ -6,10 +6,10 @@ from itertools import combinations
 from unittest.mock import patch
 
 import pytest
-from homeassistant.exceptions import ServiceValidationError
 from hypothesis import given
 from hypothesis import strategies as st
 
+from custom_components.homedarts.errors import ActionRefused
 from custom_components.homedarts.practice import PracticeGame, valid_settings
 from custom_components.homedarts.tournament import (
     FINISHED,
@@ -46,9 +46,9 @@ SHORT = ("S1", "S1", "S1")
 def visit(practice: PracticeGame, *names: str) -> None:
     """Throw a visit dart by dart and pull the darts."""
     for count in range(1, len(names) + 1):
-        practice.track([dart(name) for name in names[:count]])
-    practice.finish_visit()
-    practice.track([])
+        practice.track([dart(name) for name in names[:count]], now=NOW)
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
 
 
 def win(practice: PracticeGame, loser_visits: int = 0) -> None:
@@ -98,7 +98,7 @@ def play_out(
             win(practice)
         events += tournament.booked(practice, now)
         if tournament.waiting:
-            tournament.next_match(practice)
+            tournament.next_match(practice, NOW)
     return events
 
 
@@ -243,9 +243,9 @@ def test_a_round_robin_of_three_through_the_practice_game():
     # Booked once only.
     assert tournament.booked(practice, NOW) == []
     # Darts during the pause start no new match; the result stays.
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     assert practice.winner == 1 and practice.snapshot()["visit"] == []
-    practice.finish_visit()
+    practice.finish_visit(now=NOW)
     assert practice.winner == 1
     assert tournament.state() == "round_2"
     snapshot = tournament.snapshot()
@@ -257,7 +257,7 @@ def test_a_round_robin_of_three_through_the_practice_game():
     assert snapshot["next_at"] == (NOW + timedelta(seconds=18)).isoformat()
     assert (snapshot["pause"], snapshot["summary"]) == (10, 8)
 
-    tournament.next_match(practice)
+    tournament.next_match(practice, NOW)
     assert not practice.hold and practice.winner is None
     assert practice.names[:2] == ["Alex", "Kim"]
     snapshot = tournament.snapshot()
@@ -287,7 +287,7 @@ def test_a_round_robin_of_three_through_the_practice_game():
     # A finished match counts like every match for the profiles.
     assert practice.profiles.players["alex"].matches_won == 2
     # The next dart plays on as a practice match.
-    practice.track([dart("S1")])
+    practice.track([dart("S1")], now=NOW)
     assert practice.winner is None
 
 
@@ -310,7 +310,7 @@ def test_the_table_ranks_by_points_then_among_the_level_players():
             win(practice)
         tournament.booked(practice, NOW)
         if tournament.waiting:
-            tournament.next_match(practice)
+            tournament.next_match(practice, NOW)
     table = tournament.snapshot()["standings"]
     assert table[0] == {
         "position": 1,
@@ -527,10 +527,10 @@ def test_a_round_robin_needs_three_to_eight_different_players(
 ):
     tournament = TournamentDirector()
     practice = PracticeGame()
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         tournament.start(practice, NOW, players=players)
-    assert error.value.translation_key == key
-    assert error.value.translation_placeholders == placeholders
+    assert error.value.key == key
+    assert error.value.placeholders == placeholders
     # Nothing changed.
     assert tournament.tournament is None and tournament.setup.players == []
     assert tournament.state() == "no_tournament"
@@ -545,10 +545,13 @@ def test_empty_names_are_dropped():
 def test_next_match_and_stop_need_a_tournament():
     tournament = TournamentDirector()
     practice = PracticeGame()
-    for action in (tournament.next_match, tournament.stop):
-        with pytest.raises(ServiceValidationError) as error:
-            action(practice)
-        assert error.value.translation_key == "no_tournament"
+    for action in (
+        lambda: tournament.next_match(practice, NOW),
+        lambda: tournament.stop(practice),
+    ):
+        with pytest.raises(ActionRefused) as error:
+            action()
+        assert error.value.key == "no_tournament"
     assert tournament.snapshot() == {
         "status": None,
         "format": None,
@@ -562,16 +565,16 @@ def test_next_match_and_stop_need_a_tournament():
 
 def test_the_match_being_played_cannot_be_skipped_but_set_up_again():
     tournament, practice = director(3)
-    with pytest.raises(ServiceValidationError) as error:
-        tournament.next_match(practice)
-    assert error.value.translation_key == "tournament_match_running"
-    assert error.value.translation_placeholders == {"first": "Kim", "second": "Sam"}
+    with pytest.raises(ActionRefused) as error:
+        tournament.next_match(practice, NOW)
+    assert error.value.key == "tournament_match_running"
+    assert error.value.placeholders == {"first": "Kim", "second": "Sam"}
     # Someone chose another game: the button sets the match up again.
     practice.play(301)
     assert not tournament.plays(practice)
     visit(practice, *CHECKOUT)
     assert tournament.booked(practice, NOW) == []
-    tournament.next_match(practice)
+    tournament.next_match(practice, NOW)
     assert tournament.plays(practice) and practice.kind == 101
     practice.set_name(0, "Somebody")
     assert not tournament.plays(practice)
@@ -583,8 +586,8 @@ def test_the_match_being_played_cannot_be_skipped_but_set_up_again():
 def test_a_finished_tournament_has_no_next_match_and_stops():
     tournament, practice = director(3)
     play_out(tournament, practice)
-    with pytest.raises(ServiceValidationError):
-        tournament.next_match(practice)
+    with pytest.raises(ActionRefused):
+        tournament.next_match(practice, NOW)
     assert tournament.booked(practice, NOW) == []
     tournament.stop(practice)
     assert tournament.tournament is None and tournament.state() == "no_tournament"
@@ -597,7 +600,7 @@ def test_stopping_during_the_pause_lets_the_darts_count_again():
     assert practice.hold
     tournament.stop(practice)
     assert not practice.hold
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     assert practice.winner is None
 
 
@@ -642,7 +645,7 @@ def test_a_tournament_survives_a_restart_at_every_stage():
         assert restored.waiting == tournament.waiting
         assert restored.snapshot() == tournament.snapshot()
         if tournament.waiting:
-            tournament.next_match(practice)
+            tournament.next_match(practice, NOW)
 
 
 def test_restore_keeps_the_setup_and_ignores_what_it_does_not_know():
@@ -708,7 +711,7 @@ def test_restore_replays_the_results_as_far_as_they_fit():
     tournament, practice = director(4, fmt=KNOCKOUT)
     win(practice)
     tournament.booked(practice, NOW)
-    tournament.next_match(practice)
+    tournament.next_match(practice, NOW)
     win(practice)
     tournament.booked(practice, NOW)
     saved = stored(tournament)["tournament"]
@@ -869,7 +872,7 @@ def test_cricket_variants_play_tournaments_too():
 def test_the_tournament_rules_win_over_a_double_out_for_the_next_leg():
     practice = PracticeGame()
     practice.play(501)
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     # Switched off during the leg: it would apply from the next one.
     practice.set_option("double_out", False)
     assert practice.out_mode_next == "straight"
@@ -893,7 +896,7 @@ def test_a_match_with_other_settings_is_no_tournament_match():
     assert tournament.booked(practice, NOW) == []
     assert tournament.tournament.last_played() is None
     # The button sets the tournament match up again.
-    tournament.next_match(practice)
+    tournament.next_match(practice, NOW)
     assert tournament.plays(practice) and practice.legs_to_win == 2
     for rule in ("double_out", "double_in", "bull_off", "bull_off_distance"):
         practice.set_option(rule, not practice.setting(rule))
@@ -907,9 +910,9 @@ def test_a_match_with_other_settings_is_no_tournament_match():
 def test_a_tournament_being_played_is_stopped_before_a_new_one():
     tournament, practice = director(3)
     for _ in range(2):
-        with pytest.raises(ServiceValidationError) as error:
+        with pytest.raises(ActionRefused) as error:
             tournament.start(practice, NOW, players=NAMES[3:6])
-        assert error.value.translation_key == "tournament_running"
+        assert error.value.key == "tournament_running"
         assert tournament.tournament.players == NAMES[:3]
         # Also during the pause.
         win(practice)
@@ -924,15 +927,15 @@ def test_a_tournament_being_played_is_stopped_before_a_new_one():
 def test_a_finished_tournament_says_so_for_the_next_match():
     tournament, practice = director(3)
     play_out(tournament, practice)
-    with pytest.raises(ServiceValidationError) as error:
-        tournament.next_match(practice)
-    assert error.value.translation_key == "tournament_finished"
+    with pytest.raises(ActionRefused) as error:
+        tournament.next_match(practice, NOW)
+    assert error.value.key == "tournament_finished"
 
 
 def test_the_tournament_takes_a_double_out_waiting_for_the_next_leg():
     practice = PracticeGame()
     practice.play(501)
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     practice.set_option("double_out", False)
     tournament = TournamentDirector()
     tournament.start(practice, NOW, players=NAMES[:3])
@@ -980,7 +983,7 @@ def test_the_practice_settings_come_back_after_the_tournament():
     restored.restore(json.loads(json.dumps(practice.stored())))
     assert restored.resume == before
     # ... which starts a match with the settings from before the tournament.
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     assert practice.settings() == before and practice.resume is None
     assert practice.bot_seat == 3 and practice.kind == 101
     assert practice.players[0].remaining == 101 and practice.winner is None
@@ -1047,9 +1050,9 @@ def test_a_new_match_of_the_last_two_players_makes_way_in_the_pause():
     practice.set_format(legs=2)
     assert practice.winner is None and tournament.free(practice)
     # With its first dart, it is played to its end first.
-    practice.track([dart("S1")])
+    practice.track([dart("S1")], now=NOW)
     assert not tournament.free(practice)
-    practice.track([])
+    practice.track([], now=NOW)
     practice.new_match()
     assert tournament.free(practice)
     # Other players or another game are not the tournament's.
@@ -1058,7 +1061,7 @@ def test_a_new_match_of_the_last_two_players_makes_way_in_the_pause():
     practice.play("cricket")
     assert not tournament.free(practice)
     # While a match is being played, nothing makes way.
-    tournament.next_match(practice)
+    tournament.next_match(practice, NOW)
     practice.new_match()
     assert not tournament.free(practice)
 
@@ -1069,10 +1072,10 @@ def test_a_match_with_a_bull_off_dart_is_under_way():
     practice.set_players(2)
     practice.play(501)
     assert practice.fresh
-    practice.track([dart("S20")], [(0.0, 0.5)])
+    practice.track([dart("S20")], [(0.0, 0.5)], now=NOW)
     assert not practice.fresh
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     assert practice.bulling.index == 1 and not practice.fresh
 
 
@@ -1081,10 +1084,10 @@ def test_a_deleted_player_leaves_the_next_tournament_but_not_one_being_played():
     practice.set_name(0, "Zoe")
     tournament = TournamentDirector()
     tournament.start(practice, NOW, players=NAMES[:3])
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         tournament.forget(" sam ")
-    assert error.value.translation_key == "player_in_tournament"
-    assert error.value.translation_placeholders == {"name": "sam"}
+    assert error.value.key == "player_in_tournament"
+    assert error.value.placeholders == {"name": "sam"}
     # A player from before the tournament does not come back after it.
     tournament.forget("ZOE")
     assert tournament.saved["names"] == [""] * 8
@@ -1096,11 +1099,11 @@ def test_a_deleted_player_leaves_the_next_tournament_but_not_one_being_played():
 
 
 def test_player_names_never_carry_template_characters():
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         TournamentDirector().start(
             PracticeGame(), NOW, players=["Alex", "{{ 6*7 }}", "Kim"]
         )
-    assert error.value.translation_key == "invalid_player_name"
+    assert error.value.key == "invalid_player_name"
     assert split_players("Al{ex},\r\n;Kim") == ["Al{ex}", "Kim"]
     assert parse_players("Al{ex}, 50%, #1, {%}") == ["Alex", "50", "1"]
     assert TournamentSetup.restored({"players": ["{%}", "Sam#"]}).players == ["Sam"]

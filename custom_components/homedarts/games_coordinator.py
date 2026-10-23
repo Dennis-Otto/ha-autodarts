@@ -42,7 +42,8 @@ from homeassistant.util import dt as dt_util
 
 from .calls import Caller
 from .const import DOMAIN, event_signal
-from .games import ActionRefused, Announcement, BoardGames, Event
+from .errors import ActionRefused
+from .games import Announcement, BoardGames, Event
 from .positions import Aim
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE
 from .report import BoardReports
@@ -106,7 +107,7 @@ def _coordinators(
 
 
 @contextmanager
-def _refusals() -> Iterator[None]:
+def refusals() -> Iterator[None]:
     """An action the games refuse fails with the message that says why."""
     try:
         yield
@@ -156,7 +157,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.device_name = "Autodarts Board"
         self.event_signal = event_signal(entry.entry_id)
         self.reports = BoardReports(hass, entry.entry_id, self)
-        self.games = BoardGames(self.reports)
+        self.games = BoardGames(self.reports, dt_util.now())
         self.games.key = entry.entry_id
         # Set up and not shut down, for the other boards of a tournament.
         self.loaded = False
@@ -405,15 +406,15 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # -- the training session ----------------------------------------------------
 
     async def async_start_session(self) -> None:
-        started = self.games.training.start()
+        started = self.games.training.start(dt_util.now())
         await self._async_changed([started] if started else [])
 
     async def async_end_session(self) -> None:
-        ended = self.games.training.end("manual")
+        ended = self.games.training.end("manual", dt_util.now())
         await self._async_changed([ended] if ended else [])
 
     async def async_new_session(self) -> None:
-        await self._async_changed(self.games.training.new_session())
+        await self._async_changed(self.games.training.new_session(dt_util.now()))
 
     async def async_set_auto_start(self, enabled: bool) -> None:
         self.games.training.auto_start = enabled
@@ -454,7 +455,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         # The session ended with its last dart, not when the pause ran out.
         training = self.games.training
-        ended = training.end("idle", at=training.last_activity)
+        ended = training.end("idle", dt_util.now(), at=training.last_activity)
         await self._async_changed([ended] if ended else [])
 
     # -- the practice game and the players ---------------------------------------
@@ -471,7 +472,8 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_delete_player(self, name: str) -> bool:
         """Forget a player profile, see BoardGames.delete_player; False when
         there is no profile by that name."""
-        deleted = self.games.delete_player(name)
+        with refusals():
+            deleted = self.games.delete_player(name)
         if deleted:
             await self._async_changed()
         return deleted
@@ -546,7 +548,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_start_game(self, game: int | str, **setup: Any) -> None:
         """Set up a practice game in one step, see BoardGames.start_game."""
-        with _refusals():
+        with refusals():
             self.games.start_game(game, **setup)
         await self._async_changed()
 
@@ -585,7 +587,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         TournamentDirector.start; with other boards, a tournament on several
         boards, each of which starts a match at once if one is ready for it."""
         others = [board for board in dict.fromkeys(boards or []) if board is not self]
-        with _refusals():
+        with refusals():
             events = self.games.start_tournament(
                 dt_util.utcnow(),
                 self.board_name(),
@@ -604,14 +606,16 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if (host := self._tournament_host()) is not None:
             await host.async_stop_tournament()
             return
-        released = self.games.stop_tournament()
+        with refusals():
+            released = self.games.stop_tournament()
         for board in _coordinators(self.hass, [games.key for games in released]):
             board._moved()
         await self._async_tournament()
 
     async def async_next_tournament_match(self) -> None:
         """Start the next match without waiting for the pause to end."""
-        self.games.next_tournament_match(dt_util.utcnow())
+        with refusals():
+            self.games.next_tournament_match(dt_util.utcnow())
         await self._async_tournament()
 
     async def async_set_tournament(self, **setup: Any) -> None:
@@ -747,7 +751,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Put a dart of the current visit into another bed, see
         BoardGames.correct_dart."""
-        with _refusals():
+        with refusals():
             self.games.correct_dart(dart, segment, position)
         self._refresh("manual")
 
@@ -755,7 +759,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self, segment: dict[str, Any], position: tuple[float, float] | None = None
     ) -> None:
         """A dart entered by hand, as if the board had detected it there."""
-        with _refusals():
+        with refusals():
             self.games.throw_dart(segment, position)
         self._refresh("manual")
 
@@ -770,7 +774,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         of what is left: the darts entered by hand in the visit so far give way to
         it, and the next player throws."""
         state = (self.data or {}).get("local") or {}
-        with _refusals():
+        with refusals():
             self.games.enter_visit(state, points, darts, at_double, checkout)
         # Ended at once: without darts, the visit of a dartboard without
         # Autodarts would end before its score is in.
@@ -780,14 +784,14 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_next_player(self) -> None:
         """End the visit without pulling the darts; without darts, pass."""
-        with _refusals():
+        with refusals():
             self._play(lambda: self.games.next_player(dt_util.now()))
         self._refresh("manual")
 
     async def async_undo_visit(self) -> None:
         """Take the last visit of a player back, see BoardGames.undo_visit."""
-        with _refusals():
-            self._play(self.games.undo_visit)
+        with refusals():
+            self._play(lambda: self.games.undo_visit(dt_util.now()))
         self._cancel_bot()
         self._refresh("manual")
 

@@ -19,7 +19,7 @@ from custom_components.homedarts.practice import PracticeGame, VisitRefused
 from custom_components.homedarts.profiles import clean_name, valid_name
 from custom_components.homedarts.scoring import DOUBLE, SCORE_BEDS, STRAIGHT, score
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 from .test_party import game_of, kinds
 
 CLOSED = [3] * 7
@@ -42,7 +42,7 @@ def bulling(kind: int | str = 501, start: int = 0) -> PracticeGame:
 @pytest.mark.parametrize("start", [0, 50, 40])
 def test_the_bull_off_dart_scores_nothing_in_x01(start):
     game = bulling(start=start)
-    game.track([dart("BULL")], [(0.0, 0.0)])
+    game.track([dart("BULL")], [(0.0, 0.0)], now=NOW)
     snapshot = game.snapshot()
     begin = start or 501
     assert (
@@ -54,29 +54,29 @@ def test_the_bull_off_dart_scores_nothing_in_x01(start):
     assert snapshot["checkout"] is None and snapshot["setup"] is None
     # The bull-off itself shows the dart.
     assert snapshot["bull_off"]["throws"][0]["hit"] == "BULL"
-    game.finish_visit()
-    game.track([])
+    game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     # Player 2's dart at the bull is no dart of player 1's either.
-    game.track([dart("T20")], [(0.0, 0.6)])
+    game.track([dart("T20")], [(0.0, 0.6)], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["remaining"] == begin and snapshot["visit"] == []
 
 
 def test_the_bull_off_dart_marks_nothing_in_cricket_or_a_party_game():
     game = bulling("cricket")
-    game.track([dart("T20")], [(0.0, 0.6)])
+    game.track([dart("T20")], [(0.0, 0.6)], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["scores"][0]["marks"] == [0] * 7 and snapshot["points"] == 0
     assert snapshot["target"] is None and snapshot["visit"] == []
     assert snapshot["mpr"] is None
     party = bulling("shanghai")
-    party.track([dart("S1")], [(0.0, 0.6)])
+    party.track([dart("S1")], [(0.0, 0.6)], now=NOW)
     assert party.snapshot()["visit"] == [] and party.snapshot()["points"] == 0
 
 
 def test_the_bull_off_dart_does_not_begin_the_leg():
     game = bulling()
-    game.track([dart("BULL")], [(0.0, 0.0)])
+    game.track([dart("BULL")], [(0.0, 0.0)], now=NOW)
     # Double out still changes the leg at once.
     game.set_option("double_out", False)
     assert game.double_out is False and game.out_mode_next is None
@@ -177,8 +177,8 @@ def test_a_visit_score_counts_as_the_rules_say(start, points, double_out):
     assert points in VISIT_TOTALS and sum(map(score, darts)) == points
     events = []
     for count in range(1, len(darts) + 1):
-        events += game.track(darts[:count])
-    events += game.finish_visit()
+        events += game.track(darts[:count], now=NOW)
+    events += game.finish_visit(now=NOW)
     kinds = [kind for kind, _ in events]
     if points == start and checkout(start, 3, DOUBLE if double_out else STRAIGHT):
         assert "leg_won" in kinds
@@ -245,14 +245,14 @@ def test_a_cut_throat_leg_goes_to_the_player_the_visit_leaves_lowest():
     sam.marks, sam.points = [0, 3, 3, 3, 3, 3, 3], 40
     kim.marks, kim.points = [3, 0, 0, 0, 0, 0, 0], 70
     game.current = 2
-    events = game.track([dart("D20")])
+    events = game.track([dart("D20")], now=NOW)
     ((kind, won),) = events
     assert kind == "leg_won" and won["name"] == "Alex" and won["player"] == 1
     assert won["darts"] == 30 and won["points"] == 50 and won["mpr"] == 2.1
     assert game.snapshot()["target"] is None
     # Kim's later darts change nothing: the leg is decided.
-    assert game.track([dart("D20"), dart("S15")]) == []
-    game.finish_visit()
+    assert game.track([dart("D20"), dart("S15")], now=NOW) == []
+    game.finish_visit(now=NOW)
     assert game.legs[0]["name"] == "Alex" and game.legs[0]["darts"] == 30
     assert game.players[0].legs == 1 and game.players[2].match_darts == 1
     assert game.current == 1
@@ -355,7 +355,7 @@ def test_a_party_leg_passed_to_its_end_survives_a_restart():
     game = PracticeGame()
     game.set_rounds(count_up_rounds=1)
     game.play("count_up")
-    events = game.finish_visit(empty=True)
+    events = game.finish_visit(empty=True, now=NOW)
     assert events[0][0] == "leg_won" and events[0][1]["darts"] == 0
     restored = PracticeGame()
     restored.restore(json.loads(json.dumps(game.stored())))
@@ -391,11 +391,11 @@ def test_darts_on_the_board_at_a_new_leg_count_after_an_undo_neither(
     visit, also when that visit is undone and booked again."""
     game = PracticeGame()
     game.play(kind)
-    game.track([dart(on_board)])
+    game.track([dart(on_board)], now=NOW)
     game.new_leg()
     saved = game.checkpoint()
-    game.finish_visit()
+    game.finish_visit(now=NOW)
     assert counted(game)
-    game.rewind(saved, [dart(on_board)], [None])
-    game.finish_visit()
+    game.rewind(saved, [dart(on_board)], [None], now=NOW)
+    game.finish_visit(now=NOW)
     assert counted(game)

@@ -2,9 +2,11 @@
 
 AutodartsLocalCoordinator follows the board with its push notifications and
 reconciles them with periodic reads; it frees stuck takeouts, raises the
-repair issues of the board and runs its actions. The training and the games
-run in AutodartsGamesCoordinator, which it extends; a dartboard without
-Autodarts plays them without a Board Manager, see AutodartsManualCoordinator.
+repair issues of the board and runs its actions. The reads besides the state
+are in BoardReads (reads.py), the generation of the Board Manager in
+BoardGeneration (generation.py). The training and the games run in
+AutodartsGamesCoordinator, which it extends; a dartboard without Autodarts
+plays them without a Board Manager, see AutodartsManualCoordinator.
 """
 
 from __future__ import annotations
@@ -29,26 +31,21 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from .camera_health import CameraHealth
-from .const import (
-    BOARD_MANAGER_2_URL,
-    CONF_API_GENERATION,
-    CONF_NO_SYSTEM_API,
-    DOMAIN,
-    LIFECYCLE_STATUSES,
-)
+from .const import DOMAIN, LIFECYCLE_STATUSES
 from .errors import AutodartsApiError, AutodartsConnectionError
 from .games_coordinator import AutodartsGamesCoordinator
+from .generation import BoardGeneration
 from .local_api import (
     AutodartsEndpointMissing,
     AutodartsLocalAuthError,
     AutodartsLocalClient,
     AutodartsProtocolError,
-    board_generation,
     camera_state_summary,
     number,
     stats_summary,
 )
 from .online import ONLINE_EVENT_TYPES
+from .reads import BoardReads
 from .topics import BoardTopics, Topic
 from .tournament import TOURNAMENT_EVENTS
 
@@ -63,21 +60,8 @@ OFFLINE_POLL_INTERVAL = timedelta(seconds=15)
 OFFLINE_AFTER_FAILURES = 10
 # Failed polls in a row that keep the last values, like a short Wi-Fi hiccup.
 TOLERATED_FAILURES = 2
-# Board Manager 1 reports its settings and version in separate reads.
-METADATA_SECONDS = 30
-# The board PC changes only with system or Board Manager updates.
-HOST_REFRESH_SECONDS = 3600
-# Answers without /api/system in a row, over at least this long, before a board
-# counts as Board Manager 1; a board that is still starting may miss it a while.
-SYSTEM_MISSES = 3
-SYSTEM_MISS_SECONDS = 300
-# How often a board without /api/system is asked again, as after an update.
-SYSTEM_RECHECK_SECONDS = HOST_REFRESH_SECONDS
 # The first poll during setup waits this long for the board.
 FIRST_POLL_SECONDS = 3
-# Unknown answers in a row to a required read before a repair notice appears.
-PROTOCOL_FAILURES = 3
-REQUIRED_PATHS = ("/api/state", "/api/config", "/api/system")
 # Realtime reconnects wait 1, 2, 4 ... 60 seconds, each shortened by up to a fifth.
 RECONNECT_MIN = 1
 RECONNECT_MAX = 60
@@ -198,29 +182,17 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         self.client = client
         self._health = CameraHealth()
         self._settings: dict[str, Any] = {}
-        self._version: str | None = None
         # The version the device page shows, as far as this run set it.
         self._device_version: str | None = None
-        # Board Manager 1 (classic app) or 2 (headless board); None until known.
-        self.generation: int | None = entry.data.get(CONF_API_GENERATION)
-        self.setup_generation: int | None = None
-        # The Board Manager version that answered without /api/system, if any.
-        self._no_system_api: str | None = entry.data.get(CONF_NO_SYSTEM_API)
-        self._system_misses = 0
-        # When the misses in a row began, and when a board without the route
-        # was last asked again; None before.
-        self._system_missing_since: float | None = None
-        self._system_checked: float | None = None
+        # The generation and the version of the Board Manager, and the reads
+        # besides the state.
+        self.board_manager = BoardGeneration(
+            hass, entry, self._issue_id("board_manager_1")
+        )
+        self.reads = BoardReads(client, self.board_manager)
         self._first_poll = True
-        # When a board of unknown generation was last asked for its version.
-        self._version_probed: float | None = None
-        self._metadata_updated = 0.0
-        self._host: dict[str, Any] | None = None
-        self._host_updated = 0.0
         self._identity_valid = True
         self._access_denied = False
-        self._protocol_failures: dict[str, int] = {}
-        self._protocol_logged: set[str] = set()
         self._action_lock = asyncio.Lock()
         # One read at a time: an older answer must never replace a newer one.
         self._poll_lock = asyncio.Lock()
@@ -265,7 +237,7 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
     @callback
     def async_start(self) -> None:
         # Issues of earlier runs are not kept across restarts.
-        self._report_generation()
+        self.board_manager.report()
         super().async_start()
         if self._stream_task is None:
             self._stream_task = self._entry.async_create_background_task(
@@ -689,23 +661,6 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         )
 
     @callback
-    def _report_generation(self) -> None:
-        """Autodarts retires the classic Board Manager; point to the new one."""
-        issue = self._issue_id("board_manager_1")
-        if self.generation != 1:
-            ir.async_delete_issue(self.hass, DOMAIN, issue)
-            return
-        ir.async_create_issue(
-            self.hass,
-            DOMAIN,
-            issue,
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key="board_manager_1",
-            learn_more_url=BOARD_MANAGER_2_URL,
-        )
-
-    @callback
     def _report_access(self) -> None:
         """The board normally needs no login; something refuses Home Assistant."""
         issue = self._issue_id("board_access_denied")
@@ -723,30 +678,10 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         )
 
     @callback
-    def _protocol_result(self, path: str, error: BaseException | None) -> None:
-        """Count unknown answers per read; warn once for each read."""
-        if not isinstance(error, AutodartsProtocolError):
-            if error is None:
-                self._protocol_failures.pop(path, None)
-            return
-        self._protocol_failures[path] = self._protocol_failures.get(path, 0) + 1
-        if path not in self._protocol_logged:
-            self._protocol_logged.add(path)
-            _LOGGER.warning(
-                "Board Manager answered %s in an unknown format; this Board Manager "
-                "version may not be supported yet",
-                path,
-            )
-
-    @callback
     def _report_protocol(self) -> None:
         """Required reads that keep failing ask for an update of the integration."""
         issue = self._issue_id("unsupported_response")
-        failing = sorted(
-            path
-            for path, count in self._protocol_failures.items()
-            if path in REQUIRED_PATHS and count >= PROTOCOL_FAILURES
-        )
+        failing = self.reads.failing()
         if not failing:
             ir.async_delete_issue(self.hass, DOMAIN, issue)
             return
@@ -761,189 +696,16 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         )
 
     @property
+    def generation(self) -> int | None:
+        """Board Manager 1 (classic app) or 2 (headless board); None until known."""
+        return self.board_manager.generation
+
+    @property
     def board_manager_2(self) -> bool:
         """Entities and endpoints of the headless Board Manager 2 apply."""
-        return (self.generation or 1) >= 2
-
-    @callback
-    def _set_generation(self, generation: int) -> None:
-        """Remember the board's generation; a change rebuilds its entities."""
-        self.generation = generation
-        self._report_generation()
-        entry = self._entry
-        # Unchanged data leaves the entry as it is.
-        self.hass.config_entries.async_update_entry(
-            entry, data={**entry.data, CONF_API_GENERATION: generation}
-        )
-        if self.setup_generation is not None and (
-            (self.setup_generation >= 2) != self.board_manager_2
-        ):
-            _LOGGER.info(
-                "Board Manager %s detected; reloading to update the entities",
-                generation,
-            )
-            self.setup_generation = generation
-            self.hass.config_entries.async_schedule_reload(entry.entry_id)
-
-    @callback
-    def _remember_no_system_api(self, version: str | None) -> None:
-        """Keep across restarts which version lacks /api/system, or forget it."""
-        self._no_system_api = version
-        self._system_misses = 0
-        self._system_missing_since = None
-        self._system_checked = time.monotonic()
-        data = {
-            key: value
-            for key, value in self._entry.data.items()
-            if key != CONF_NO_SYSTEM_API
-        }
-        if version is not None:
-            data[CONF_NO_SYSTEM_API] = version
-        self.hass.config_entries.async_update_entry(self._entry, data=data)
-
-    @callback
-    def _check_generation(self) -> None:
-        """The version tells the generation, unless /api/system is known missing."""
-        generation = board_generation(self._version)
-        missing = self._no_system_api
-        if missing == "" and self._version:
-            # The version that lacked /api/system, once known: another one
-            # asks again.
-            self._no_system_api = missing = self._version
-            self.hass.config_entries.async_update_entry(
-                self._entry, data={**self._entry.data, CONF_NO_SYSTEM_API: missing}
-            )
-        if missing is not None and self._version and missing != self._version:
-            # Another Board Manager version may bring /api/system: ask again.
-            _LOGGER.info(
-                "Board Manager %s found; checking again for /api/system", self._version
-            )
-            self._remember_no_system_api(None)
-        elif missing is not None and generation and generation >= 2:
-            generation = 1
-        if generation and generation != self.generation:
-            self._set_generation(generation)
+        return self.board_manager.board_manager_2
 
     # -- polling -----------------------------------------------------------------
-
-    async def _optional(self, operation: Coroutine[Any, Any, Any], path: str) -> Any:
-        """Unsupported endpoints read as empty; a failed read returns None."""
-        try:
-            result = await operation
-        except AutodartsEndpointMissing:
-            self._protocol_result(path, None)
-            return {}
-        except AutodartsApiError as err:
-            self._protocol_result(path, err)
-            return None
-        self._protocol_result(path, None)
-        return result
-
-    async def _read_system(self) -> dict[str, Any] | None:
-        """Board Manager 2 reports everything in one read; None if unsupported."""
-        try:
-            reads = await self.client.get_system()
-        except AutodartsEndpointMissing:
-            return None
-        except AutodartsApiError as err:
-            self._protocol_result("/api/system", err)
-            # A failed read keeps every value, including the metadata.
-            return dict.fromkeys(
-                (
-                    "config",
-                    "version",
-                    "system",
-                    "stats",
-                    "camera_stats",
-                    "motion",
-                    "camera_state",
-                )
-            )
-        self._protocol_result("/api/system", None)
-        return reads
-
-    async def _read_legacy(self) -> dict[str, Any]:
-        stats, camera_stats, motion, camera_state = await asyncio.gather(
-            self._optional(self.client.get_stats(), "/api/state/stats"),
-            self._optional(self.client.get_camera_stats(), "/api/cams/stats"),
-            self._optional(self.client.get_motion_state(), "/api/state/motion"),
-            self._optional(self.client.get_camera_state(), "/api/cams/state"),
-        )
-        reads = {
-            "stats": stats,
-            "camera_stats": camera_stats,
-            "motion": motion,
-            "camera_state": camera_state,
-            "config": None,
-            "version": None,
-        }
-        if (
-            not self._metadata_updated
-            or time.monotonic() - self._metadata_updated >= METADATA_SECONDS
-        ):
-            # Marked before the read: a setting changed while the answer is on
-            # its way resets the mark, so the next poll reads it again.
-            self._metadata_updated = time.monotonic()
-            reads["config"], reads["version"] = await asyncio.gather(
-                self._optional(self.client.get_config(), "/api/config"),
-                self._optional(self.client.get_version(), "/api/version"),
-            )
-        return reads
-
-    async def _reads(self) -> dict[str, Any]:
-        """Everything besides the state, in one read on Board Manager 2."""
-        now = time.monotonic()
-        if self.generation is None and (
-            self._version_probed is None
-            or now - self._version_probed >= METADATA_SECONDS
-        ):
-            # An unknown board reveals its generation through its version first.
-            self._version_probed = now
-            version = await self._optional(self.client.get_version(), "/api/version")
-            if generation := board_generation(version):
-                self._version = version
-                self._set_generation(generation)
-        if not self.board_manager_2 and await self._system_back(now):
-            self._set_generation(2)
-        if self.board_manager_2:
-            reads = await self._read_system()
-            if reads is not None:
-                self._system_misses = 0
-                self._system_missing_since = None
-                return reads
-            self._system_misses += 1
-            if self._system_missing_since is None:
-                self._system_missing_since = now
-            # A board that is still starting may miss the route for a while.
-            if (
-                self._system_misses >= SYSTEM_MISSES
-                and now - self._system_missing_since >= SYSTEM_MISS_SECONDS
-            ):
-                _LOGGER.info(
-                    "Board Manager %s answers without /api/system; using the "
-                    "protocol of Board Manager 1",
-                    self._version or "?",
-                )
-                self._remember_no_system_api(self._version or "")
-                self._set_generation(1)
-        return await self._read_legacy()
-
-    async def _system_back(self, now: float) -> bool:
-        """Whether /api/system, found missing before, answers again; asked
-        once an hour, as the version may stay the same across an update."""
-        checked = self._system_checked
-        if self._no_system_api is None or (
-            checked is not None and now - checked < SYSTEM_RECHECK_SECONDS
-        ):
-            return False
-        self._system_checked = now
-        try:
-            await self.client.get_system()
-        except AutodartsApiError:
-            return False
-        _LOGGER.info("Board Manager answers /api/system again; using its protocol")
-        self._remember_no_system_api(None)
-        return True
 
     async def _async_update_data(self) -> dict[str, Any]:
         async with self._poll_lock:
@@ -970,12 +732,12 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         except AutodartsApiError as err:
             if self._shutting_down:
                 return self._unchanged()
-            self._protocol_result("/api/state", err)
+            self.reads.result("/api/state", err)
             return self._poll_failed(err)
         if self._shutting_down:
             return self._unchanged()
-        self._protocol_result("/api/state", None)
-        reads = await self._reads()
+        self.reads.result("/api/state", None)
+        reads = await self.reads.read()
         if self._shutting_down:
             return self._unchanged()
         config, version = reads["config"], reads["version"]
@@ -993,24 +755,17 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         if config is not None:
             # A failed read keeps the last settings instead of hiding controls.
             self._settings = config
-        previous_version = self._version
-        self._version = (version if isinstance(version, str) else None) or (
-            self._version
+        board_manager = self.board_manager
+        previous_version = board_manager.version
+        board_manager.version = (version if isinstance(version, str) else None) or (
+            previous_version
         )
-        if self._version != self._device_version:
+        if board_manager.version != self._device_version:
             self._update_device_version()
-        self._check_generation()
-        if self.board_manager_2 and (
-            self._host is None
-            or self._version != previous_version
-            or time.monotonic() - self._host_updated >= HOST_REFRESH_SECONDS
-        ):
-            # Boards without the endpoint answer {} and are asked again later.
-            host = await self._optional(self.client.get_host(), "/api/host")
-            if self._shutting_down:
-                return self._unchanged()
-            if host is not None:
-                self._host, self._host_updated = host, time.monotonic()
+        board_manager.check()
+        await self.reads.read_host(board_manager.version != previous_version)
+        if self._shutting_down:
+            return self._unchanged()
         data, readings = dict(self.data or {}), dict(self.readings)
         if (system := reads.get("system")) is not None:
             data["system"] = {
@@ -1021,8 +776,8 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             readings["system"] = {
                 key: value for key, value in system.items() if key in SYSTEM_TELEMETRY
             }
-        if self._host is not None:
-            data["board_pc"] = self._host
+        if self.reads.host is not None:
+            data["board_pc"] = self.reads.host
         fields = set()
         motion = reads["motion"]
         for field, value in {
@@ -1039,7 +794,7 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             if self._revisions.get(field, 0) == revisions.get(field, 0):
                 values[field] = value or {}
                 fields.add(field)
-        data.update(settings=self._settings, version=self._version)
+        data.update(settings=self._settings, version=board_manager.version)
         changed = self._read(readings)
         self._process(data, fields, "poll")
         if self.last_update_success and data == self.data:
@@ -1126,12 +881,12 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             if since is None
             else round(time.monotonic() - since),
             "last_poll_seconds": connection.poll_seconds,
-            "board_manager_version": self._version,
-            "system_api_missing": self._no_system_api is not None,
-            "system_api_misses": self._system_misses,
+            "board_manager_version": self.board_manager.version,
+            "system_api_missing": self.board_manager.no_system_api is not None,
+            "system_api_misses": self.board_manager.system_misses,
             "identity_valid": self._identity_valid,
             "access_denied": self._access_denied,
-            "unknown_answers": sorted(self._protocol_failures),
+            "unknown_answers": sorted(self.reads.protocol_failures),
             "realtime": {
                 "connected": self.stream_connected,
                 "receiving": self._stream_live,
@@ -1167,9 +922,9 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         )
         if device is None:
             return
-        self._device_version = self._version
-        if device.sw_version != self._version:
-            registry.async_update_device(device.id, sw_version=self._version)
+        version = self._device_version = self.board_manager.version
+        if device.sw_version != version:
+            registry.async_update_device(device.id, sw_version=version)
 
     async def async_recalibrate(self) -> None:
         """Calibrate all cameras and count the corrections from zero."""
@@ -1197,5 +952,5 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
                 raise HomeAssistantError(
                     translation_domain=DOMAIN, translation_key="action_failed"
                 ) from err
-            self._metadata_updated = 0
+            self.reads.metadata_updated = 0
             await self.async_request_refresh()

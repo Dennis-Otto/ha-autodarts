@@ -15,6 +15,7 @@ defaults are what a game does that leaves a part out.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from .checkout import checkout, setup
@@ -145,7 +146,7 @@ class GameMode(ABC):
         """Follow the darts of the visit: what they announce."""
         return []
 
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         """Book the visit whose darts were pulled: what it announces."""
         return []
 
@@ -229,10 +230,10 @@ class DrillMode(GameMode):
     def track(self) -> Events:
         return self.training.track(self.match._visit)
 
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         training = self.training
-        self.match._record_doubles(training.double_attempts(), 0)
-        return training.finish_visit()
+        self.match._record_doubles(training.double_attempts(), 0, now)
+        return training.finish_visit(now)
 
     def snapshot(self, common: dict[str, Any]) -> dict[str, Any]:
         return {"game": None, **common, "drill": self.training.snapshot()}
@@ -268,7 +269,7 @@ class MatchMode(GameMode):
         """Follow the darts of the visit: a bust, or a won leg or match."""
 
     @abstractmethod
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         """Book the visit; then the next player throws, or the leg is won."""
 
     @abstractmethod
@@ -474,14 +475,14 @@ class X01Mode(MatchMode):
             for index, dart in enumerate(made)
         ]
 
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         match = self.match
         current = match.current
         opening = self._opening()
         remaining, outcome, darts = self._evaluate()
         player = match.players[current]
         match._record_doubles(
-            self._count_visit(player, outcome, darts, opening), current
+            self._count_visit(player, outcome, darts, opening), current, now
         )
         scored = player.remaining - remaining
         player.darts += darts
@@ -490,18 +491,18 @@ class X01Mode(MatchMode):
         player.match_points += scored
         if match.in_mode != STRAIGHT and opening < darts and outcome != "bust":
             player.opened = True
-        match.profiles.visit(match._name(current), scored)
+        match.profiles.visit(match._name(current), scored, now)
         match.tallies[current].visit(scored)
         player.high_visit(scored)
         events: Events = []
         if outcome == "won":
-            match._book_leg()
+            match._book_leg(now)
         else:
             player.remaining = remaining
             self._share(current)
             match.current = (current + 1) % len(match.players)
             match.leg_visits += 1
-            events.extend(self._round_limit())
+            events.extend(self._round_limit(now))
         if match.winner is None:
             # Also when playing alone: the next visit is up, for callers.
             events.append(match._turn())
@@ -592,7 +593,7 @@ class X01Mode(MatchMode):
         sides = {tuple(match._side(index)) for index in seats}
         return seats[0] if len(sides) == 1 else None
 
-    def _round_limit(self) -> Events:
+    def _round_limit(self, now: datetime) -> Events:
         """The leg, and maybe the match, that the round limit decides once the
         visit that completes a round is booked: announced then, with what the
         winner had left, as no dart checks it out."""
@@ -623,7 +624,7 @@ class X01Mode(MatchMode):
                 "rounds": rounds,
             },
         )
-        match._book_leg(rounds=rounds)
+        match._book_leg(now, rounds=rounds)
         return events
 
     def turn_details(self) -> dict[str, Any]:
@@ -916,7 +917,7 @@ class CricketMode(MatchMode):
             },
         )
 
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         match = self.match
         visit = self._play()
         winner = self._winner(visit)
@@ -932,7 +933,7 @@ class CricketMode(MatchMode):
         self._share(match.current)
         if winner is not None:
             match.current = winner
-            match._book_leg()
+            match._book_leg(now)
         else:
             match.current = (match.current + 1) % len(match.players)
         return [] if match.winner is not None else [match._turn()]
@@ -1166,7 +1167,7 @@ class PartyMode(MatchMode):
         darts = result.darts if won == match.current else 0
         return self._won(won, darts, result)
 
-    def book(self) -> Events:
+    def book(self, now: datetime) -> Events:
         match = self.match
         if not self.ready:
             return []
@@ -1183,7 +1184,7 @@ class PartyMode(MatchMode):
         player.match_darts += result.darts
         if result.won is not None and result.won >= 0:
             match.current = result.won
-            match._book_leg()
+            match._book_leg(now)
         elif result.won is not None:
             # A tie in points and hits: the leg is played again.
             match.starter = (match.starter + 1) % len(match.players)

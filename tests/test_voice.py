@@ -10,7 +10,7 @@ from custom_components.homedarts.profiles import NAME_LENGTH
 from custom_components.homedarts.services import GAME_TEXT
 from custom_components.homedarts.voice import refusal
 
-from .local_helpers import board, setup_local, state
+from .local_helpers import NOW, board, setup_local, state
 from .test_manual_board import setup_manual
 
 
@@ -82,7 +82,7 @@ async def test_start_game_refuses_a_name_no_game_has(hass, aioclient_mock):
 async def test_a_known_player_keeps_the_spelling_of_the_profile(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     practice = entry.runtime_data.local.games.practice
-    practice.profiles.visit("Anne-Marie", 60)
+    practice.profiles.visit("Anne-Marie", 60, now=NOW)
     await start(hass, game="501", players=["anne-marie", "sam"])
     # A new name stays as it was said.
     assert practice.names[:2] == ["Anne-Marie", "sam"]

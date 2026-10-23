@@ -11,7 +11,7 @@ from custom_components.homedarts.cricket import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 OPEN = [0] * 7
 TACTICS_OPEN = [0] * 12
@@ -91,7 +91,7 @@ def test_a_cut_throat_leg_goes_to_the_player_with_the_fewest_points():
     scores = practice.snapshot()["scores"]
     assert [score["points"] for score in scores] == [0, 60, 60]
     # While the visit runs, the others' points follow the darts.
-    practice.track(darts("T20", "T20"))
+    practice.track(darts("T20", "T20"), now=NOW)
     # Every dart says what it counted for: both gave points to the others.
     assert practice.snapshot()["counted"] == ["20", "20"]
     assert [score["points"] for score in practice.snapshot()["scores"]] == [
@@ -99,8 +99,8 @@ def test_a_cut_throat_leg_goes_to_the_player_with_the_fewest_points():
         60,
         120,
     ]
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     practice.players[2].marks = [3, 3, 3, 3, 3, 3, 2]
     practice.players[2].points = 0
     # The bullseye closes the bull and gives the others 25 each: the fewest win.
@@ -112,12 +112,12 @@ def test_a_cut_throat_leg_goes_to_the_player_with_the_fewest_points():
 
 def test_a_tactics_leg_shows_twelve_numbers_and_survives_a_restart():
     practice = game("tactics")
-    practice.track(darts("T10"))
+    practice.track(darts("T10"), now=NOW)
     snapshot = practice.snapshot()
     assert snapshot["numbers"] == list(TACTICS_NUMBERS)
     assert len(snapshot["scores"][0]["marks"]) == 12
     assert snapshot["scores"][0]["marks"][10] == 3 and snapshot["target"] == "T20"
-    practice.finish_visit()
+    practice.finish_visit(now=NOW)
     restored = PracticeGame()
     restored.restore(practice.stored())
     assert restored.cricket == "tactics" and restored.stored() == practice.stored()

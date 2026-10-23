@@ -41,6 +41,7 @@ from custom_components.homedarts.online import (
 
 from .local_helpers import (
     BRIDGE,
+    NOW,
     WEBHOOK_ID,
     entity_id,
     entity_summary,
@@ -513,7 +514,7 @@ async def test_names_are_spelled_as_the_players_profile_spells_them(
     hass, aioclient_mock, hass_client_no_auth
 ):
     entry = await setup_bridge(hass, aioclient_mock)
-    entry.runtime_data.local.games.practice.profiles.visit("Dennis", 60)
+    entry.runtime_data.local.games.practice.profiles.visit("Dennis", 60, now=NOW)
     events = record_events(hass)
     client = await hass_client_no_auth()
     for query in (

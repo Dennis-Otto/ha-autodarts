@@ -18,7 +18,7 @@ from custom_components.homedarts.drills import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import dart
+from .local_helpers import NOW, dart
 
 
 def throw(drill, *names: str) -> list[tuple[str, dict]]:
@@ -26,7 +26,7 @@ def throw(drill, *names: str) -> list[tuple[str, dict]]:
     events = []
     for count in range(1, len(names) + 1):
         events += drill.track([dart(name) for name in names[:count]])
-    events += drill.finish_visit()
+    events += drill.finish_visit(now=NOW)
     drill.track([])
     return events
 
@@ -189,7 +189,7 @@ def test_bobs_27_adds_hits_and_takes_the_value_of_a_miss():
     drill.track([dart("D3")])
     # A hit counts at once; a miss costs the value when the darts are pulled.
     assert drill.snapshot()["score"] == 33
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     drill.score = 1
     events = throw(drill, "MISS")
     assert events == [
@@ -226,14 +226,14 @@ def test_bobs_27_is_completed_on_the_bull():
 
 def test_the_practice_game_switches_between_x01_and_training_games():
     game = PracticeGame()
-    game.track([dart("S1")])
+    game.track([dart("S1")], now=NOW)
     game.play("around_the_clock")
     # The dart already on the board does not count.
     assert game.snapshot()["drill"]["target"] == "1"
-    game.track([dart("S1"), dart("S1")])
+    game.track([dart("S1"), dart("S1")], now=NOW)
     assert game.snapshot()["drill"]["target"] == "2"
     assert game.snapshot()["game"] is None
-    game.finish_visit()
+    game.finish_visit(now=NOW)
     restored = PracticeGame()
     restored.restore(game.stored())
     assert restored.drill == "around_the_clock"

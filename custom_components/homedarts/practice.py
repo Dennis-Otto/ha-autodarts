@@ -19,9 +19,8 @@ from __future__ import annotations
 import copy
 import random
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from typing import Any
-
-from homeassistant.util import dt as dt_util
 
 from .board import distance_mm
 from .bot import DEFAULT_DELAY, MAX_DELAY, valid_level
@@ -40,6 +39,7 @@ from .modes import (
     VisitRefused,
     X01Mode,
 )
+from .moments import stamp
 from .party import (
     ASCENDING,
     COUNT_UP_ROUNDS,
@@ -1010,11 +1010,13 @@ class PracticeGame:
         who starts, whose dart is thrown at the bull."""
         return [] if self.bulling else self._thrown()
 
-    def _record_doubles(self, attempts: list[tuple[str, bool]], player: int) -> None:
+    def _record_doubles(
+        self, attempts: list[tuple[str, bool]], player: int, now: datetime
+    ) -> None:
         # The bot's darts count for nobody's doubles.
         if player != self.bot_seat:
             self.doubles.record(attempts)
-            self.profiles.doubles(self._name(player), attempts)
+            self.profiles.doubles(self._name(player), attempts, now)
 
     def _position(self, index: int) -> tuple[float, float] | None:
         """Where the board saw the dart at this index of the thrown darts."""
@@ -1091,18 +1093,21 @@ class PracticeGame:
         self,
         visit: list[dict[str, Any]],
         positions: list[tuple[float, float] | None] | None = None,
+        *,
+        now: datetime,
     ) -> Events:
         """Follow the darts of the current visit, announcing a bust or a win.
 
         A won match comes with every player's numbers for its summary, as the
         visit that decided it leaves them once it is booked.
         """
-        return self._summarized(self._follow(visit, positions), booked=False)
+        return self._summarized(self._follow(visit, positions, now), False, now)
 
     def _follow(
         self,
         visit: list[dict[str, Any]],
-        positions: list[tuple[float, float] | None] | None = None,
+        positions: list[tuple[float, float] | None] | None,
+        now: datetime,
     ) -> Events:
         self._visit = list(visit)
         self._positions = list(positions or [])
@@ -1117,7 +1122,7 @@ class PracticeGame:
                 self.new_match()
                 self._skip = 0
             if self.match_started is None and self._thrown():
-                self.match_started = dt_util.utcnow().isoformat()
+                self.match_started = stamp(now)
             if self.bulling:
                 return []
         return self.mode.track()
@@ -1142,7 +1147,7 @@ class PracticeGame:
         chosen."""
         return bool(self.mode.passes() and self.winner is None and self.bulling is None)
 
-    def finish_visit(self, empty: bool = False) -> Events:
+    def finish_visit(self, empty: bool = False, *, now: datetime) -> Events:
         """Book the visit whose darts were pulled; then the next player throws.
 
         With empty, a visit without darts is booked as well where passes()
@@ -1156,13 +1161,13 @@ class PracticeGame:
         if not self.bot_up:
             self.double_hits.record(self._thrown())
         if not self.mode.playing:
-            events = self.mode.book()
+            events = self.mode.book(now)
         elif self.winner is None and (self._thrown() or (empty and self.passes())):
-            events = self._book_bull_off() if self.bulling else self.mode.book()
+            events = self._book_bull_off() if self.bulling else self.mode.book(now)
         if self.winner is not None and not decided:
-            self.summary = self._summary(self.winner)
+            self.summary = self._summary(self.winner, now)
         self._visit, self._skip, self._announced = [], 0, None
-        return self._summarized(events, booked=True)
+        return self._summarized(events, True, now)
 
     def _turn(self) -> tuple[str, dict[str, Any]]:
         """The player at the board next, with what callers need to announce."""
@@ -1294,11 +1299,11 @@ class PracticeGame:
             entries.append(entry)
         return entries
 
-    def _book_leg(self, rounds: int | None = None) -> None:
+    def _book_leg(self, now: datetime, rounds: int | None = None) -> None:
         """The leg the player at self.current won: checked out, or decided by
         the round limit after this many rounds."""
         self._tally_leg(checked_out=not rounds)
-        self.profiles.leg(self.mode.kind, self._leg_entries(rounds))
+        self.profiles.leg(self.mode.kind, self._leg_entries(rounds), now)
         winner = self.players[self.current]
         side = self._side(self.current)
         record = self.mode.book_leg(rounds)
@@ -1307,7 +1312,7 @@ class PracticeGame:
             {
                 **self._who(self.current),
                 **record,
-                "ended": dt_util.utcnow().isoformat(),
+                "ended": stamp(now),
             },
         )
         del self.legs[LEG_HISTORY:]
@@ -1332,6 +1337,7 @@ class PracticeGame:
                 self.sets_to_win,
                 side,
                 self.match_started,
+                now=now,
             )
             return
         players = len(self.players)
@@ -1363,11 +1369,11 @@ class PracticeGame:
             checkout = self.players[index].remaining if index == self.current else 0
             self.tallies[index].won(darts, checkout, self.double_out)
 
-    def _summary(self, winner: int) -> dict[str, Any]:
+    def _summary(self, winner: int, now: datetime) -> dict[str, Any]:
         """The match that just ended: its format, winner and every player."""
         return {
             "game": self.mode.kind,
-            "ended": dt_util.utcnow().isoformat(),
+            "ended": stamp(now),
             "winner": winner + 1,
             "legs_to_win": self.legs_to_win,
             "sets_to_win": self.sets_to_win,
@@ -1393,7 +1399,7 @@ class PracticeGame:
         entry.update(self.mode.summary_entry(index, player, tally))
         return entry
 
-    def _settled(self) -> list[dict[str, Any]]:
+    def _settled(self, now: datetime) -> list[dict[str, Any]]:
         """Every player's numbers of the summary once the visit that decides
         the match is booked: a scratch copy of the game books it."""
         # The copy must not touch the profiles and doubles of the players.
@@ -1403,12 +1409,12 @@ class PracticeGame:
             id(self.double_hits): DoubleHits(),
         }
         scratch = copy.deepcopy(self, memo)
-        scratch.finish_visit()
+        scratch.finish_visit(now=now)
         assert scratch.summary is not None
         players: list[dict[str, Any]] = scratch.summary["players"]
         return players
 
-    def _summarized(self, events: Events, booked: bool) -> Events:
+    def _summarized(self, events: Events, booked: bool, now: datetime) -> Events:
         """A won match announces every player's numbers of its summary."""
         if not any(kind == "match_won" for kind, _ in events):
             return events
@@ -1416,7 +1422,7 @@ class PracticeGame:
             assert self.summary is not None
             players = self.summary["players"]
         else:
-            players = self._settled()
+            players = self._settled(now)
         return [
             (
                 kind,
@@ -1443,6 +1449,7 @@ class PracticeGame:
         checkpoint: dict[str, Any],
         visit: list[dict[str, Any]],
         positions: list[tuple[float, float] | None],
+        now: datetime,
     ) -> None:
         """Back to a checkpoint, with the darts of its visit thrown again.
 
@@ -1455,7 +1462,7 @@ class PracticeGame:
         self._visit, self._skip = [], checkpoint.get("on_board", 0)
         self._announced = None
         self.mode.rewind(checkpoint)
-        self.track(visit, positions)
+        self.track(visit, positions, now=now)
 
     # -- state -----------------------------------------------------------------
 

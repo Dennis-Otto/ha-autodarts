@@ -11,7 +11,7 @@ from custom_components.homedarts.doubles import (
 from custom_components.homedarts.practice import PracticeGame
 from custom_components.homedarts.scoring import DOUBLE
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 
 def test_the_double_that_finishes_a_score():
@@ -100,7 +100,7 @@ def test_personal_routes_follow_the_strongest_doubles_of_the_player():
     practice.personal_routes = True
     # Without enough darts at a double, the usual route stays.
     assert practice.snapshot()["checkout"] == "T18 D8"
-    practice.profiles.doubles("Alex", [("D20", True)] * MIN_ATTEMPTS)
+    practice.profiles.doubles("Alex", [("D20", True)] * MIN_ATTEMPTS, now=NOW)
     assert practice.snapshot()["checkout"] == "T10 D20"
     # Nobody's profile knows the doubles: everybody's darts decide.
     practice.set_name(0, "")
@@ -156,7 +156,7 @@ def test_every_double_hit_counts_whatever_the_dart_was_aimed_at():
     }
     # A dart before the leg began counts for no visit, and for no hit.
     practice.play(501)
-    practice.track([dart("D5")])
+    practice.track([dart("D5")], now=NOW)
     practice.play(501)
     throw(practice, "D6")
     assert "D5" not in practice.double_hits.snapshot()
@@ -197,7 +197,7 @@ def test_double_hits_are_stored_restored_and_rewound():
     checkpoint = practice.checkpoint()
     throw(practice, "D10")
     assert practice.double_hits.snapshot() == {"D8": 2, "D10": 1}
-    practice.rewind(checkpoint, [], [])
+    practice.rewind(checkpoint, [], [], now=NOW)
     assert practice.double_hits.snapshot() == {"D8": 2}
     # The summary of a decided match books its visit on a copy, not twice.
     practice.players[0].remaining = 40

@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
 from .entity import AutodartsStoredEntity
-from .games_coordinator import AutodartsGamesCoordinator
+from .games_coordinator import AutodartsGamesCoordinator, refusals
 from .practice import PARTY_PLAYERS
 from .profiles import NAME_LENGTH, clean_name
 from .runtime import AutodartsConfigEntry
@@ -68,7 +68,8 @@ class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):
         """Every seat in play needs a name of its own, as in start_game and
         tournaments: two seats of one name would be one player, playing against
         themselves. A resting seat gives its name up, see PracticeGame.rename."""
-        check_names([value])
+        with refusals():
+            check_names([value])
         if not await self.coordinator.async_set_player_name(self._index, value):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -124,7 +125,8 @@ class AutodartsTournamentPlayers(AutodartsStoredEntity, TextEntity):
     async def async_set_value(self, value: str) -> None:
         written = [name.strip() for name in split_players(value)]
         names = [name for name in written if name != ELLIPSIS]
-        check_names(names)
+        with refusals():
+            check_names(names)
         players = parse_players(",".join(names))
         if ELLIPSIS in written:
             # The ellipsis stands for the names it hid, where it stands.

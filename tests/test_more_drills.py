@@ -20,7 +20,7 @@ from custom_components.homedarts.drills import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import dart
+from .local_helpers import NOW, dart
 from .test_drills import throw
 
 
@@ -78,7 +78,7 @@ def test_a_bust_in_121_voids_only_its_visit():
     # A bust shows until the darts are pulled, with the route of the next visit.
     assert snapshot["bust"] and snapshot["remaining"] == 121
     assert snapshot["checkout"] == " ".join(checkout(121, 3))
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     drill.track([])
     events = throw(drill, "T20", "T11", "D14")
     assert events[0][1]["success"] is True and events[0][1]["darts"] == 7
@@ -87,7 +87,7 @@ def test_a_bust_in_121_voids_only_its_visit():
     throw(drill, "S1", "S1", "S1")
     drill.track(json_darts("T20", "T20"))
     assert drill.snapshot()["checkout"] is None and drill.snapshot()["bust"]
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     assert drill.target == 121 and drill.visits == 0
 
 
@@ -130,7 +130,7 @@ def test_catch_40_scores_by_the_darts_a_checkout_takes():
     # 61 in two darts: 3 points, and the next target follows.
     drill.track(json_darts("T15", "D8"))
     assert drill.snapshot()["won"] and drill.snapshot()["score"] == 3
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     drill.track([])
     snapshot = drill.snapshot()
     assert snapshot["target"] == "62" and snapshot["score"] == 3
@@ -147,7 +147,7 @@ def test_catch_40_scores_by_the_darts_a_checkout_takes():
     assert snapshot["attempt_visit"] == 2 and snapshot["remaining"] == 63
     drill.track(json_darts("T13", "D12"))
     assert drill.snapshot()["score"] == 5
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     drill.track([])
     assert drill.score == 5 and drill.index == 3
     # Two busts, or two visits without the finish, score nothing.
@@ -164,7 +164,7 @@ def test_catch_40_gives_three_points_for_99_in_three_darts():
     drill.index, drill.start = CATCH_TARGETS.index(99), 99
     drill.track(json_darts("T19", "S10", "D16"))
     assert drill.snapshot()["score"] == 3
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     assert drill.score == 3 and drill.checkouts == 1
 
 
@@ -173,7 +173,7 @@ def test_the_checkout_drills_count_their_darts_at_a_double():
     # 61: T11 leaves 28, D14 is a dart at a double, and so is BULL at 50.
     drill.track(json_darts("T11", "S14", "D7"))
     assert drill.double_attempts() == [("D14", False), ("D7", True)]
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     assert drill.double_attempts() == []
     drill.track(json_darts("S12", "S20", "S20"))
     # 62: S12 leaves 50, so S20 is a dart at the bull, and the next at D15.
@@ -220,11 +220,11 @@ def test_catch_40_and_the_checkout_training_count_for_the_doubles_analysis():
     practice.set_name(0, "Alex")
     practice.play("catch_40")
     for count in (1, 2, 3):
-        practice.track(json_darts("T11", "S14", "D7")[:count], [None] * count)
+        practice.track(json_darts("T11", "S14", "D7")[:count], [None] * count, now=NOW)
     booking = practice.booking()
     # 61 is aimed at along its route, 25 D18: the outer bull logs no aim.
     assert booking.booked_aims == [None, "D14", "D7"]
-    practice.finish_visit()
+    practice.finish_visit(now=NOW)
     assert practice.doubles.counts == {"D14": [1, 0], "D7": [1, 1]}
     assert practice.profiles.players["alex"].doubles == practice.doubles.counts
 
@@ -246,7 +246,7 @@ def test_the_jdc_challenge_plays_shanghai_doubles_and_shanghai():
     drill.track(json_darts("D1"))
     assert drill.snapshot()["target"] == "D2" and drill.snapshot()["parts"][1] == 50
     assert drill.double_attempts() == [("D1", True)]
-    drill.finish_visit()
+    drill.finish_visit(now=NOW)
     drill.track([])
     throw(drill, "D2", "S3", "D4")
     for start in range(5, 20, 3):
@@ -321,8 +321,8 @@ def test_the_new_training_games_run_in_the_practice_game():
     # The doubles of the JDC Challenge count for the doubles analysis.
     game.play("jdc_challenge")
     game.drills["jdc_challenge"].step = 6
-    game.track(json_darts("D1", "MISS"))
-    game.finish_visit()
+    game.track(json_darts("D1", "MISS"), now=NOW)
+    game.finish_visit(now=NOW)
     assert game.doubles.counts == {"D1": [1, 1], "D2": [1, 0]}
 
 

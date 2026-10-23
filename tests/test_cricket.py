@@ -11,7 +11,7 @@ from custom_components.homedarts.cricket import (
 )
 from custom_components.homedarts.practice import MAX_PLAYERS, PracticeGame
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 OPEN = [0] * 7
 CLOSED = [3] * 7
@@ -78,7 +78,7 @@ def test_players_take_turns_and_score_on_open_numbers():
     game = cricket(2)
     game.set_name(0, "Dennis")
     game.set_name(1, "Lea")
-    game.track(darts("T20", "T20"))
+    game.track(darts("T20", "T20"), now=NOW)
     snapshot = game.snapshot()
     assert snapshot["game"] == "cricket" and snapshot["remaining"] is None
     assert snapshot["points"] == 60 and snapshot["target"] == "T19"
@@ -137,7 +137,7 @@ def test_the_last_mark_wins_the_leg_and_the_match():
     # Cricket legs count as legs played, but leave the X01 statistics alone.
     assert game.legs_total == 1 and game.leg_stats == []
     # The next dart starts a new match.
-    game.track(darts("S20"))
+    game.track(darts("S20"), now=NOW)
     assert game.snapshot()["winner"] is None
     assert game.snapshot()["scores"][0]["marks"][0] == 1
 
@@ -145,11 +145,11 @@ def test_the_last_mark_wins_the_leg_and_the_match():
 def test_a_corrected_winning_dart_takes_the_win_back():
     game = cricket()
     game.players[0].marks = [3, 3, 3, 3, 3, 3, 2]
-    assert [kind for kind, _ in game.track(darts("25"))] == ["leg_won"]
+    assert [kind for kind, _ in game.track(darts("25"), now=NOW)] == ["leg_won"]
     # The board corrects the dart to a 5: no win, and nothing to announce.
-    assert game.track(darts("S5")) == []
+    assert game.track(darts("S5"), now=NOW) == []
     assert game.snapshot()["won"] is False and game.snapshot()["target"] == "BULL"
-    assert [kind for kind, _ in game.track(darts("S5", "25"))] == ["leg_won"]
+    assert [kind for kind, _ in game.track(darts("S5", "25"), now=NOW)] == ["leg_won"]
 
 
 def test_fewer_points_keep_the_leg_open():
@@ -163,9 +163,9 @@ def test_fewer_points_keep_the_leg_open():
 def test_playing_alone_closing_everything_wins_and_starts_the_next_leg():
     game = cricket()
     game.players[0].marks = [3, 3, 3, 3, 3, 0, 3]
-    game.track(darts("T15"))
+    game.track(darts("T15"), now=NOW)
     assert game.snapshot()["won"] is True and game.snapshot()["target"] is None
-    assert game.finish_visit() == [
+    assert game.finish_visit(now=NOW) == [
         (
             "turn_changed",
             {

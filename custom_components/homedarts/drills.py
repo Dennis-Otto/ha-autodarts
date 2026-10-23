@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any
-
-from homeassistant.util import dt as dt_util
 
 from .checkout import checkout, setup
 from .doubles import aimed_at, double_of
 from .doubles import hits as hits_double
+from .moments import stamp
 from .scoring import BULL, DOUBLE, VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .training import hit_key
 
@@ -116,8 +116,8 @@ class Drill(ABC):
     def _thrown(self) -> list[dict[str, Any]]:
         return self._visit[self._skip : VISIT_DARTS]
 
-    def _record(self, result: dict[str, Any]) -> None:
-        self.results.insert(0, {**result, "ended": dt_util.utcnow().isoformat()})
+    def _record(self, result: dict[str, Any], now: datetime) -> None:
+        self.results.insert(0, {**result, "ended": stamp(now)})
         del self.results[RESULTS:]
 
     def track(self, visit: list[dict[str, Any]]) -> list[tuple[str, dict[str, Any]]]:
@@ -134,13 +134,13 @@ class Drill(ABC):
         """Darts of the visit thrown at a double, and whether they hit it."""
         return []
 
-    def finish_visit(self) -> list[tuple[str, dict[str, Any]]]:
-        events = self._book() if not self.finished and self._thrown() else []
+    def finish_visit(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
+        events = self._book(now) if not self.finished and self._thrown() else []
         self._visit, self._skip, self._announced = [], 0, False
         return events
 
     @abstractmethod
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         """Count the darts of the visit; the events if it ends the game."""
 
     def restore(self, saved: dict[str, Any]) -> None:
@@ -227,14 +227,14 @@ class TargetDrill(Drill):
         hits = self.hits + index - self.index
         return [("drill_finished", self._summary(self.darts + darts, hits))]
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         index, darts = self._progress()
         self.hits += index - self.index
         self.darts += darts
         self.index = index
         if index == len(TARGETS):
             self.finished = True
-            self._record(self._summary(self.darts, self.hits))
+            self._record(self._summary(self.darts, self.hits), now)
         return []
 
     def restore(self, saved: dict[str, Any]) -> None:
@@ -305,7 +305,7 @@ class BobsDrill(Drill):
         double = double_of(TARGETS[self.index])
         return [(double, hits_double(dart, double)) for dart in self._thrown()]
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         hits = self._visit_hits()
         self.score += hits * self._value() if hits else -self._value()
         self.hits += hits
@@ -323,7 +323,7 @@ class BobsDrill(Drill):
             "hits": self.hits,
             "hit_rate": rate(self.hits, self.darts),
         }
-        self._record(result)
+        self._record(result, now)
         return [("drill_finished", result)]
 
     def restore(self, saved: dict[str, Any]) -> None:
@@ -411,7 +411,7 @@ class CheckoutDrill(Drill):
     def double_attempts(self) -> list[tuple[str, bool]]:
         return _double_attempts(self.start, self._thrown())
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), DOUBLE)
         self.visits += 1
         self.attempt_darts += darts
@@ -428,7 +428,7 @@ class CheckoutDrill(Drill):
             "success": success,
             "darts": self.attempt_darts,
         }
-        self._record(result)
+        self._record(result, now)
         self._next(success)
         return [("checkout_attempt", self._attempt(result))]
 
@@ -567,7 +567,7 @@ class CatchDrill(Drill):
     def double_attempts(self) -> list[tuple[str, bool]]:
         return [] if self.finished else _double_attempts(self.start, self._thrown())
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), DOUBLE)
         self.visits += 1
         # A bust ends the visit: a finish can only come with the next one.
@@ -589,7 +589,7 @@ class CatchDrill(Drill):
             "checkouts": self.checkouts,
             "darts": self.darts,
         }
-        self._record(result)
+        self._record(result, now)
         return [("drill_finished", result)]
 
     def restore(self, saved: dict[str, Any]) -> None:
@@ -716,7 +716,7 @@ class JdcDrill(Drill):
             return []
         return [(double, hit) for _, double, hit in self._doubles()]
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         shanghai = JDC_STEPS[self.step][0] == "shanghai"
         step, self.parts, darts = self._play()
         self.darts += darts
@@ -730,7 +730,7 @@ class JdcDrill(Drill):
             "parts": list(self.parts),
             "darts": self.darts,
         }
-        self._record(result)
+        self._record(result, now)
         return [("drill_finished", result)]
 
     def restore(self, saved: dict[str, Any]) -> None:
@@ -803,7 +803,7 @@ class SinglesDrill(Drill):
         ]
         return sum(hits), len(hits)
 
-    def _book(self) -> list[tuple[str, dict[str, Any]]]:
+    def _book(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         points, hits = self._scored()
         self.score += points
         self.hits += hits
@@ -819,7 +819,7 @@ class SinglesDrill(Drill):
             "hits": self.hits,
             "hit_rate": rate(self.hits, self.darts),
         }
-        self._record(result)
+        self._record(result, now)
         return [("drill_finished", result)]
 
     def restore(self, saved: dict[str, Any]) -> None:

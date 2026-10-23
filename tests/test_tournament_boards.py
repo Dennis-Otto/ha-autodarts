@@ -3,12 +3,12 @@ started on holds it, every board plays a match of its own, and the table and
 the bracket take the results of all of them."""
 
 import random
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.homedarts.games import ActionRefused, BoardGames
+from custom_components.homedarts.errors import ActionRefused
+from custom_components.homedarts.games import BoardGames
 from custom_components.homedarts.practice import PracticeGame
 from custom_components.homedarts.profiles import Profile
 from custom_components.homedarts.tournament import (
@@ -36,7 +36,7 @@ LATER = NOW + timedelta(seconds=30)
 
 def games(key: str) -> BoardGames:
     """A board with nothing on it, by the key of its entry."""
-    board_games = BoardGames(Reports(), random.Random(1))
+    board_games = BoardGames(Reports(), NOW, random.Random(1))
     board_games.key = key
     play(board_games, board())
     return board_games
@@ -195,9 +195,9 @@ def test_players_rest_after_their_match_wherever_they_played_it():
     assert names(guest) == ["Alex", "Kim"]
     # Sam against Alex has to wait for Alex.
     assert host.tournament.due_boards() == []
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         host.next_tournament_match(NOW)
-    assert error.value.translation_key == "tournament_no_match"
+    assert error.value.key == "tournament_no_match"
 
 
 def test_a_board_without_a_match_at_the_start_plays_on_until_it_gets_one():
@@ -336,9 +336,9 @@ def test_the_boards_of_a_finished_tournament_go_back_before_the_next_one():
 def test_a_player_of_a_tournament_on_another_board_stays():
     host, guest = boards()
     start(host, guest)
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         guest.delete_player("Kim")
-    assert error.value.translation_key == "player_in_tournament"
+    assert error.value.key == "player_in_tournament"
 
 
 def test_boards_find_each_other_again_after_a_restart():
@@ -437,8 +437,14 @@ def test_a_restored_tournament_keeps_its_boards_where_they_fit():
     director = TournamentDirector()
     director.tournament = clash
     assert director.due_at("board-2") == NOW
+    # One stored without its start: at once, at no time that a snapshot shows.
     clash.started = None
-    assert director.due_at("board-2") is not None
+    assert director.due_at("board-2") == datetime.min.replace(tzinfo=UTC)
+    assert director.due(NOW, "board-2")
+    assert [board["next_at"] for board in director.snapshot("board-2")["boards"]] == [
+        None,
+        None,
+    ]
     beyond = Tournament.restored(
         {**saved, "seats": [seats[0], {**seats[1], "match": 99}]}
     )

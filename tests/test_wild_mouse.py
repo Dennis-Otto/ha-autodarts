@@ -24,7 +24,7 @@ from custom_components.homedarts.cricket import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import board, dart, setup_local, state, throw
+from .local_helpers import NOW, board, dart, setup_local, state, throw
 
 # Slots: 20 to 15 and the bull, then doubles, triples and three in a bed.
 OPEN = [0] * 10
@@ -221,14 +221,14 @@ def test_a_wild_mouse_match_shows_its_targets_and_where_darts_counted():
     assert snapshot["targets"] == list(WILD_MOUSE_TARGETS)
     assert len(snapshot["scores"][0]["marks"]) == 10
     assert (snapshot["target"], snapshot["target_row"]) == ("T20", "20")
-    practice.track(darts("T20", "T20", "T20"))
+    practice.track(darts("T20", "T20", "T20"), now=NOW)
     snapshot = practice.snapshot()
     assert snapshot["counted"] == ["20", "triples", "triples"] and snapshot["bed"]
     assert snapshot["scores"][0]["marks"][T] == 2
     assert snapshot["scores"][0]["marks"][B] == 3
     assert (snapshot["target"], snapshot["target_row"]) == ("T19", "19")
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     assert practice.players[0].marks[B] == 3 and practice.current == 1
     # The other player closes everything but the bull and wins with it.
     practice.players[1].marks = marks(*range(10), bull=2)
@@ -266,7 +266,7 @@ def test_the_bot_plays_wild_mouse_by_its_targets():
     practice.current = 1
     assert aim(practice.snapshot()) == "T20"
     practice.players[1].marks = marks(*range(6))
-    practice.track(darts("S5"))
+    practice.track(darts("S5"), now=NOW)
     # The doubles go to a number the bot closed, here the 20.
     assert aim(practice.snapshot()) == "D20"
 

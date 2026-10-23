@@ -681,3 +681,13 @@ async def test_a_game_after_a_stopped_tournament_has_the_players_from_before(
     await action(hass, "start_game", game="301")
     assert practice.humans == 1 and practice.bot_seat == 1
     assert practice.names[0] == "Zoe" and practice.kind == 301
+
+
+async def test_the_actions_without_a_tournament_say_why(hass, aioclient_mock):
+    """The tournament refuses in the words of the games; the actions show it
+    as the message of Home Assistant."""
+    await setup_local(hass, aioclient_mock, state=board())
+    for service in ("stop_tournament", "next_tournament_match"):
+        with pytest.raises(ServiceValidationError) as error:
+            await action(hass, service)
+        assert error.value.translation_key == "no_tournament"

@@ -7,7 +7,7 @@ from custom_components.homedarts.practice import PracticeGame, valid_start
 from custom_components.homedarts.profiles import Profiles
 from custom_components.homedarts.records import PersonalRecords
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 NAMES = ["Alex", "Sam", "Kim", "Lea"]
 
@@ -31,12 +31,12 @@ def test_partners_share_one_score_and_take_turns_with_the_opponents():
         {"team": 2, "name": "Sam & Lea", "players": [2, 4]},
     ]
     assert [score["team"] for score in snapshot["scores"]] == [1, 2, 1, 2]
-    game.track([dart("T20")])
+    game.track([dart("T20")], now=NOW)
     # Both partners show the score of the visit on the board.
     remaining = [score["remaining"] for score in game.snapshot()["scores"]]
     assert remaining == [241, 301, 241, 301]
-    events = game.finish_visit()
-    game.track([])
+    events = game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     assert events[0][1]["player"] == 2 and events[0][1]["team"] == 2
     assert events[0][1]["team_name"] == "Sam & Lea"
     throw(game, "T19")
@@ -94,12 +94,12 @@ def test_a_team_leg_and_match_count_for_both_partners():
 
 def test_team_cricket_shares_marks_and_points():
     game = teams("cricket")
-    game.track([dart("T20"), dart("S20")])
+    game.track([dart("T20"), dart("S20")], now=NOW)
     scores = game.snapshot()["scores"]
     assert [score["points"] for score in scores] == [20, 0, 20, 0]
     assert [score["marks"][0] for score in scores] == [3, 0, 3, 0]
-    game.finish_visit()
-    game.track([])
+    game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     assert game.players[2].marks[0] == 3 and game.players[2].points == 20
     # Sam's team closes the 20: Kim scores no more on it.
     throw(game, "T20")
@@ -209,9 +209,9 @@ def test_handicap_legs_count_for_the_score_they_started_from():
     assert records.bests["fewest_darts_501"]["value"] == 12
     assert "best_cricket_mpr" not in records.bests
     entry = {"name": "Kim", "won": True, "darts": 9, "double_out": True}
-    profiles.leg(501, [{**entry, "start": 301}])
-    profiles.leg(501, [{**entry, "start": 401}])
-    profiles.leg(501, [{**entry, "darts": 12}])
+    profiles.leg(501, [{**entry, "start": 301}], now=NOW)
+    profiles.leg(501, [{**entry, "start": 401}], now=NOW)
+    profiles.leg(501, [{**entry, "darts": 12}], now=NOW)
     assert profiles.players["kim"].fewest_darts == {"301": 9, "501": 12}
 
 
