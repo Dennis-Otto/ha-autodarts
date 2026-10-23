@@ -160,7 +160,7 @@ Was dieser Blueprint und die [automatische Erkennung](#start-and-stop-detection-
 
 Eine beendete Session behält ihre Summen bis zur nächsten. Deshalb prüft der Bericht den Sensor *Darts heute* desselben Boards und überspringt Tage ohne Darts. Ist dieser Sensor deaktiviert, entscheiden die Darts der Session. Für jeden Tag eine neue Session füge *Neue Trainingssession* deines Boards als letzte Aktion hinzu.
 
-Kein Ereignis des Boards startet den Bericht. Deshalb nimmt er `summary` aus dem Attribut `summary` des Sensors *Training Darts*, in der Sprache von Home Assistant (siehe [Ansagen in der Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant)). Ohne das Attribut, etwa mit einer Version der Integration vor 2.0.1, schreibt er den Satz auf Englisch.
+Kein Ereignis des Boards startet den Bericht. Deshalb nimmt er `summary` aus dem Attribut `summary` des Sensors *Training Darts*: Der Satz beschreibt die Sitzung dieses Sensors, auch wenn die anderen Sensoren des Berichts von einem anderen Board kommen, und steht in der Sprache von Home Assistant (siehe [Ansagen in der Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant)). Ohne das Attribut, etwa mit einer Version der Integration vor der, die es eingeführt hat, schreibt er den Satz auf Englisch.
 
 ### Training session routine
 

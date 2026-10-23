@@ -158,7 +158,7 @@ What this blueprint and the [automatic detection](#start-and-stop-detection-auto
 
 A finished session keeps its totals until the next one starts, so the report checks the *Darts today* sensor of the same board and skips days without darts. If that sensor is disabled, the darts of the session decide. To start a new session every day, add *New training session* of your board as the last action.
 
-No board event starts the report, so it takes `summary` from the `summary` attribute of the *Training darts* sensor, in the language of Home Assistant (see [calls in the language of Home Assistant](#calls-in-the-language-of-home-assistant)). Without the attribute, as with a release of the integration before 2.0.1, it writes the sentence in English.
+No board event starts the report, so it takes `summary` from the `summary` attribute of the *Training darts* sensor: the sentence describes that sensor's session, even when the other sensors of the report come from another board, and it is in the language of Home Assistant (see [calls in the language of Home Assistant](#calls-in-the-language-of-home-assistant)). Without the attribute, as with a release of the integration before the one that added it, it writes the sentence in English.
 
 ### Training session routine
 
