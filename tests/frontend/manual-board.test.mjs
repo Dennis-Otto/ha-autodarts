@@ -36,11 +36,11 @@ const dart = (number, multiplier, extra = {}) => ({ number, multiplier, segment:
 const board = (states = {}, options = {}) =>
   makeHass({ states: { ...MANUAL, ...visit(), ...states }, device: { primary_config_entry: ENTRY }, ...options });
 const actions = (hass) =>
-  hass.calls.filter(([domain]) => domain === "autodarts").map(([, service, data]) => [service, data]);
+  hass.calls.filter(([domain]) => domain === "homedarts").map(([, service, data]) => [service, data]);
 
 test("a dartboard without Autodarts asks for the darts, and says when the visit is complete", () => {
   const hass = board();
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.equal(text(card, ".pill"), "Enter your darts");
   // The pill keeps the width of the longest words it takes on such a board.
   assert.equal($(card, ".pill").dataset.widest, "Enter your darts");
@@ -50,14 +50,14 @@ test("a dartboard without Autodarts asks for the darts, and says when the visit 
   assert.equal(text(card, ".pill"), "Visit complete");
   assert.match(card.style.getPropertyValue("--ad-status"), /amber/);
   // In German, too.
-  const german = mount("autodarts-scoreboard-card", withLanguage(board(), "de"));
+  const german = mount("homedarts-scoreboard-card", withLanguage(board(), "de"));
   assert.equal(text(german, ".pill"), "Darts eingeben");
   assert.equal($(german, ".pill").dataset.widest, "Aufnahme komplett");
 });
 
 test("the scoreboard of a dartboard without Autodarts has the keypad, unless its settings switch it off", () => {
   const hass = board();
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   // No keypad option and no manual entry switch: the keypad is how darts come at all.
   assert.equal($(card, ".pad-area").hidden, false);
   assert.equal(text(card, ".pad .section-label"), "Enter a dart");
@@ -71,11 +71,11 @@ test("the scoreboard of a dartboard without Autodarts has the keypad, unless its
     ["dart tappable", "dart corrected tappable", "dart empty"],
   );
   // A screen at the board without touch, such as a TV, switches it off.
-  const tv = mount("autodarts-scoreboard-card", hass, { keypad: false });
+  const tv = mount("homedarts-scoreboard-card", hass, { keypad: false });
   assert.equal($(tv, ".pad-area").hidden, true);
   // With Autodarts, the keypad stays an option for darts the board missed.
   const detected = mount(
-    "autodarts-scoreboard-card",
+    "homedarts-scoreboard-card",
     makeHass({ states: { ...READY, ...visit(dart(20, 3, { dart: 1 })) } }),
     { keypad: true },
   );
@@ -86,7 +86,7 @@ test("the scoreboard of a dartboard without Autodarts has the keypad, unless its
 test("the live card of a dartboard without Autodarts enters darts and has no footer", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const hass = board();
-  const card = mount("autodarts-card", hass);
+  const card = mount("homedarts-card", hass);
   assert.equal(text(card, ".pill"), "Enter your darts");
   // There are no connections to show and no detection to control.
   assert.equal($(card, ".footer").hidden, true);
@@ -127,9 +127,9 @@ test("the live card of a dartboard without Autodarts enters darts and has no foo
   card.hass = update(hass, { ...undoable, ...visit(dart(20, 1, { dart: 1 })) });
   assert.equal($(card, '[data-pad="undo"]').disabled, true);
   // Switched off in the card's settings, and in the preview of the card editor, it stays away.
-  assert.equal($(mount("autodarts-card", hass, { keypad: false }), ".pad-area").hidden, true);
-  const preview = document.createElement("autodarts-card");
-  preview.setConfig({ type: "custom:autodarts-card" });
+  assert.equal($(mount("homedarts-card", hass, { keypad: false }), ".pad-area").hidden, true);
+  const preview = document.createElement("homedarts-card");
+  preview.setConfig({ type: "custom:homedarts-card" });
   preview.preview = true;
   preview.hass = hass;
   document.body.append(preview);
@@ -138,29 +138,29 @@ test("the live card of a dartboard without Autodarts enters darts and has no foo
 
 test("the live card of a board with Autodarts has the keypad as an option", () => {
   const hass = makeHass({ states: { ...READY, ...visit(), "switch.practice_manual_entry": "off" } });
-  const card = mount("autodarts-card", hass, { keypad: true });
+  const card = mount("homedarts-card", hass, { keypad: true });
   assert.equal($(card, ".footer").hidden, false);
   assert.equal($(card, ".pad-area").hidden, true);
   card.hass = update(hass, { "switch.practice_manual_entry": "on" });
   assert.equal($(card, ".pad-area").hidden, false);
   // Without the option, the board's darts are corrected only.
-  assert.equal($(mount("autodarts-card", card._hass), ".pad-area").hidden, true);
+  assert.equal($(mount("homedarts-card", card._hass), ".pad-area").hidden, true);
 });
 
 test("the status card of a dartboard without Autodarts says why it has nothing to show", () => {
-  const card = mount("autodarts-status-card", board());
+  const card = mount("homedarts-status-card", board());
   assert.equal(text(card, ".pill"), "Enter your darts");
   assert.equal($(card, ".manual-note").hidden, false);
   assert.match(text(card, ".manual-note"), /^This dartboard has no Autodarts: its darts are entered on the keypad/);
   for (const part of [".detection", ".info", ".controls"]) assert.equal($(card, part).hidden, true, part);
   // A board with Autodarts shows all of it.
-  const detected = mount("autodarts-status-card", makeHass({ states: READY }));
+  const detected = mount("homedarts-status-card", makeHass({ states: READY }));
   assert.equal($(detected, ".manual-note").hidden, true);
   assert.equal($(detected, ".detection").hidden, false);
 });
 
 test("the dashboard of a dartboard without Autodarts has no board view", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "homedarts" });
   const entities = [
     entity("sensor.garage_darts", "training_darts"),
     entity("sensor.garage_status", "local_status"),

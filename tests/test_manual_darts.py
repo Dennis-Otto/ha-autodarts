@@ -1,7 +1,7 @@
 """Corrections, darts entered by hand and the bot's darts on top of the board's."""
 
-from custom_components.autodarts.manual import ManualDarts, parse_bed
-from custom_components.autodarts.training import TrainingSession, segments
+from custom_components.homedarts.manual import ManualDarts, parse_bed
+from custom_components.homedarts.training import TrainingSession, segments
 
 from .local_helpers import MISS, S20, T20, board
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.autodarts.training import COUNTERS, TrainingSession
+from custom_components.homedarts.training import COUNTERS, TrainingSession
 
 from .local_helpers import BULL, MISS, OUTER_BULL, S20, T20, board
 

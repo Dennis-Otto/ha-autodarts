@@ -1,5 +1,5 @@
 ---
-description: "Autodarts in Home Assistant: jeder Dart live vom Board Manager, Spiele, eine Anzeigetafel, Statistik und Automationen. Lokal und kostenlos, ohne Cloud-Konto."
+description: "HomeDarts for Autodarts bringt jeden Dart nach Home Assistant: Spiele, eine Anzeigetafel, Statistik und Automationen. Lokal und kostenlos, ohne Cloud-Konto."
 hide:
   - navigation
   - toc
@@ -8,15 +8,17 @@ hide:
 social: { cards_layout_options: { title: "Dein Autodarts-Board live in Home Assistant" } }
 ---
 
-# Autodarts für Home Assistant
+# HomeDarts for Autodarts
 
-![Autodarts-Logo](branding/icon.svg){ width="96" align="right" }
+![Das Symbol der Integration: ein Haus mit Dartscheibe](branding/icon.svg){ width="96" align="right" }
 
 **Dein Autodarts-Board live in Home Assistant: lokal, in Echtzeit und bereit für Automationen.**
 
-Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Spiele und trainiere damit, stell eine Anzeigetafel neben das Board, verfolge deine Statistik und lass dein Zuhause mitspielen. Kein Konto, keine Cloud, keine Client-ID.
+HomeDarts for Autodarts bringt dein Autodarts-Board nach Home Assistant: Darts erscheinen Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Jede andere Dartscheibe spielt auch mit, ihre Darts von Hand eingegeben oder von einem Granboard gesendet. Spiele und trainiere damit, stell eine Anzeigetafel neben das Board, verfolge deine Statistik und lass dein Zuhause mitspielen. Kein Konto, keine Cloud, keine Client-ID.
 
-[:material-download: Zu HACS hinzufügen](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration){ .md-button .md-button--primary } [:material-rocket-launch: Erste Schritte](getting-started.de.md){ .md-button } <a href="demo/index.html?lang=de" class="md-button">:material-play-circle: Live ausprobieren</a>
+HomeDarts for Autodarts ist ein inoffizielles Community-Projekt ohne Verbindung zu Autodarts. Bis Version 1.18 hieß es Autodarts: [Von Autodarts zu HomeDarts](new-name.de.md) erklärt den neuen Namen und wie HomeDarts deine Boards übernimmt.
+
+[:material-download: Mit HACS installieren](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration){ .md-button .md-button--primary } [:material-rocket-launch: Erste Schritte](getting-started.de.md){ .md-button } <a href="demo/index.html?lang=de" class="md-button">:material-play-circle: Live ausprobieren</a>
 
 <picture>
   <source media="(max-width: 600px)" srcset="images/de/hero-mobile.webp">
@@ -33,7 +35,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch. Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke, und Geheimnisse des Boards werden nie gespeichert.
+    Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch. Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche oder die Online-Brücke, und Geheimnisse des Boards werden nie gespeichert.
 
     [:octicons-arrow-right-24: Funktionsweise](how-it-works.de.md)
 
@@ -119,14 +121,14 @@ Alles geschieht in deinem Netzwerk, in weniger als einer Sekunde: Der Board Mana
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/dart-journey-dark.png">
-  <img src="images/de/dart-journey-light.png" alt="Der Weg eines Darts: Ein Dart landet in der Triple 20. Die Kameras des Boards sehen ihn, und der Board Manager auf dem Board-PC bestimmt das Feld. Eine Echtzeitnachricht bringt es durch dein Netzwerk zur Autodarts-Integration in Home Assistant; sie aktualisiert die Entitäten, sendet die Board-Ereignisse und lässt das Feld auf den Karten und der Anzeigetafel aufleuchten. Deine Automation reagiert auf die Ereignisse, etwa mit blinkendem Licht bei einer 180 oder einem Caller. Das alles dauert weniger als eine Sekunde und braucht keine Cloud" width="560">
+  <img src="images/de/dart-journey-light.png" alt="Der Weg eines Darts: Ein Dart landet in der Triple 20. Die Kameras des Boards sehen ihn, und der Board Manager auf dem Board-PC bestimmt das Feld. Eine Echtzeitnachricht bringt es durch dein Netzwerk zu HomeDarts in Home Assistant; die Integration aktualisiert die Entitäten, sendet die Board-Ereignisse und lässt das Feld auf den Karten und der Anzeigetafel aufleuchten. Deine Automation reagiert auf die Ereignisse, etwa mit blinkendem Licht bei einer 180 oder einem Caller. Das alles dauert weniger als eine Sekunde und braucht keine Cloud" width="560">
 </picture>
 
 [:octicons-arrow-right-24: Funktionsweise](how-it-works.de.md)
 
 ## Im Vergleich
 
-Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht. [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, wie du umsteigst.
+Wie sich HomeDarts mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht. [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, wie du umsteigst.
 
 --8<-- "docs/coming-from.de.md:compare"
 
@@ -135,11 +137,12 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 ## Anleitungen
 
 - :material-rocket-launch: [**Von null bis zur Anzeigetafel**](getting-started.de.md): Home Assistant, HACS, die Integration und das erste Spiel, für Autodarts-Spieler, die Home Assistant noch nicht haben
-- :material-download: [**Installation und Einrichtung**](installation.de.md): Voraussetzungen, HACS oder von Hand, die Wege, ein Board hinzuzufügen, die Cloud-Verknüpfung, Updates und Entfernen
+- :material-download: [**Installation und Einrichtung**](installation.de.md): Voraussetzungen, HACS oder von Hand, die Wege, ein Board hinzuzufügen, Updates und Entfernen
 - :material-pencil: [**Spielen ohne Autodarts**](without-autodarts.de.md): jede Dartscheibe, mit allen Spielen, dem Training und der Statistik, die Darts auf einem Tastenfeld eingegeben
 - :material-bluetooth: [**Granboard über Bluetooth**](granboard.de.md): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys *(experimentell)*
 - :material-frequently-asked-questions: [**Häufige Fragen**](faq.de.md): Konto, Geräte, Online-Spiel, Datenschutz, mehrere Boards, Bildschirme, Sprachen und Updates
 - :material-swap-horizontal: [**Umstieg von anderen Werkzeugen**](coming-from.de.md): die anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts im Vergleich, und wie du umsteigst
+- :material-rename-box: [**Von Autodarts zu HomeDarts**](new-name.de.md): der neue Name seit Version 2.0, und wie HomeDarts deine Boards übernimmt
 - :material-bullseye-arrow: [**Spiele und Regeln**](games.de.md): alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen und Turniere
 - :material-television: [**Anzeigetafel am Board**](scoreboard.de.md): ein Tablet oder Fernseher neben dem Board, Quer- und Hochformat, Spielauswahl, Caller und Ruhemodus
 - :material-chart-line: [**Statistik und Spieler**](statistics.de.md): Sessions, Bestleistungen, Trefferbilder, wohin zielen, Fortschritt, Profile, Erfolge und Bestenliste

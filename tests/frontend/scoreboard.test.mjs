@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { scoreboardHtml, gameView } from "../../custom_components/autodarts/frontend/autodarts-card.js";
+import { scoreboardHtml, gameView } from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const ui = {
   t: (key) => ({ score_winner_by: "score_winner_by {result}" })[key] ?? key,

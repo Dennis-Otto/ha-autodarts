@@ -29,8 +29,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.const import LANGUAGES
-from custom_components.autodarts.positions import DartLog
+from custom_components.homedarts.const import LANGUAGES
+from custom_components.homedarts.positions import DartLog
 
 from .local_helpers import BLUEPRINTS, automate_all
 from .test_manual_board import DATA, act, entity, setup_manual
@@ -1036,7 +1036,7 @@ def actions(calls) -> list[tuple[str, dict]]:
     return [
         (call.data["service"], call.data["service_data"])
         for call in calls
-        if call.data["domain"] == "autodarts"
+        if call.data["domain"] == "homedarts"
     ]
 
 
@@ -1545,7 +1545,7 @@ async def evening(hass, freezer) -> None:
 def best_aims(hass, found: dict[str, dict]) -> Iterator[None]:
     """The best aims of the players, as the board works them out from the darts it
     detected."""
-    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    coordinator = hass.config_entries.async_entries("homedarts")[0].runtime_data.local
     logs = {
         id(player.log): found.get(player.name)
         for player in coordinator.games.progress.players.values()
@@ -1665,7 +1665,7 @@ async def test_assist_answers_on_the_days_and_weeks_after(hass, freezer):
     assert await ask(hass, "What is my average today?") == "No darts today yet."
     assert await ask(hass, "How many darts today?") == "No darts today yet."
     # The week ends; the next one starts with a 180 and a visit without points.
-    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    coordinator = hass.config_entries.async_entries("homedarts")[0].runtime_data.local
     coordinator.reports.report.ends = dt_util.utcnow()
     await coordinator.reports._async_report(dt_util.utcnow())
     await hass.async_block_till_done()
@@ -1730,7 +1730,7 @@ async def test_assist_answers_for_the_board_with_the_most_darts(hass, freezer):
     answer = await ask(hass, "What is my average today?")
     board = "manual_ffffffffffffffffffffffffffffffff"
     other = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id=board,
         title="Autodarts (Garage M)",

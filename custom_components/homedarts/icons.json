@@ -1,0 +1,467 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "hand_detected": {
+        "default": "mdi:hand-back-right-off",
+        "state": {
+          "on": "mdi:hand-back-right"
+        }
+      },
+      "image_stable": {
+        "default": "mdi:image-filter-center-focus"
+      },
+      "takeout_partial": {
+        "default": "mdi:arrow-up-bold-outline"
+      },
+      "takeout_full": {
+        "default": "mdi:arrow-up-bold-box-outline"
+      },
+      "cameras_active": {
+        "default": "mdi:cctv-off",
+        "state": {
+          "on": "mdi:cctv"
+        }
+      },
+      "calibrating": {
+        "default": "mdi:bullseye-arrow"
+      },
+      "realtime_connected": {
+        "default": "mdi:lan-disconnect",
+        "state": {
+          "on": "mdi:lan-connect"
+        }
+      },
+      "cloud_link": {
+        "default": "mdi:cloud-off-outline",
+        "state": {
+          "on": "mdi:cloud-check-outline"
+        }
+      }
+    },
+    "button": {
+      "start": {
+        "default": "mdi:play"
+      },
+      "stop": {
+        "default": "mdi:stop"
+      },
+      "reset": {
+        "default": "mdi:restore"
+      },
+      "calibrate": {
+        "default": "mdi:bullseye-arrow"
+      },
+      "calibrate_camera": {
+        "default": "mdi:camera-iris"
+      },
+      "connect": {
+        "default": "mdi:cloud-check"
+      },
+      "disconnect": {
+        "default": "mdi:cloud-off-outline"
+      },
+      "start_streams": {
+        "default": "mdi:video"
+      },
+      "stop_streams": {
+        "default": "mdi:video-off"
+      },
+      "reset_training": {
+        "default": "mdi:restart"
+      },
+      "practice_new_leg": {
+        "default": "mdi:restart"
+      },
+      "practice_new_match": {
+        "default": "mdi:restart-alert"
+      },
+      "tournament_start": {
+        "default": "mdi:trophy-outline"
+      },
+      "tournament_next_match": {
+        "default": "mdi:skip-next-circle-outline"
+      },
+      "tournament_stop": {
+        "default": "mdi:stop-circle-outline"
+      }
+    },
+    "event": {
+      "board_events": {
+        "default": "mdi:bullseye-arrow"
+      }
+    },
+    "number": {
+      "training_idle_timeout": {
+        "default": "mdi:timer-sand"
+      },
+      "practice_players": {
+        "default": "mdi:account-group"
+      },
+      "practice_legs": {
+        "default": "mdi:numeric"
+      },
+      "practice_sets": {
+        "default": "mdi:trophy-outline"
+      },
+      "training_daily_goal": {
+        "default": "mdi:flag-checkered"
+      },
+      "practice_start": {
+        "default": "mdi:scale-balance"
+      },
+      "practice_max_rounds": {
+        "default": "mdi:timer-sand-complete"
+      },
+      "practice_count_up_rounds": {
+        "default": "mdi:counter"
+      },
+      "practice_gotcha_target": {
+        "default": "mdi:flag-checkered"
+      },
+      "tournament_groups": {
+        "default": "mdi:account-group"
+      },
+      "tournament_advance": {
+        "default": "mdi:account-arrow-right"
+      },
+      "tournament_pause": {
+        "default": "mdi:timer-sand"
+      },
+      "tournament_summary": {
+        "default": "mdi:clipboard-text-clock-outline"
+      },
+      "practice_bot_level": {
+        "default": "mdi:robot"
+      },
+      "practice_bot_delay": {
+        "default": "mdi:timer-outline"
+      }
+    },
+    "select": {
+      "standby_minutes": {
+        "default": "mdi:timer-outline"
+      },
+      "practice_game": {
+        "default": "mdi:scoreboard-outline"
+      },
+      "practice_in_mode": {
+        "default": "mdi:login-variant"
+      },
+      "practice_out_mode": {
+        "default": "mdi:logout-variant"
+      },
+      "practice_bull_mode": {
+        "default": "mdi:bullseye-arrow"
+      },
+      "weekly_report_day": {
+        "default": "mdi:calendar-week-begin"
+      },
+      "practice_golf_holes": {
+        "default": "mdi:golf"
+      },
+      "practice_round_the_world_order": {
+        "default": "mdi:earth"
+      },
+      "tournament_format": {
+        "default": "mdi:tournament"
+      },
+      "tournament_game": {
+        "default": "mdi:bullseye"
+      }
+    },
+    "sensor": {
+      "board_event": {
+        "default": "mdi:bell-ring"
+      },
+      "last_throw": {
+        "default": "mdi:arrow-projectile"
+      },
+      "num_throws": {
+        "default": "mdi:counter"
+      },
+      "local_status": {
+        "default": "mdi:bullseye",
+        "state": {
+          "offline": "mdi:lan-disconnect",
+          "stopped": "mdi:stop-circle-outline",
+          "starting": "mdi:play-circle-outline",
+          "stopping": "mdi:stop-circle-outline",
+          "throw": "mdi:bullseye-arrow",
+          "takeout": "mdi:arrow-up-bold-outline",
+          "takeout_in_progress": "mdi:arrow-up-bold-outline",
+          "calibrating": "mdi:crosshairs-gps",
+          "error": "mdi:alert-circle-outline"
+        }
+      },
+      "last_throw_score": {
+        "default": "mdi:counter"
+      },
+      "local_visit_score": {
+        "default": "mdi:counter"
+      },
+      "detection_fps": {
+        "default": "mdi:speedometer"
+      },
+      "camera_fps": {
+        "default": "mdi:speedometer"
+      },
+      "cpu_usage": {
+        "default": "mdi:cpu-64-bit"
+      },
+      "memory_usage": {
+        "default": "mdi:memory"
+      },
+      "training_darts": {
+        "default": "mdi:counter"
+      },
+      "training_triples": {
+        "default": "mdi:counter"
+      },
+      "training_bulls": {
+        "default": "mdi:bullseye"
+      },
+      "training_scores_180": {
+        "default": "mdi:trophy-outline"
+      },
+      "training_points": {
+        "default": "mdi:counter"
+      },
+      "training_started": {
+        "default": "mdi:clock-start"
+      },
+      "training_doubles": {
+        "default": "mdi:numeric-2-circle-outline"
+      },
+      "training_misses": {
+        "default": "mdi:target-variant"
+      },
+      "training_visits": {
+        "default": "mdi:counter"
+      },
+      "training_scores_100": {
+        "default": "mdi:numeric"
+      },
+      "training_scores_140": {
+        "default": "mdi:fire"
+      },
+      "training_average": {
+        "default": "mdi:chart-line"
+      },
+      "training_highest_visit": {
+        "default": "mdi:trophy"
+      },
+      "training_last_session": {
+        "default": "mdi:chart-timeline-variant"
+      },
+      "host_os": {
+        "default": "mdi:desktop-classic"
+      },
+      "host_processor": {
+        "default": "mdi:cpu-64-bit"
+      },
+      "vision_version": {
+        "default": "mdi:eye-outline"
+      },
+      "practice_remaining": {
+        "default": "mdi:counter"
+      },
+      "practice_checkout": {
+        "default": "mdi:flag-checkered"
+      },
+      "practice_target": {
+        "default": "mdi:bullseye"
+      },
+      "practice_first_9_average": {
+        "default": "mdi:numeric-9-box-outline"
+      },
+      "practice_checkout_rate": {
+        "default": "mdi:flag-checkered"
+      },
+      "practice_doubles_rate": {
+        "default": "mdi:percent-circle-outline"
+      },
+      "practice_legs_played": {
+        "default": "mdi:counter"
+      },
+      "correction_rate": {
+        "default": "mdi:target-variant"
+      },
+      "personal_best": {
+        "default": "mdi:trophy"
+      },
+      "darts_today": {
+        "default": "mdi:calendar-today"
+      },
+      "training_streak": {
+        "default": "mdi:fire"
+      },
+      "player_profiles": {
+        "default": "mdi:account-group"
+      },
+      "last_match": {
+        "default": "mdi:trophy-variant"
+      },
+      "favourite_double": {
+        "default": "mdi:target"
+      },
+      "online_bridge_last_event": {
+        "default": "mdi:web"
+      },
+      "weekly_report": {
+        "default": "mdi:calendar-week"
+      },
+      "achievements": {
+        "default": "mdi:trophy-award"
+      },
+      "tournament": {
+        "default": "mdi:tournament",
+        "state": {
+          "finished": "mdi:trophy",
+          "no_tournament": "mdi:tournament"
+        }
+      }
+    },
+    "switch": {
+      "detection": {
+        "default": "mdi:bullseye",
+        "state": {
+          "off": "mdi:pause-circle-outline"
+        }
+      },
+      "upstream": {
+        "default": "mdi:cloud-off-outline",
+        "state": {
+          "on": "mdi:cloud"
+        }
+      },
+      "auto_calibrate_on_start": {
+        "default": "mdi:auto-fix"
+      },
+      "auto_calibrate": {
+        "default": "mdi:auto-fix"
+      },
+      "auto_distortion": {
+        "default": "mdi:auto-fix"
+      },
+      "free_stuck_takeout": {
+        "default": "mdi:restore"
+      },
+      "training_session": {
+        "default": "mdi:target-account",
+        "state": {
+          "off": "mdi:target"
+        }
+      },
+      "training_auto_start": {
+        "default": "mdi:play-circle-outline"
+      },
+      "practice_double_out": {
+        "default": "mdi:numeric-2-box-outline"
+      },
+      "practice_double_in": {
+        "default": "mdi:login-variant"
+      },
+      "practice_bull_off": {
+        "default": "mdi:bullseye"
+      },
+      "practice_bull_off_distance": {
+        "default": "mdi:ruler"
+      },
+      "practice_personal_routes": {
+        "default": "mdi:routes"
+      },
+      "practice_teams": {
+        "default": "mdi:account-multiple"
+      },
+      "achievements_enabled": {
+        "default": "mdi:trophy-outline",
+        "state": {
+          "off": "mdi:trophy-broken"
+        }
+      },
+      "tournament_third_place": {
+        "default": "mdi:podium-bronze"
+      },
+      "tournament_random_draw": {
+        "default": "mdi:shuffle-variant"
+      },
+      "practice_manual_entry": {
+        "default": "mdi:keyboard-outline"
+      },
+      "practice_three_in_a_bed": {
+        "default": "mdi:bed"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "default": "mdi:division"
+      }
+    },
+    "text": {
+      "practice_player": {
+        "default": "mdi:account"
+      },
+      "tournament_players": {
+        "default": "mdi:account-group"
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "default": "mdi:calendar-check"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "default": "mdi:clock-outline"
+      }
+    }
+  },
+  "services": {
+    "start_game": {
+      "service": "mdi:play-circle-outline"
+    },
+    "delete_player": {
+      "service": "mdi:account-remove"
+    },
+    "export": {
+      "service": "mdi:file-export-outline"
+    },
+    "save_highlight": {
+      "service": "mdi:camera-plus-outline"
+    },
+    "voice_sound": {
+      "service": "mdi:account-voice"
+    },
+    "generate_voice_pack": {
+      "service": "mdi:waveform"
+    },
+    "link_player": {
+      "service": "mdi:account-link"
+    },
+    "unlink_player": {
+      "service": "mdi:account-cancel"
+    },
+    "start_tournament": {
+      "service": "mdi:tournament"
+    },
+    "stop_tournament": {
+      "service": "mdi:stop-circle-outline"
+    },
+    "next_tournament_match": {
+      "service": "mdi:skip-next-circle-outline"
+    },
+    "correct_dart": {
+      "service": "mdi:pencil-outline"
+    },
+    "throw_dart": {
+      "service": "mdi:keyboard-outline"
+    },
+    "enter_visit": {
+      "service": "mdi:numeric"
+    },
+    "next_player": {
+      "service": "mdi:skip-next"
+    },
+    "undo_visit": {
+      "service": "mdi:undo"
+    }
+  }
+}

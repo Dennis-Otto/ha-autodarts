@@ -22,12 +22,12 @@ No Autodarts at your board? The integration works for any steel dartboard: you e
 
 Install the integration first: steps 1 to 3 of [From zero to the scoreboard](getting-started.md) show how, with Home Assistant and HACS.
 
-[![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Open your Home Assistant instance and start setting up HomeDarts for Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
-1. Select the button above, or open **Settings → Devices & services → Add integration → Autodarts**.
+1. Select the button above, or open **Settings → Devices & services → Add integration → HomeDarts for Autodarts**.
 2. Choose **Dartboard without Autodarts: enter every dart yourself**.
 3. Give the board a name, such as *Garage*, and select **Submit**. The integration creates a device with this name and the entities of the games, the training and the statistics.
-4. Create the dashboard: **Settings → Dashboards → Add dashboard → Autodarts**. Its *Live* and *Scoreboard* views have the keypad.
+4. Create the dashboard: **Settings → Dashboards → Add dashboard → HomeDarts**. Its *Live* and *Scoreboard* views have the keypad.
 
 <img src="images/en/setup-manual.png" alt="The setup form for a dartboard without Autodarts, with the name Dartboard filled in" width="520">
 
@@ -46,7 +46,7 @@ On a dartboard without Autodarts, the live card and the scoreboard show the keyp
 
 <img src="images/en/manual-live.png" alt="The live card of the dartboard without Autodarts, named Garage: Sam has entered T20 and S19 for 79 in a 501 match against Alex, who needs 324; the board shows both beds, the keypad below the darts and no footer with connections or detection" width="760">
 
-The [actions](entities.md#enter-a-dart-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.md#enter-a-visits-score-autodartsenter_visit), `autodarts.next_player` and `autodarts.undo_visit` do the same from an automation, a script or a button of your own; with several boards, name the board's `config_entry_id`.
+The [actions](entities.md#enter-a-dart-homedartsthrow_dart) `homedarts.throw_dart`, [`homedarts.enter_visit`](entities.md#enter-a-visits-score-homedartsenter_visit), `homedarts.next_player` and `homedarts.undo_visit` do the same from an automation, a script or a button of your own; with several boards, name the board's `config_entry_id`.
 
 **By voice:** with the blueprint [Enter darts by voice](automations.md#enter-darts-by-voice), you tell Assist your darts, as at a dart machine: "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" or "Undo", in English, German, Spanish, French or Dutch. Assist answers in the words of the scoreboard's caller, such as "140 for Alex, 361 left. Sam, you require 501.", and refuses a visit for a player who is not at the board.
 
@@ -86,14 +86,14 @@ A Granboard sends its darts to Home Assistant over Bluetooth, so nobody enters t
 
 Each dartboard without Autodarts is an entry and a device of its own, with its own entities, games and statistics, and so is each Autodarts board beside them. The automatic dashboard gives every board its views. The actions of the integration then need the board's `config_entry_id`, as with several Autodarts boards. A [tournament on several boards](games.md#a-tournament-on-several-boards) plays on dartboards with and without Autodarts side by side.
 
-To remove a board and its statistics, delete its entry in **Settings → Devices & services → Autodarts**.
+To remove a board and its statistics, delete its entry in **Settings → Devices & services → HomeDarts for Autodarts**.
 
 ## Autodarts later
 
 When your dartboard gets Autodarts, connect the board to it instead of adding a new one, and everything stays: the games, the training sessions, the players, their badges and every statistic, the entity IDs and your dashboards.
 
 1. Set up the Autodarts board in its Board Manager as usual.
-2. Open **Settings → Devices & services → Autodarts**, the menu (⋮) of the dartboard → **Reconfigure**.
+2. Open **Settings → Devices & services → HomeDarts for Autodarts**, the menu (⋮) of the dartboard → **Reconfigure**.
 3. Choose **Search for boards on this network** or **Enter board address**, as when [adding a board](installation.md#add-your-board).
 
 The dartboard then has the board's ID, the detection, the cameras, the board settings and the controls, and the automatic dashboard its *Board* view. *Practice manual entry* stays on, so the keypad's darts keep counting, and turning it off leaves the darts to the cameras. If Home Assistant finds the board on its own and offers *Autodarts board found*, ignore that offer and reconfigure the dartboard: added as a new entry, the board would start with statistics of its own.

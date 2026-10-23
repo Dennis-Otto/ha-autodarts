@@ -8,7 +8,7 @@ the same until the integration or the games change.
 
 After each move at the board, the timeline keeps the states of the Autodarts
 entities that changed, with the moment of the move, and the answers of the
-autodarts/positions command that the training card asks for. `python
+homedarts/positions command that the training card asks for. `python
 scripts/record_demo.py` writes it to docs/demo/timeline.json; the screenshot bot
 does so with the images, so that the demo follows the integration.
 """
@@ -33,8 +33,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed_exact,
 )
 
-from custom_components.autodarts.bot import Bot
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.bot import Bot
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import BASE, board, entity_id, setup_local, switch
 
@@ -195,7 +195,7 @@ class Recorder:
         positions = {}
         progress = self.coordinator.games.progress
         for player in ["", *sorted(self.players)]:
-            # The answer of autodarts/positions with its aim model, as the aim map
+            # The answer of homedarts/positions with its aim model, as the aim map
             # of the training card asks for it.
             answer = plain(
                 {
@@ -333,7 +333,7 @@ async def record(hass: HomeAssistant, aioclient_mock: Any, freezer: Any) -> dict
         f"{BASE}/api/cams/state", json={"isRunning": True, "isOpened": True}
     )
     with patch(
-        "custom_components.autodarts.local_api.AutodartsLocalClient.events", connected
+        "custom_components.homedarts.local_api.AutodartsLocalClient.events", connected
     ):
         entry = await setup_local(hass, aioclient_mock, state=board())
         entry.runtime_data.local.games.bot = Bot(random.Random(1))

@@ -34,7 +34,7 @@ const STATS = {
 };
 const setup = (states = {}, config = {}, options = {}) => {
   const hass = makeHass({ states: { ...READY, ...visit(), ...states }, ...options });
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 const sum = (card) => [...$(card, ".visit .sum").children].map((part) => part.textContent);
 const facts = (card) => $$(card, ".facts span").map((fact) => fact.textContent);
@@ -615,7 +615,7 @@ test("a connection that drops while nothing changes loses no call", () => {
   tap(card);
   said();
   // A scoreboard that leaves before it saw Home Assistant comes back as a new one.
-  const bare = mount("autodarts-scoreboard-card");
+  const bare = mount("homedarts-scoreboard-card");
   bare.remove();
   document.body.append(bare);
   bare.hass = hass;

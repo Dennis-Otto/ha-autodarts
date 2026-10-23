@@ -17,17 +17,17 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.config_flow import AutodartsConfigFlow
-from custom_components.autodarts.const import DISCOVERY_URL
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.games_coordinator import AutodartsGamesCoordinator
-from custom_components.autodarts.local_api import AutodartsLocalClient
-from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
-from custom_components.autodarts.manual_coordinator import (
+from custom_components.homedarts.config_flow import AutodartsConfigFlow
+from custom_components.homedarts.const import DISCOVERY_URL
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.games_coordinator import AutodartsGamesCoordinator
+from custom_components.homedarts.local_api import AutodartsLocalClient
+from custom_components.homedarts.local_coordinator import AutodartsLocalCoordinator
+from custom_components.homedarts.manual_coordinator import (
     MANUAL_STATE,
     AutodartsManualCoordinator,
 )
-from custom_components.autodarts.storage import storage_key
+from custom_components.homedarts.storage import storage_key
 
 from .local_helpers import entity_summary, mock_board, mock_board_v2, record
 
@@ -35,14 +35,13 @@ BOARD_ID = "manual_0123456789abcdef0123456789abcdef"
 DATA = {
     "board_id": BOARD_ID,
     "manual_board": True,
-    "local_only": True,
     "name": "Garage",
 }
 
 
 async def setup_manual(hass, **kwargs) -> MockConfigEntry:
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id=BOARD_ID,
         title="Autodarts (Garage)",
@@ -57,7 +56,7 @@ async def setup_manual(hass, **kwargs) -> MockConfigEntry:
 
 def entity(hass, platform: str, key: str) -> str | None:
     return er.async_get(hass).async_get_entity_id(
-        platform, "autodarts", f"{BOARD_ID}_{key}"
+        platform, "homedarts", f"{BOARD_ID}_{key}"
     )
 
 
@@ -68,13 +67,13 @@ def value(hass, platform: str, key: str) -> str:
 
 
 async def act(hass, service: str, **data) -> None:
-    await hass.services.async_call("autodarts", service, data, blocking=True)
+    await hass.services.async_call("homedarts", service, data, blocking=True)
     await hass.async_block_till_done()
 
 
 async def test_setup_offers_a_dartboard_without_autodarts(hass):
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_USER}
+        "homedarts", context={"source": SOURCE_USER}
     )
     assert result["menu_options"][-1] == "manual"
     result = await hass.config_entries.flow.async_configure(
@@ -92,7 +91,7 @@ async def test_setup_offers_a_dartboard_without_autodarts(hass):
     )
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Autodarts (Garage)"
+    assert result["title"] == "Garage"
     entry = result["result"]
     board_id = entry.data["board_id"]
     assert board_id.startswith("manual_") and len(board_id) == 39
@@ -100,7 +99,6 @@ async def test_setup_offers_a_dartboard_without_autodarts(hass):
     assert entry.data == {
         "board_id": board_id,
         "manual_board": True,
-        "local_only": True,
         "name": "Garage",
     }
     # Without a board, there is no bridge for online matches to set up.
@@ -110,7 +108,7 @@ async def test_setup_offers_a_dartboard_without_autodarts(hass):
 async def test_a_home_may_have_several_dartboards_without_autodarts(hass):
     for name in ("Garage", "Cellar"):
         result = await hass.config_entries.flow.async_init(
-            "autodarts", context={"source": SOURCE_USER}
+            "homedarts", context={"source": SOURCE_USER}
         )
         await hass.config_entries.flow.async_configure(
             result["flow_id"], {"next_step_id": "manual"}
@@ -118,10 +116,10 @@ async def test_a_home_may_have_several_dartboards_without_autodarts(hass):
         flow = hass.config_entries.flow.async_progress()[0]["flow_id"]
         await hass.config_entries.flow.async_configure(flow, {"name": name})
         await hass.async_block_till_done()
-    entries = hass.config_entries.async_entries("autodarts")
+    entries = hass.config_entries.async_entries("homedarts")
     assert [entry.title for entry in entries] == [
-        "Autodarts (Garage)",
-        "Autodarts (Cellar)",
+        "Garage",
+        "Cellar",
     ]
     assert len({entry.unique_id for entry in entries}) == 2
     names = {
@@ -143,7 +141,7 @@ async def test_a_dartboard_without_autodarts_has_the_entities_of_the_games(
     coordinator = entry.runtime_data.local
     assert isinstance(coordinator, AutodartsManualCoordinator)
     assert coordinator.manual_board and coordinator.update_interval is None
-    assert entry.runtime_data.cloud is None and entry.runtime_data.bridge is None
+    assert entry.runtime_data.bridge is None
     assert entity_summary(hass, entry) == snapshot
     assert value(hass, "sensor", "local_status") == "manual"
     assert value(hass, "sensor", "local_visit_score") == "0"
@@ -165,7 +163,7 @@ async def test_a_dartboard_without_autodarts_has_the_entities_of_the_games(
     ):
         assert entity(hass, platform, key) is None, key
     device = dr.async_get(hass).async_get_device_by_identifier(
-        ("autodarts", BOARD_ID), entry.entry_id
+        ("homedarts", BOARD_ID), entry.entry_id
     )
     assert device.name == "Garage"
     assert device.manufacturer is None
@@ -292,7 +290,7 @@ async def test_diagnostics_of_a_dartboard_without_autodarts(hass):
 
 async def reconfigure(hass, entry, step: str) -> dict:
     result = await hass.config_entries.flow.async_init(
-        "autodarts",
+        "homedarts",
         context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
     )
     assert result["type"] is FlowResultType.MENU
@@ -312,7 +310,7 @@ async def play_a_visit(hass) -> None:
 
 def board_state(hass, platform: str, key: str) -> str:
     entity_id = er.async_get(hass).async_get_entity_id(
-        platform, "autodarts", f"board-1_{key}"
+        platform, "homedarts", f"board-1_{key}"
     )
     assert entity_id is not None, key
     return hass.states.get(entity_id).state
@@ -338,7 +336,6 @@ async def test_an_autodarts_board_joins_a_dartboard_without_autodarts(
     assert entry.title == "Autodarts (Garage)"
     assert entry.data == {
         "board_id": "board-1",
-        "local_only": True,
         "name": "Garage",
         "host": "192.0.2.10",
         "port": 3180,
@@ -347,7 +344,7 @@ async def test_an_autodarts_board_joins_a_dartboard_without_autodarts(
     assert not entry.runtime_data.local.manual_board
     # Every entity keeps its entity ID, with the board's ID in its unique ID.
     assert (
-        registry.async_get_entity_id("sensor", "autodarts", "board-1_training_darts")
+        registry.async_get_entity_id("sensor", "homedarts", "board-1_training_darts")
         == darts
     )
     assert not [
@@ -363,7 +360,7 @@ async def test_an_autodarts_board_joins_a_dartboard_without_autodarts(
     assert board_state(hass, "switch", "practice_manual_entry") == "on"
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
     assert [(device.name, device.identifiers) for device in devices] == [
-        ("Garage", {("autodarts", "board-1")})
+        ("Garage", {("homedarts", "board-1")})
     ]
     assert devices[0].manufacturer == "Autodarts"
 
@@ -402,7 +399,7 @@ async def test_an_entity_left_behind_by_the_board_gives_way(hass, aioclient_mock
     registry = er.async_get(hass)
     # An entity of the board's earlier entry, which the registry kept.
     left = registry.async_get_or_create(
-        "sensor", "autodarts", "board-1_training_darts", suggested_object_id="old"
+        "sensor", "homedarts", "board-1_training_darts", suggested_object_id="old"
     )
     darts = entity(hass, "sensor", "training_darts")
     result = await reconfigure(hass, entry, "local")
@@ -416,7 +413,7 @@ async def test_an_entity_left_behind_by_the_board_gives_way(hass, aioclient_mock
     assert "api_generation" not in entry.data
     assert registry.async_get(left.entity_id) is None
     assert (
-        registry.async_get_entity_id("sensor", "autodarts", "board-1_training_darts")
+        registry.async_get_entity_id("sensor", "homedarts", "board-1_training_darts")
         == darts
     )
 
@@ -424,7 +421,7 @@ async def test_an_entity_left_behind_by_the_board_gives_way(hass, aioclient_mock
 async def test_a_board_of_another_entry_stays_where_it_is(hass, aioclient_mock):
     mock_board(aioclient_mock)
     other = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="board-1",
         data={"board_id": "board-1", "host": "192.0.2.10", "port": 3180},

@@ -1,5 +1,5 @@
 ---
-description: "Installiere die Autodarts-Integration mit HACS, füge dein Board über seine Adresse im Netzwerk hinzu und richte es ein. Ohne Anmeldung und API-Schlüssel."
+description: "Installiere HomeDarts for Autodarts mit HACS, füge dein Board über seine Adresse im Netzwerk hinzu und richte es ein. Ohne Anmeldung und API-Schlüssel."
 ---
 
 # Installation und Einrichtung
@@ -11,41 +11,41 @@ description: "Installiere die Autodarts-Integration mit HACS, füge dein Board �
 | Voraussetzung | Details |
 | --- | --- |
 | Home Assistant | **2026.8** oder neuer ([warum 2026.8](decisions/0022-home-assistant-2026-8-as-the-oldest-release.md), auf Englisch) |
-| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux. Autodarts Desktop unter Windows und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
+| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux. Autodarts Desktop unter Windows und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
 | Ohne Autodarts | Jede Dartscheibe: Du gibst die Darts auf einem Tastenfeld ein, siehe [Spielen ohne Autodarts](without-autodarts.de.md); dafür braucht es weder einen Board-PC noch ein Netzwerk zum Board |
-| Optional: Cloud-Spieldaten | Ein Autodarts-Konto und eine OAuth-Client-ID, die Autodarts für diese Integration vergibt (siehe [Cloud-Verknüpfung](#autodarts-cloud-verknüpfen-optional)) |
 
-Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kein Passwort und keinen API-Schlüssel**. Die Registrierung deines Boards bei Autodarts bleibt unverändert.
+Die Integration braucht **keine Autodarts-Anmeldung, kein Passwort und keinen API-Schlüssel**. Die Registrierung deines Boards bei Autodarts bleibt unverändert. Eine Verknüpfung mit der Autodarts-Cloud hat sie auch nicht: Autodarts vergibt keine Client-IDs an Integrationen von Dritten ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 ## Installieren
 
 ### Mit HACS (empfohlen)
 
-[![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
+[![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration)
 
-1. Öffne **HACS** in Home Assistant.
-2. Öffne das Menü (⋮) → **Benutzerdefinierte Repositories**. Füge `https://github.com/Dennis-Otto/ha-autodarts` mit dem Typ **Integration** hinzu.
-3. Suche nach **Autodarts**, öffne es und wähle **Herunterladen**.
-4. Starte Home Assistant neu.
+1. Wähle die Schaltfläche oben, oder öffne **HACS** in Home Assistant, suche nach **HomeDarts** und öffne es.
+2. Wähle **Herunterladen**.
+3. Starte Home Assistant neu.
 
-Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen. HACS installiert das signierte Release-Paket `autodarts.zip`, dieselbe Datei wie bei der [manuellen Installation](#manuell).
+Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen. HACS installiert das signierte Release-Paket `homedarts.zip`, dieselbe Datei wie bei der [manuellen Installation](#manuell).
+
+Seit dem 20. Oktober 2026 steht die Integration im Standardkatalog von HACS ([hacs/default#11306](https://github.com/hacs/default/pull/11306)). Hast du sie vorher als benutzerdefiniertes Repository hinzugefügt, musst du nichts tun: HACS führt sie nicht mehr unter den benutzerdefinierten Repositories und behält deine Installation und ihre Updates.
 
 #### Betas für Tester
 
-Jede Änderung für Nutzer wird wenige Minuten, nachdem sie in `main` ankommt, zu einer Beta des nächsten Releases, etwa `1.10.0-beta.2`. Um sie zu testen, öffne **Einstellungen → Geräte & Dienste → HACS**, wähle das Gerät **Autodarts**, aktiviere seine Entität **Pre-release** (Vorabversion), die HACS ausgeschaltet und deaktiviert anlegt, und schalte sie ein. HACS bietet dann jede Beta als Update an, samt ihren Hinweisen; schaltest du sie wieder aus, bringt dich das nächste Release zurück. Eine Beta kann Fehler haben, die das Release nicht hat: Bitte melde sie in einem [Testerbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml).
+Jede Änderung für Nutzer wird wenige Minuten, nachdem sie in `main` ankommt, zu einer Beta des nächsten Releases, etwa `1.10.0-beta.2`. Um sie zu testen, öffne **Einstellungen → Geräte & Dienste → HACS**, wähle das Gerät **HomeDarts for Autodarts**, aktiviere seine Entität **Pre-release** (Vorabversion), die HACS ausgeschaltet und deaktiviert anlegt, und schalte sie ein. HACS bietet dann jede Beta als Update an, samt ihren Hinweisen; schaltest du sie wieder aus, bringt dich das nächste Release zurück. Eine Beta kann Fehler haben, die das Release nicht hat: Bitte melde sie in einem [Testerbericht](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=tester_report.yml).
 
 ### Manuell
 
-1. Lade `autodarts.zip` der neuesten Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter. Die Datei enthält die Dateien der Integration ohne umgebenden Ordner.
-2. Lege in deiner Home-Assistant-Konfiguration den Ordner `custom_components/autodarts` an und entpacke die Datei dort. Danach gibt es `config/custom_components/autodarts/manifest.json`.
+1. Lade `homedarts.zip` der neuesten Version von [GitHub](https://github.com/Dennis-Otto/homedarts-for-autodarts/releases) herunter. Die Datei enthält die Dateien der Integration ohne umgebenden Ordner.
+2. Lege in deiner Home-Assistant-Konfiguration den Ordner `custom_components/homedarts` an und entpacke die Datei dort. Danach gibt es `config/custom_components/homedarts/manifest.json`.
 3. Starte Home Assistant neu.
 
-Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts` prüft mit der GitHub CLI, dass es aus diesem Repository gebaut wurde.
+Der Release-Workflow signiert jedes Paket: `gh attestation verify homedarts.zip --repo Dennis-Otto/homedarts-for-autodarts` prüft mit der GitHub CLI, dass es aus diesem Repository gebaut wurde.
 
 ## Board hinzufügen
 
-[![Home Assistant öffnen und Autodarts einrichten.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Home Assistant öffnen und HomeDarts for Autodarts einrichten.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
 Es gibt drei Wege für ein Autodarts-Board; alle führen zum selben, vollständig lokalen Board. Ein vierter fügt eine [Dartscheibe ohne Autodarts](#4-eine-dartscheibe-ohne-autodarts) hinzu.
 
@@ -56,7 +56,7 @@ Welcher Weg zu deinem Board passt:
   <img src="images/de/add-board-light.png" alt="Welcher Weg zum Board passt: Eine Dartscheibe ohne Autodarts bekommt den vierten Weg, Dartscheibe ohne Autodarts, und ihre Darts gibst du auf dem Tastenfeld ein. Ein Autodarts-Board mit Board Manager 2 erscheint meist von selbst als Autodarts-Board gefunden unter Entdeckt: Wähle Hinzufügen und bestätige. Sonst gibst du die Adresse des Board-PCs ein, wenn du sie kennst, oder suchst Boards im Netzwerk; findet die Suche kein Board, öffnet sich das Adressformular. Jeder Weg mit Autodarts endet beim selben lokalen Board, einem Gerät mit all seinen Entitäten" width="480">
 </picture>
 
-<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen, Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
+<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü von HomeDarts: Boards im Netzwerk suchen, Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
 
 ### 1. Automatische Erkennung (Board Manager 2)
 
@@ -88,31 +88,16 @@ Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gib dem Bo
 
 ### Nach der Einrichtung
 
-Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entities.de.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](cards.de.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](cards.de.md).
-
-## Autodarts-Cloud verknüpfen (optional)
-
-Mit einem verknüpften Autodarts-Konto kommen Spieldaten aus der Cloud dazu: Spielmodus, Match-Status, Runde, Punkte der Aufnahme und geworfene Darts. Die lokale Steuerung hängt nicht davon ab. Sie funktioniert weiter, wenn die Cloud nicht erreichbar ist oder die Anmeldung abläuft.
-
-> **Stand:** Für die Verknüpfung braucht es eine öffentliche OAuth-Client-ID mit Geräteanmeldung, die Autodarts für diese Integration vergibt. Sie ist beantragt, aber noch nicht enthalten. Bis dahin bieten Einrichtung und **Neu konfigurieren** die Cloud-Verknüpfung nicht an. Alles Lokale funktioniert ohne sie.
-
-So wird es ablaufen, sobald die Client-ID verfügbar ist:
-
-1. Wähle bei der Einrichtung **Cloud-Konto verknüpfen**. Bei einem bestehenden Board wählst du **Neu konfigurieren → Cloud-Konto verknüpfen**.
-2. Home Assistant zeigt einen Code wie `ABCD-EFGH` und einen Link. Öffne den Link auf einem beliebigen Gerät, melde dich bei Autodarts an und bestätige den Code.
-3. Home Assistant macht selbstständig weiter. Hat dein Konto mehrere Boards, wählst du eines aus.
-
-Dein Passwort sieht Home Assistant nie. Die Token erneuern sich automatisch. Läuft eine Anmeldung ab oder wird sie widerrufen, bittet Home Assistant um eine **erneute Anmeldung**; die lokale Steuerung läuft währenddessen weiter.
+Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entities.de.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → HomeDarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](cards.de.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findet **Karte hinzufügen** die Karten, wenn du nach *HomeDarts* suchst; siehe [Dashboard-Karten](cards.de.md).
 
 ## Neu konfigurieren
 
-Öffne **Einstellungen → Geräte & Dienste → Autodarts** und im Menü des Boards (⋮) **Neu konfigurieren**. Du kannst dort:
+Öffne **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts** und im Menü des Boards (⋮) **Neu konfigurieren**. Du kannst dort:
 
 - das Board neu suchen oder eine neue Adresse eintragen, etwa nach einer Netzwerkänderung;
-- die Cloud-Verknüpfung hinzufügen oder erneuern, sobald sie verfügbar ist;
 - das Autodarts-Board anschließen, das eine [Dartscheibe ohne Autodarts](without-autodarts.de.md#autodarts-später) bekommen hat, die dabei ihre Spiele und Statistiken behält.
 
-Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse oder ein Konto, das zu einem anderen Board gehört, lehnt die Integration ab.
+Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse, die zu einem anderen Board gehört, lehnt die Integration ab.
 
 ## Von Board Manager 1 auf Board Manager 2 umsteigen
 
@@ -124,19 +109,25 @@ Autodarts ersetzt den klassischen Board Manager durch den Headless **Board Manag
 
 Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten. Was ein Spieler dabei am Board-PC selbst bemerkt hat, etwa Kameras, die neu auszuwählen sind, steht unter [Von Autodarts 1.x auf 2.x](troubleshooting.de.md#von-autodarts-1x-auf-2x).
 
+## Von Version 1.x aktualisieren
+
+Bis Version 1.18 hieß diese Integration Autodarts, mit der Domain `autodarts`; seit 2.0 heißt sie HomeDarts for Autodarts, mit der Domain `homedarts`. Aktualisiere sie wie gewohnt in HACS und starte Home Assistant neu; meldet HACS *No manifest.json file found*, starte Home Assistant zuerst neu und aktualisiere noch einmal ([HACS aktualisiert nicht auf 2.0](troubleshooting.de.md#hacs-aktualisiert-nicht-auf-20)). Füge dann **HomeDarts for Autodarts** hinzu, oder wähle beim gefundenen Board **Hinzufügen**, und wähle **Boards der Integration Autodarts übernehmen**: Deine Boards behalten ihre Einstellungen, Entitäten, ihren Verlauf, ihre Statistiken und Dashboards. Danach bittet eine Reparatur um einen weiteren Neustart. Bei einer manuellen Installation entpackst du die neue Version in `config/custom_components/homedarts`; den alten Ordner entfernt die Übernahme.
+
+[Von Autodarts zu HomeDarts](new-name.de.md) erklärt jeden Schritt, was die Übernahme behält und was du selbst änderst, etwa Automationen, die `autodarts.start_game` aufrufen.
+
 ## Von der ursprünglichen Integration umsteigen
 
-Diese Integration nutzt dieselbe Domain `autodarts` wie [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts); deshalb kann nur eine der beiden installiert sein.
+[Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts), der Prototyp, mit dem HomeDarts begann, hat die Domain `autodarts`, HomeDarts die Domain `homedarts`. Deshalb können beide nebeneinander installiert sein, und vorher musst du nichts entfernen. Die Einträge der ursprünglichen Integration übernimmt HomeDarts nicht, deshalb fügst du dein Board in HomeDarts hinzu.
 
-1. Entferne in HACS das ursprüngliche Repository und füge dieses hinzu, wie unter [Installieren](#mit-hacs-empfohlen) beschrieben. Alternativ ersetzt du `config/custom_components/autodarts` von Hand.
-2. Starte Home Assistant neu und behalte den bestehenden Eintrag unter **Geräte & Dienste**.
-
-Einträge der ersten Version, die eine Adresse oder ein Kontopasswort gespeichert hatten, werden automatisch umgestellt; das Passwort wird dabei gelöscht. Ist das Board während des Updates aus, wird die Umstellung beim nächsten Start wiederholt. Einträge mit der alten Autodarts-Anmeldung laufen lokal weiter. Fehlt einem solchen Eintrag die Board-Adresse, bittet Home Assistant dich, sie über **Neu konfigurieren** einzutragen.
+1. Installiere HomeDarts, wie unter [Installieren](#mit-hacs-empfohlen) beschrieben, und [füge dein Board hinzu](#board-hinzufügen). Die ursprüngliche Integration läuft weiter.
+2. Stell deine Automationen auf die Entitäten und Ereignisse von HomeDarts um. [Umstieg von anderen Werkzeugen](coming-from.de.md#die-ursprüngliche-integration) nennt, was an die Stelle jedes Sensors der ursprünglichen Integration tritt.
+3. Nutzt nichts mehr die ursprüngliche Integration, lösche ihren Eintrag unter **Einstellungen → Geräte & Dienste**: Er enthält die Anmeldung deines Autodarts-Kontos.
+4. Öffne in HACS die ursprüngliche Integration, dann ihr Menü (⋮) → **Entfernen**, und lösche auch `Trkal/HACSAutodarts` unter dem Menü (⋮) → **Benutzerdefinierte Repositories**. Starte Home Assistant neu.
 
 ## Entfernen
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei wird auch alles gelöscht, was die Integration für das Board gespeichert hat: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit Match-Verlauf und Doubles, der Wochenbericht, der Trainingskalender und die Reparaturhinweise. Sichere vorher, was du behalten willst, mit [`autodarts.export`](entities.de.md#trainingsdaten-exportieren-autodartsexport). Highlight-Fotos und Exporte bleiben, wo sie sind.
-2. Um den Code zu deinstallieren, öffnest du **Autodarts** in HACS und wählst **Entfernen**. Bei einer manuellen Installation löschst du `config/custom_components/autodarts`.
+1. Öffne **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei wird auch alles gelöscht, was die Integration für das Board gespeichert hat: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit Match-Verlauf und Doubles, der Wochenbericht, der Trainingskalender und die Reparaturhinweise. Sichere vorher, was du behalten willst, mit [`homedarts.export`](entities.de.md#trainingsdaten-exportieren-homedartsexport). Highlight-Fotos und Exporte bleiben, wo sie sind.
+2. Um den Code zu deinstallieren, öffnest du **HomeDarts for Autodarts** in HACS und wählst **Entfernen**. Bei einer manuellen Installation löschst du `config/custom_components/homedarts`.
 3. Starte Home Assistant neu. Die Dashboard-Karten verschwinden mit der Integration. Entferne Karten und Automationen, die sie verwenden.
 
 Am Board selbst ändert die Integration nichts; es funktioniert danach wie zuvor.

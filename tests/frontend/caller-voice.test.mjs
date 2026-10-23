@@ -7,7 +7,7 @@ import { $, READY, loadCards, makeHass, mount, settle, update, window } from "./
 
 const { callerSounds, loadSound, voicePack, voicePackName } = await loadCards();
 
-const BASE = "/media/local/autodarts/voices/russ-bray";
+const BASE = "/media/local/homedarts/voices/russ-bray";
 const url = (file) => `${BASE}/${encodeURIComponent(file).replace(/%2F/g, "/")}`;
 const SOUNDS = {
   180: [url("180.mp3"), url("180+2.mp3")],
@@ -122,7 +122,7 @@ const setup = (wiring, config = {}) => {
   const hass = { ...makeHass({ states: { ...READY, ...visit(), ...x01(501) } }), ...wiring };
   delete hass.asked;
   delete hass.fetched;
-  const card = mount("autodarts-scoreboard-card", hass, { caller: true, caller_voice: "russ-bray", ...config });
+  const card = mount("homedarts-scoreboard-card", hass, { caller: true, caller_voice: "russ-bray", ...config });
   return { hass, card };
 };
 const tap = (card) => $(card, ".caller-toggle").click();
@@ -257,7 +257,7 @@ test("without an audio context, the browser's voice calls, also with a pack", as
   const wiring = homeAssistant();
   const { hass, card } = setup(wiring);
   tap(card);
-  assert.deepEqual(wiring.asked, [{ type: "autodarts/voice_pack", pack: "russ-bray" }]);
+  assert.deepEqual(wiring.asked, [{ type: "homedarts/voice_pack", pack: "russ-bray" }]);
   await settle();
   card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   assert.deepEqual(await played(), ['"Caller on"', '"180"']);
@@ -391,7 +391,7 @@ test("an unknown pack, or a Home Assistant that cannot hand out its files, leave
   });
   const { hass, card } = setup(wiring);
   tap(card);
-  card.setConfig({ type: "custom:autodarts-scoreboard-card", caller: true, caller_voice: "piper-en" });
+  card.setConfig({ type: "custom:homedarts-scoreboard-card", caller: true, caller_voice: "piper-en" });
   card.hass = update(hass, { ...visit(dart(20, 1)), ...x01(481, ["S20"]) });
   assert.deepEqual(
     wiring.asked.map((message) => message.pack),

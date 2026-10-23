@@ -6,7 +6,7 @@
 # The topics that people browse GitHub by, on top of those of the blueprint's
 # answers: GitHub shows twenty at most.
 [repository]
-topics = ["wled", "scoreboard", "hacs-custom", "darts-scoreboard", "x01"]
+topics = ["homedarts", "wled", "scoreboard", "darts-scoreboard", "x01"]
 
 # The end-to-end tests in Docker (e2e.yml): one check for all of them, with Board
 # Manager 1 and 2 and with the oldest supported Home Assistant. It passes when they

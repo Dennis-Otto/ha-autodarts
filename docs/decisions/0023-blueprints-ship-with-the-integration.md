@@ -9,7 +9,7 @@ description: "Why the release package carries the blueprints and each start keep
 
 ## Context
 
-The blueprints read the attributes of the board events and call the actions of the integration, so each version of a blueprint belongs to a version of the integration. HACS updates only the integration, though, and a blueprint stays as it was imported: the guide asked users to update both together by hand, with **Re-import blueprint**, which fetches the blueprint from `source_url` on the main branch. Main can be ahead of the latest release, so an older installation could get a blueprint that relies on events, attributes or actions it lacks, and defaults such as `| int(0)` would hide the mistake ([#383](https://github.com/Dennis-Otto/ha-autodarts/issues/383)). Thirty commits have changed the blueprints since they were added.
+The blueprints read the attributes of the board events and call the actions of the integration, so each version of a blueprint belongs to a version of the integration. HACS updates only the integration, though, and a blueprint stays as it was imported: the guide asked users to update both together by hand, with **Re-import blueprint**, which fetches the blueprint from `source_url` on the main branch. Main can be ahead of the latest release, so an older installation could get a blueprint that relies on events, attributes or actions it lacks, and defaults such as `| int(0)` would hide the mistake ([#383](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/383)). Thirty commits have changed the blueprints since they were added.
 
 Home Assistant saves a blueprint imported from `github.com/<owner>/<repository>` as `/config/blueprints/automation/<owner>/<file>`, here `Dennis-Otto/`. It writes the file anew: without comments, with the address it came from as `source_url`, and with every option of a selector that its release knows, such as `multiple: false`, which differs between releases of Home Assistant.
 
@@ -21,7 +21,7 @@ Home Assistant saves a blueprint imported from `github.com/<owner>/<repository>`
 
 ## Decision
 
-Option 3. The release package carries `custom_components/autodarts/blueprints/`, a copy of `blueprints/` that `python scripts/ship_blueprints.py` makes, and `blueprint_versions.json` with a fingerprint of every version of each blueprint that main has had. Each start of Home Assistant compares each blueprint of the release with its file in `/config/blueprints/automation/Dennis-Otto/`:
+Option 3. The release package carries `custom_components/homedarts/blueprints/`, a copy of `blueprints/` that `python scripts/ship_blueprints.py` makes, and `blueprint_versions.json` with a fingerprint of every version of each blueprint that main has had. Each start of Home Assistant compares each blueprint of the release with its file in `/config/blueprints/automation/Dennis-Otto/`:
 
 - A missing file is installed, unless the integration saw it before: then the user deleted it, and it stays deleted. `.storage/autodarts.blueprints` remembers the files the integration saw.
 - A file that is the version of the release stays as it is, also when Home Assistant's import wrote it: the comparison validates the selectors of both with the running Home Assistant, which completes them alike.

@@ -29,9 +29,9 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts import granboard
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.granboard import (
+from custom_components.homedarts import granboard
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.granboard import (
     BUTTON,
     FRAMES,
     RETRY_MAX_SECONDS,
@@ -40,7 +40,7 @@ from custom_components.autodarts.granboard import (
     FrameReader,
     Hit,
 )
-from custom_components.autodarts.manual import parse_bed
+from custom_components.homedarts.manual import parse_bed
 
 from .local_helpers import mock_board
 
@@ -49,7 +49,6 @@ BOARD_ID = "granboard_aabbccddee01"
 DATA = {
     "board_id": BOARD_ID,
     "manual_board": True,
-    "local_only": True,
     "name": "Granboard",
     "granboard": ADDRESS,
 }
@@ -167,7 +166,7 @@ def ble(hass):
 
 async def setup_granboard(hass) -> MockConfigEntry:
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id=BOARD_ID,
         title="Autodarts (Granboard)",
@@ -204,7 +203,7 @@ def visit(entry) -> list[str]:
 
 def connectivity(hass) -> str:
     entity_id = er.async_get(hass).async_get_entity_id(
-        "binary_sensor", "autodarts", f"{BOARD_ID}_granboard_connected"
+        "binary_sensor", "homedarts", f"{BOARD_ID}_granboard_connected"
     )
     assert entity_id is not None
     return hass.states.get(entity_id).state
@@ -291,7 +290,7 @@ async def test_the_granboards_that_bluetooth_sees(hass):
 
 async def test_a_discovered_granboard_is_set_up_as_a_dartboard(hass):
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_BLUETOOTH}, data=service_info()
+        "homedarts", context={"source": SOURCE_BLUETOOTH}, data=service_info()
     )
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "granboard_confirm"
@@ -304,13 +303,13 @@ async def test_a_discovered_granboard_is_set_up_as_a_dartboard(hass):
         )
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Autodarts (Pub)"
+    assert result["title"] == "Pub"
     entry = result["result"]
     assert entry.unique_id == BOARD_ID
     assert entry.data == {**DATA, "name": "Pub"}
     # The same board, found again, is set up already.
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_BLUETOOTH}, data=service_info()
+        "homedarts", context={"source": SOURCE_BLUETOOTH}, data=service_info()
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
@@ -318,7 +317,7 @@ async def test_a_discovered_granboard_is_set_up_as_a_dartboard(hass):
 
 async def test_a_granboard_is_chosen_from_those_bluetooth_sees(hass):
     configured = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id=granboard.board_id("AA:BB:CC:DD:EE:09"),
         data={**DATA, "granboard": "AA:BB:CC:DD:EE:09"},
@@ -326,7 +325,7 @@ async def test_a_granboard_is_chosen_from_those_bluetooth_sees(hass):
     configured.add_to_hass(hass)
     seen = [service_info(), service_info("AA:BB:CC:DD:EE:09")]
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_USER}
+        "homedarts", context={"source": SOURCE_USER}
     )
     assert "granboard" in result["menu_options"]
     with patch.object(granboard, "async_discovered", return_value=seen):
@@ -354,14 +353,14 @@ async def test_a_granboard_is_chosen_from_those_bluetooth_sees(hass):
 
 async def test_a_granboard_set_up_meanwhile_is_not_set_up_twice(hass):
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_USER}
+        "homedarts", context={"source": SOURCE_USER}
     )
     with patch.object(granboard, "async_discovered", return_value=[service_info()]):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"next_step_id": "granboard"}
         )
     MockConfigEntry(
-        domain="autodarts", version=2, unique_id=BOARD_ID, data=DATA
+        domain="homedarts", version=2, unique_id=BOARD_ID, data=DATA
     ).add_to_hass(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"address": ADDRESS}
@@ -372,7 +371,7 @@ async def test_a_granboard_set_up_meanwhile_is_not_set_up_twice(hass):
 
 async def test_no_granboard_in_reach(hass):
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_USER}
+        "homedarts", context={"source": SOURCE_USER}
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"next_step_id": "granboard"}
@@ -395,7 +394,7 @@ async def test_the_darts_of_the_board_are_entered_in_order(hass, ble):
     await notify(hass, ble.client, b"8.0@", b"BTN@")
     assert visit(entry) == []
     darts = er.async_get(hass).async_get_entity_id(
-        "sensor", "autodarts", f"{BOARD_ID}_training_darts"
+        "sensor", "homedarts", f"{BOARD_ID}_training_darts"
     )
     assert hass.states.get(darts).state == "3"
     await notify(hass, ble.client, b"4.0@", b"7.7@")
@@ -674,7 +673,7 @@ async def test_without_home_assistant_s_bluetooth(hass, caplog):
     assert connectivity(hass) == "off"
     # The darts are still entered on the keypad.
     await hass.services.async_call(
-        "autodarts", "throw_dart", {"segment": "T20"}, blocking=True
+        "homedarts", "throw_dart", {"segment": "T20"}, blocking=True
     )
     assert visit(entry) == ["T20"]
     assert await hass.config_entries.async_unload(entry.entry_id)
@@ -682,7 +681,7 @@ async def test_without_home_assistant_s_bluetooth(hass, caplog):
 
 async def test_a_dartboard_without_a_granboard_has_no_link(hass):
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="manual_0123",
         data={key: value for key, value in DATA.items() if key != "granboard"}
@@ -697,7 +696,7 @@ async def test_a_dartboard_without_a_granboard_has_no_link(hass):
     assert diagnostics["connection"] == {"manual_board": True}
     assert (
         er.async_get(hass).async_get_entity_id(
-            "binary_sensor", "autodarts", "manual_0123_granboard_connected"
+            "binary_sensor", "homedarts", "manual_0123_granboard_connected"
         )
         is None
     )
@@ -708,7 +707,7 @@ async def test_an_autodarts_board_takes_the_place_of_the_granboard(
 ):
     entry = await connected(hass, ble)
     result = await hass.config_entries.flow.async_init(
-        "autodarts",
+        "homedarts",
         context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
     )
     result = await hass.config_entries.flow.async_configure(
@@ -728,14 +727,14 @@ async def test_an_autodarts_board_takes_the_place_of_the_granboard(
     assert (
         entities.async_get_entity_id(
             "binary_sensor",
-            "autodarts",
+            "homedarts",
             f"{entry.data['board_id']}_granboard_connected",
         )
         is None
     )
     assert (
         entities.async_get_entity_id(
-            "binary_sensor", "autodarts", f"{BOARD_ID}_granboard_connected"
+            "binary_sensor", "homedarts", f"{BOARD_ID}_granboard_connected"
         )
         is None
     )

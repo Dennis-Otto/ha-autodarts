@@ -5,10 +5,10 @@ import pytest
 import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.profiles import NAME_LENGTH
-from custom_components.autodarts.services import GAME_TEXT
-from custom_components.autodarts.voice import refusal
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.profiles import NAME_LENGTH
+from custom_components.homedarts.services import GAME_TEXT
+from custom_components.homedarts.voice import refusal
 
 from .local_helpers import board, setup_local, state
 from .test_manual_board import setup_manual
@@ -148,7 +148,7 @@ async def test_the_answer_speaks_the_language_of_home_assistant(hass, aioclient_
         # Home Assistant's own refusal, for a board it does not know, in words.
         (
             {"config_entry_id": "unknown"},
-            "Integration autodarts config entry with ID unknown was not found.",
+            "Integration homedarts config entry with ID unknown was not found.",
         ),
     ],
 )
@@ -221,7 +221,7 @@ async def test_home_assistants_refusals_speak_its_language(hass, aioclient_mock)
     hass.config.language = "de"
     answer = await start(hass, True, game="501", config_entry_id="unknown")
     assert answer["message"] == (
-        "Konfigurationseintrag mit ID unknown zur Integration autodarts wurde nicht"
+        "Konfigurationseintrag mit ID unknown zur Integration homedarts wurde nicht"
         " gefunden."
     )
     answer = await hass.services.async_call(

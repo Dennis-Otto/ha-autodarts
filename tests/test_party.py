@@ -3,14 +3,14 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.board import distance_mm
-from custom_components.autodarts.party import (
+from custom_components.homedarts.board import distance_mm
+from custom_components.homedarts.party import (
     HALVE_IT_START,
     KILLER_LIVES,
     BullOff,
     make_party,
 )
-from custom_components.autodarts.practice import MAX_PLAYERS, PracticeGame
+from custom_components.homedarts.practice import MAX_PLAYERS, PracticeGame
 
 from .local_helpers import dart, throw
 

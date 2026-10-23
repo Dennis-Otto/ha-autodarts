@@ -6,7 +6,7 @@ import {
   dashboardStrategy,
   playersHtml,
   playersView,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const profiles = {
   state: "2",
@@ -102,7 +102,7 @@ test("the players card shows statistics, the balance and who won", () => {
 });
 
 test("the dashboard gets a players view once a player has a profile", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "homedarts" });
   const hass = (items, states = {}) => ({
     locale: { language: "en" },
     entities: Object.fromEntries(items.map((item) => [item.entity_id, item])),
@@ -122,5 +122,5 @@ test("the dashboard gets a players view once a player has a profile", () => {
   );
   const players = withProfiles.views.find((view) => view.path === "players");
   assert.equal(players.title, "Players");
-  assert.equal(players.sections[0].cards[0].type, "custom:autodarts-players-card");
+  assert.equal(players.sections[0].cards[0].type, "custom:homedarts-players-card");
 });

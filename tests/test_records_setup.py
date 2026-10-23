@@ -7,7 +7,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.diagnostics import (
+from custom_components.homedarts.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
@@ -87,9 +87,9 @@ async def test_darts_today_the_daily_goal_and_a_personal_best(
 
 
 async def test_personal_bests_survive_a_restart(hass, aioclient_mock, hass_storage):
-    hass_storage["autodarts.records-entry.training"] = {
+    hass_storage["homedarts.records-entry.training"] = {
         "version": 1,
-        "key": "autodarts.records-entry.training",
+        "key": "homedarts.records-entry.training",
         "data": {
             "records": {
                 "bests": {
@@ -114,7 +114,7 @@ async def test_personal_bests_survive_a_restart(hass, aioclient_mock, hass_stora
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts", version=2, data=local_entry_data(), entry_id="records-entry"
+        domain="homedarts", version=2, data=local_entry_data(), entry_id="records-entry"
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

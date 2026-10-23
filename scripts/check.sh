@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The checks of Autodarts, the same ones its CI runs. Run them before every
+# The checks of HomeDarts for Autodarts, the same ones its CI runs. Run them before every
 # push:  bash scripts/check.sh
 # The tools come from:  pip install --require-hashes -r requirements-test.txt
 #
@@ -206,7 +206,7 @@ version_in() {
   fi
 }
 version_in version.txt '^[0-9][^[:space:]]*'
-version_in custom_components/autodarts/manifest.json '"version": "[^"]+"'
+version_in custom_components/homedarts/manifest.json '"version": "[^"]+"'
 echo "Every file has version $release."
 
 step "Git hooks"

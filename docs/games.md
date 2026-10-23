@@ -48,10 +48,10 @@ There are four ways to start a game. All of them end in the same place: the *Pra
 
 1. **On the screen at the board.** Tap **New game** on the [scoreboard](scoreboard.md#choose-the-next-game), choose the game, the players and the format, and tap **Start**. The screen also opens by itself a few seconds after a game ends, ready for a rematch. **Tournament** on the same screen starts a [tournament](#tournaments).
 2. **On the dashboard.** The *Live* view of the [automatic dashboard](cards.md#automatic-dashboard) has the practice controls: *Practice game*, the number of players, their names and start scores, legs, sets and the rules. Choosing a game starts it.
-3. **In an automation or script** with the action [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), which sets everything in one call:
+3. **In an automation or script** with the action [`homedarts.start_game`](entities.md#start-a-practice-game-homedartsstart_game), which sets everything in one call:
 
    ```yaml
-   action: autodarts.start_game
+   action: homedarts.start_game
    data:
      game: "501"
      players: [Alex, Sam]
@@ -80,10 +80,10 @@ Player names cannot contain curly brackets, the percent sign, the number sign (#
 
 A dart the board read wrong, a dart it missed, or the visits of a player without cameras: Home Assistant puts the visit right before it counts.
 
-- **Correct a dart:** tap the dart on the [scoreboard](scoreboard.md#correct-and-enter-darts) and choose the right bed, or use [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart). The remaining score, a bust or a win, the Cricket marks and the statistics follow at once. The board keeps its own reading; when it corrects the dart itself later, its reading counts again. Tap the spot on the pad's board, and the dart also counts where it really is for the dart positions.
-- **Enter a dart:** with *Practice manual entry* on, the scoreboard's keypad or [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart) adds a dart as if the board had detected it. This works with the detection stopped too, so a player without cameras can play along.
+- **Correct a dart:** tap the dart on the [scoreboard](scoreboard.md#correct-and-enter-darts) and choose the right bed, or use [`homedarts.correct_dart`](entities.md#correct-a-dart-homedartscorrect_dart). The remaining score, a bust or a win, the Cricket marks and the statistics follow at once. The board keeps its own reading; when it corrects the dart itself later, its reading counts again. Tap the spot on the pad's board, and the dart also counts where it really is for the dart positions.
+- **Enter a dart:** with *Practice manual entry* on, the scoreboard's keypad or [`homedarts.throw_dart`](entities.md#enter-a-dart-homedartsthrow_dart) adds a dart as if the board had detected it. This works with the detection stopped too, so a player without cameras can play along.
 - **Next player:** ends the visit without pulling the darts; the darts in the board count for nobody until they are pulled. Without darts, the player at the board passes in X01, the Cricket and the party games; in a party game the pass counts as a visit of three misses, so Halve-It halves the points and Golf scores 5 strokes, and a pass that ends the last round counts the leg and the match like a visit with darts. A training game, a bull-off and Killer while the numbers are chosen do not pass.
-- **Undo the last visit:** when a wrong reading is noticed after the takeout, a tap on the last visit beside the darts of the scoreboard or [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) takes the visit back, also after a won leg: its darts become the current visit again, to correct them, and *Next player* ends it. This works while no dart is in the board and the game has not changed since, but not after a visit that decided a tournament match. The statistics, the personal bests, the players' progress with their achievements, the weekly report and the training calendar go back with the visit, so it counts once when it is booked again.
+- **Undo the last visit:** when a wrong reading is noticed after the takeout, a tap on the last visit beside the darts of the scoreboard or [`homedarts.undo_visit`](entities.md#undo-a-visit-homedartsundo_visit) takes the visit back, also after a won leg: its darts become the current visit again, to correct them, and *Next player* ends it. This works while no dart is in the board and the game has not changed since, but not after a visit that decided a tournament match. The statistics, the personal bests, the players' progress with their achievements, the weekly report and the training calendar go back with the visit, so it counts once when it is booked again.
 - **Marked:** darts entered or corrected in Home Assistant carry `manual`, so automations can tell them apart. [The exact rules](how-it-works.md#corrections-and-darts-entered-by-hand).
 
 ## Matches, legs and sets
@@ -121,7 +121,7 @@ When an X01 or Cricket match of several players ends, the scoreboard and the liv
 
 <img src="images/en/scoreboard-handicap.png" alt="Scoreboard of a 501 match with start scores: Alex from 501 with 361 left, Sam from 301 with 241 left and at the board" width="760">
 
-- For a fair match between players of different strength, every player can start X01 from a score of their own, from 2 to 1001: set *Practice start score player N*, use − and + beside the player on the new game screen, or pass `start_scores` to [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game).
+- For a fair match between players of different strength, every player can start X01 from a score of their own, from 2 to 1001: set *Practice start score player N*, use − and + beside the player on the new game screen, or pass `start_scores` to [`homedarts.start_game`](entities.md#start-a-practice-game-homedartsstart_game).
 - `0` plays the game's start score. All other rules stay the same; the average counts from the player's own start, and `leg_won` names it in `start`.
 - The scoreboard and the live card show every start score of its own beside the name.
 - A leg counts for the fewest-darts personal best of the score it really started from: a leg from 301 for `fewest_darts_301`, a leg from 401 for none, because 401 is no X01 game.
@@ -170,7 +170,7 @@ Every match is an X01 match, with start scores for a handicap if you like, or a 
 1. **Start:** tap **New game** on the scoreboard, then **Tournament**. Choose the players, the format, with groups also the number of groups and how many of each go on, the game, the legs and sets and the rules, and tap **Start tournament**. Or start it from an automation:
 
    ```yaml
-   action: autodarts.start_tournament
+   action: homedarts.start_tournament
    data:
      players: [Alex, Sam, Kim, Lea]
      format: round_robin
@@ -181,7 +181,7 @@ Every match is an X01 match, with start scores for a handicap if you like, or a 
    Groups of four for 16 players, of which the first two go on into a knockout of eight:
 
    ```yaml
-   action: autodarts.start_tournament
+   action: homedarts.start_tournament
    data:
      players: [Alex, Sam, Kim, Lea, Max, Tom, Ida, Ben, Zoe, Eli, Noa, Mia, Leo, Ava, Jon, Uma]
      format: groups_knockout
@@ -215,7 +215,7 @@ The [entity reference](entities.md#tournaments) lists the tournament's settings,
 A club evening with two boards or more plays one tournament on all of them: every board plays a match of its own, and the table or the bracket takes the results of every board. Each board may be an Autodarts board or a [dartboard without Autodarts](without-autodarts.md), whose darts are entered on the keypad. Start the tournament on one board, which then holds it, and name the other boards in `boards`: in **Developer tools → Actions** with the device picker, or in an automation by their device or entry:
 
 ```yaml
-action: autodarts.start_tournament
+action: homedarts.start_tournament
 data:
   config_entry_id: 01JA0GARAGEBOARD0000000000 # the board that holds the tournament
   boards: [01JA0CELLARBOARD0000000000] # the other boards

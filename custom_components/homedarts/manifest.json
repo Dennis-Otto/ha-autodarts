@@ -1,0 +1,32 @@
+{
+  "domain": "homedarts",
+  "name": "HomeDarts for Autodarts",
+  "after_dependencies": [
+    "automation",
+    "bluetooth",
+    "frontend",
+    "http",
+    "lovelace",
+    "tts",
+    "webhook"
+  ],
+  "bluetooth": [
+    {
+      "connectable": true,
+      "service_uuid": "442f1570-8a00-9a28-cbe1-e1d4212d53eb"
+    }
+  ],
+  "codeowners": [
+    "@Dennis-Otto"
+  ],
+  "config_flow": true,
+  "documentation": "https://dennis-otto.github.io/homedarts-for-autodarts/",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Dennis-Otto/homedarts-for-autodarts/issues",
+  "requirements": [],
+  "version": "2.0.0",
+  "zeroconf": [
+    "_autodarts-board._tcp.local."
+  ]
+}

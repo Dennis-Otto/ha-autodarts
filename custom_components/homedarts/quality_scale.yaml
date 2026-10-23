@@ -1,0 +1,85 @@
+rules:
+  # Bronze
+  action-setup: done
+  appropriate-polling: done
+  brands: done
+  common-modules: done
+  config-flow-test-coverage: done
+  config-flow: done
+  dependency-transparency: done
+  docs-actions: done
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup:
+    status: done
+    comment: >-
+      Setup fails without a board address. A local board that is switched off
+      does not stop the setup: training, practice games and their events work
+      without it, and its entities recover when it answers.
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions: done
+  config-entry-unloading: done
+  docs-configuration-parameters:
+    status: done
+    comment: >-
+      The only options belong to the bridge for online matches of entries with a
+      local board: switching it on, accepting calls from outside the home network
+      and creating a new secret address. They are documented with the online
+      matches. The board itself is configured in Board Manager.
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: >-
+      There is no login to renew: the integration talks to the Board Manager of
+      the board in the local network, which needs none.
+  test-coverage: done
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery-update-info:
+    status: done
+    comment: >-
+      An announced board whose configured address no longer answers with its
+      board ID raises a repair that moves the entry once the user confirms it:
+      any device can announce a board ID. An address entered in the setup
+      updates the entry directly.
+  discovery: done
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: Each config entry represents exactly one board.
+  entity-category: done
+  entity-device-class: done
+  entity-disabled-by-default: done
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
+  reconfiguration-flow: done
+  repair-issues: done
+  stale-devices:
+    status: exempt
+    comment: Each config entry represents exactly one board; removing the entry removes it.
+
+  # Platinum
+  async-dependency: done
+  inject-websession: done
+  strict-typing: done

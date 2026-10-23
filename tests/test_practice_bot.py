@@ -2,8 +2,8 @@
 
 import json
 
-from custom_components.autodarts.bot import DEFAULT_DELAY
-from custom_components.autodarts.practice import PracticeGame, valid_delay
+from custom_components.homedarts.bot import DEFAULT_DELAY
+from custom_components.homedarts.practice import PracticeGame, valid_delay
 
 from .local_helpers import dart, throw
 

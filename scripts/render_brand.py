@@ -1,11 +1,11 @@
-"""Export bundled Home Assistant brand PNGs from the official SVG sources.
+"""Export the bundled Home Assistant brand PNGs from the SVG source of the icon.
 
 Development-only dependencies: resvg-py==0.5.0 and pillow. See docs/branding/README.md.
 
 The images follow the brand image specification of Home Assistant: square icons of
-256 and 512 pixels, and logos whose shortest side is 128 or 256 pixels, all trimmed
-to the artwork and transparent. The favicon of the website, a square of 48 pixels,
-comes from the same symbol.
+256 and 512 pixels, trimmed to the artwork and transparent. Without a logo of its
+own, Home Assistant shows the icon in place of one. The favicon of the website, a
+square of 48 pixels, comes from the same icon.
 """
 
 from io import BytesIO
@@ -15,8 +15,8 @@ from PIL import Image
 from resvg_py import svg_to_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ROOT / "docs" / "branding"
-DESTINATION = ROOT / "custom_components" / "autodarts" / "brand"
+SOURCE = ROOT / "docs" / "branding" / "icon.svg"
+DESTINATION = ROOT / "custom_components" / "homedarts" / "brand"
 # The favicon of the website (theme.favicon in mkdocs.yml): 48 pixels, the size that
 # Google shows beside a search result, which browsers scale down for a tab.
 FAVICON = ROOT / "docs" / "branding" / "favicon.png"
@@ -49,28 +49,12 @@ def icon(artwork: Image.Image, size: int) -> Image.Image:
     return canvas
 
 
-def logo(artwork: Image.Image, shortest: int) -> Image.Image:
-    """The trimmed wordmark with its shortest side at the given size."""
-    scale = shortest / min(artwork.size)
-    return artwork.resize(
-        (round(artwork.width * scale), round(artwork.height * scale)), Image.LANCZOS
-    )
-
-
 def main() -> None:
-    """Render transparent icons and theme-specific wordmarks at both densities, and
-    the favicon of the website."""
+    """Render the transparent icon at both densities and the favicon of the website."""
     DESTINATION.mkdir(parents=True, exist_ok=True)
-    symbol = render((SOURCES / "icon.svg").read_text(encoding="utf-8"))
-    dark_source = (SOURCES / "logo.svg").read_text(encoding="utf-8")
-    light_source = dark_source.replace('fill="white"', 'fill="#0f172a"')
-    wordmarks = {"logo": render(light_source), "dark_logo": render(dark_source)}
+    symbol = render(SOURCE.read_text(encoding="utf-8"))
     for scale, suffix in ((1, ""), (2, "@2x")):
         icon(symbol, 256 * scale).save(DESTINATION / f"icon{suffix}.png", optimize=True)
-        for name, artwork in wordmarks.items():
-            logo(artwork, 128 * scale).save(
-                DESTINATION / f"{name}{suffix}.png", optimize=True
-            )
     icon(symbol, FAVICON_SIZE).save(FAVICON, optimize=True)
 
 

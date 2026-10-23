@@ -6,11 +6,11 @@ from homeassistant.core import Context
 from homeassistant.exceptions import ServiceValidationError, Unauthorized
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import MAX_LEGS, MAX_SETS
-from custom_components.autodarts.profiles import NAME_LENGTH
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.practice import MAX_LEGS, MAX_SETS
+from custom_components.homedarts.profiles import NAME_LENGTH
 
-from .local_helpers import board, entry_data, mock_cloud, setup_local
+from .local_helpers import board, setup_local
 
 LONGEST = "x" * NAME_LENGTH
 # The actions that forget or write out the data of the players.
@@ -134,22 +134,10 @@ async def test_an_action_names_the_board_problem(hass, aioclient_mock, service):
         "homeassistant",
         "service_config_entry_not_loaded",
     )
-    # Without an entry, only a loaded board with a local connection counts.
+    # Without an entry, only a loaded board counts.
     with pytest.raises(ServiceValidationError) as error:
         await hass.services.async_call(DOMAIN, service, data, blocking=True)
     assert error.value.translation_key == "no_board"
-
-
-async def test_a_cloud_only_board_cannot_play(hass, aioclient_mock):
-    mock_cloud(aioclient_mock)
-    entry = MockConfigEntry(domain=DOMAIN, version=2, data=entry_data())
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    for data in ({"game": "501"}, {"game": "501", "config_entry_id": entry.entry_id}):
-        with pytest.raises(ServiceValidationError) as error:
-            await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
-        assert error.value.translation_key == "no_board"
 
 
 # -- administrators ----------------------------------------------------------------

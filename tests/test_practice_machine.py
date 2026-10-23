@@ -15,13 +15,13 @@ from hypothesis.stateful import (
     rule,
 )
 
-from custom_components.autodarts.board import bed_name
-from custom_components.autodarts.bot import Bot, aim
-from custom_components.autodarts.cricket import CRICKET_GAMES, MARKS_TO_CLOSE
-from custom_components.autodarts.drills import DRILLS, RESULTS
-from custom_components.autodarts.manual import ManualDarts, parse_bed
-from custom_components.autodarts.party import KILLER_LIVES
-from custom_components.autodarts.practice import (
+from custom_components.homedarts.board import bed_name
+from custom_components.homedarts.bot import Bot, aim
+from custom_components.homedarts.cricket import CRICKET_GAMES, MARKS_TO_CLOSE
+from custom_components.homedarts.drills import DRILLS, RESULTS
+from custom_components.homedarts.manual import ManualDarts, parse_bed
+from custom_components.homedarts.party import KILLER_LIVES
+from custom_components.homedarts.practice import (
     GAMES,
     MAX_LEGS,
     MAX_PLAYERS,
@@ -30,8 +30,8 @@ from custom_components.autodarts.practice import (
     X01_RULES,
     PracticeGame,
 )
-from custom_components.autodarts.scoring import BULL_MODES, MODES, STRAIGHT
-from custom_components.autodarts.training import TrainingSession, segments
+from custom_components.homedarts.scoring import BULL_MODES, MODES, STRAIGHT
+from custom_components.homedarts.training import TrainingSession, segments
 
 from .local_helpers import dart
 

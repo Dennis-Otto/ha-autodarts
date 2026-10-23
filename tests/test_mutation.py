@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.autodarts import checkout
+from custom_components.homedarts import checkout
 
 from .conftest import (
     MODULES,
@@ -72,7 +72,7 @@ def test_mutmut_skips_the_tests_that_fail_in_its_copy(monkeypatch):
     monkeypatch.delenv("MUTANT_UNDER_TEST", raising=False)
     assert not skipped("mutation_unsafe")
     # Every run of mutmut sets the variable, the one without a mutant to nothing.
-    for mutant in ("", "stats", "custom_components.autodarts.checkout.x__mutmut_1"):
+    for mutant in ("", "stats", "custom_components.homedarts.checkout.x__mutmut_1"):
         monkeypatch.setenv("MUTANT_UNDER_TEST", mutant)
         assert skipped("mutation_unsafe")
         assert not skipped()
@@ -137,7 +137,7 @@ def test_a_test_that_changes_its_parameters_fails():
 
 def test_every_test_starts_with_the_caches_of_the_integration_empty():
     cached = (checkout.checkout, checkout.setup, checkout._leaves)
-    assert "custom_components.autodarts.checkout" in MODULES
+    assert "custom_components.homedarts.checkout" in MODULES
     assert set(module_caches(checkout)) == set(cached)
     # Emptied before this test, whichever tests ran before it.
     assert [function.cache_info().currsize for function in cached] == [0, 0, 0]
@@ -203,7 +203,7 @@ def test_mutmut_changes_the_functions_with_a_cache():
             "staticmethod",
         }, path
     # The module whose caches matter most has no decorator at all.
-    assert decorators(ROOT / "custom_components/autodarts/checkout.py") == set()
+    assert decorators(ROOT / "custom_components/homedarts/checkout.py") == set()
 
 
 def test_the_property_tests_draw_the_same_examples_in_ci_and_under_mutmut():

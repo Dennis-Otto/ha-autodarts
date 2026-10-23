@@ -14,8 +14,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed_exact,
 )
 
-from custom_components.autodarts.bot import Bot
-from custom_components.autodarts.number import AutodartsBotLevel
+from custom_components.homedarts.bot import Bot
+from custom_components.homedarts.number import AutodartsBotLevel
 
 from .local_helpers import (
     S20,
@@ -212,9 +212,9 @@ async def test_the_bot_throws_its_dart_of_the_bull_off(hass, aioclient_mock, fre
 async def test_the_bot_goes_on_after_a_restart(
     hass, aioclient_mock, hass_storage, freezer
 ):
-    hass_storage["autodarts.bot-entry.training"] = {
+    hass_storage["homedarts.bot-entry.training"] = {
         "version": 1,
-        "key": "autodarts.bot-entry.training",
+        "key": "homedarts.bot-entry.training",
         "data": {
             "practice": {
                 "game": 301,
@@ -228,7 +228,7 @@ async def test_the_bot_goes_on_after_a_restart(
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts", version=2, data=local_entry_data(), entry_id="bot-entry"
+        domain="homedarts", version=2, data=local_entry_data(), entry_id="bot-entry"
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

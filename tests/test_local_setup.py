@@ -1,24 +1,19 @@
-"""Exercise local entities, services and cloud independence in real HA setup."""
+"""Exercise local entities and services in a real HA setup."""
 
 from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.api import API_BASE, REFRESH_URL
-from custom_components.autodarts.camera import AutodartsCamera
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.errors import (
-    AutodartsAuthError,
-    AutodartsConnectionError,
-)
+from custom_components.homedarts.camera import AutodartsCamera
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.errors import AutodartsConnectionError
 
 from .local_helpers import (
     BASE,
@@ -26,7 +21,6 @@ from .local_helpers import (
     STATE,
     entity_id,
     entity_summary,
-    entry_data,
     local_entry_data,
     mock_board,
     setup_local,
@@ -34,11 +28,10 @@ from .local_helpers import (
 )
 
 
-async def test_local_only_setup_entities_and_private_diagnostics(
+async def test_local_setup_entities_and_private_diagnostics(
     hass, aioclient_mock, snapshot
 ):
     entry = await setup_local(hass, aioclient_mock)
-    assert entry.runtime_data.cloud is None
     assert all(str(call[1]).startswith(BASE) for call in aioclient_mock.mock_calls)
     registry = er.async_get(hass)
     assert entity_summary(hass, entry) == snapshot
@@ -54,7 +47,7 @@ async def test_local_only_setup_entities_and_private_diagnostics(
         registry.async_get(entity_id(hass, "button", "calibrate")).disabled_by is None
     )
     device = dr.async_get(hass).async_get_device_by_identifier(
-        ("autodarts", "board-1"), entry.entry_id
+        ("homedarts", "board-1"), entry.entry_id
     )
     assert device.name == "Autodarts Board"
     assert device.sw_version == "1.0.7"
@@ -215,52 +208,6 @@ async def test_disconnect_and_recovery_updates_entities(hass, aioclient_mock):
     assert state(hass, "switch", "detection") == "off"
 
 
-@pytest.mark.usefixtures("cloud_link")
-@pytest.mark.parametrize("failure", ["expired", "unavailable", "legacy"])
-async def test_local_controls_survive_cloud_setup_failure(
-    hass, aioclient_mock, failure
-):
-    mock_board(aioclient_mock)
-    data = {**entry_data(), **local_entry_data(), "local_only": False}
-    if failure == "legacy":
-        data.pop("client_id")
-    elif failure == "expired":
-        aioclient_mock.post(REFRESH_URL, status=400, json={"error": "invalid_grant"})
-    else:
-        aioclient_mock.post(REFRESH_URL, status=503)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    assert state(hass, "switch", "detection") == "off"
-    assert state(hass, "binary_sensor", "local_connected") == "on"
-    if failure != "unavailable":
-        assert any(
-            flow["step_id"] == "reauth_confirm"
-            for flow in hass.config_entries.flow.async_progress()
-        )
-
-
-async def test_cloud_works_when_local_temporarily_unavailable(hass, aioclient_mock):
-    data = {**entry_data(), **local_entry_data(), "local_only": False}
-    aioclient_mock.get(BASE + "/api/state", status=503)
-    aioclient_mock.post(
-        REFRESH_URL,
-        json={"access_token": "new", "refresh_token": "new-refresh", "expires_in": 900},
-    )
-    aioclient_mock.get(
-        API_BASE + "/bs/v0/boards/board-1",
-        json={"id": "board-1", "state": {"connected": True}},
-    )
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    assert state(hass, "sensor", "board_status") == "connected"
-    assert state(hass, "binary_sensor", "local_connected") == "off"
-    assert state(hass, "switch", "detection") == "unavailable"
-
-
 async def test_optional_endpoints_and_delayed_camera_discovery(
     hass, aioclient_mock, freezer
 ):
@@ -269,7 +216,7 @@ async def test_optional_endpoints_and_delayed_camera_discovery(
     assert state(hass, "switch", "auto_calibrate") == "unavailable"
     registry = er.async_get(hass)
     assert (
-        registry.async_get_entity_id("camera", "autodarts", "board-1_camera_0") is None
+        registry.async_get_entity_id("camera", "homedarts", "board-1_camera_0") is None
     )
     coordinator = entry.runtime_data.local
     with patch.object(
@@ -280,7 +227,7 @@ async def test_optional_endpoints_and_delayed_camera_discovery(
         await coordinator.async_refresh()
         await hass.async_block_till_done()
         assert (
-            registry.async_get_entity_id("camera", "autodarts", "board-1_camera_1")
+            registry.async_get_entity_id("camera", "homedarts", "board-1_camera_1")
             is None
         )
         freezer.tick(timedelta(seconds=1))
@@ -322,7 +269,7 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
     config = deepcopy(CONFIG)
     config["auth"]["board_id"] = "another-board"
     mock_board(aioclient_mock, config=config)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     # The entry loads for training and games; the board stays out of reach.
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -332,68 +279,6 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
     assert state(hass, "button", "calibrate") == "unavailable"
     assert state(hass, "switch", "training_session") == "on"
     issue = ir.async_get(hass).async_get_issue(
-        "autodarts", f"wrong_board_{entry.entry_id}"
+        "homedarts", f"wrong_board_{entry.entry_id}"
     )
     assert issue.translation_placeholders == {"address": BASE}
-
-
-async def test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated(
-    hass, aioclient_mock, snapshot
-):
-    mock_board(aioclient_mock)
-    aioclient_mock.post(
-        REFRESH_URL,
-        json={"access_token": "new", "refresh_token": "new-refresh", "expires_in": 900},
-    )
-    aioclient_mock.get(
-        API_BASE + "/bs/v0/boards/board-1",
-        json={
-            "id": "board-1",
-            "name": "Match Board",
-            "ip": BASE,
-            "state": {"connected": True},
-        },
-    )
-    entry = MockConfigEntry(domain="autodarts", version=2, data=entry_data())
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    assert entry.data["host"] == "192.0.2.10"
-    assert entry.data["port"] == 3180
-    # The cloud adds its match entities to the local ones.
-    assert entity_summary(hass, entry) == snapshot
-    assert state(hass, "sensor", "board_status") == "connected"
-    with patch.object(
-        entry.runtime_data.cloud.cloud,
-        "get_board",
-        side_effect=AutodartsAuthError("invalid_token"),
-    ):
-        await entry.runtime_data.cloud.async_refresh()
-    await hass.async_block_till_done()
-    assert state(hass, "sensor", "board_status") == "unavailable"
-    assert state(hass, "switch", "detection") == "off"
-    assert state(hass, "binary_sensor", "local_connected") == "on"
-    assert any(
-        flow["step_id"] == "reauth_confirm"
-        for flow in hass.config_entries.flow.async_progress()
-    )
-
-
-async def test_entry_without_client_id_runs_locally_without_a_login(
-    hass, aioclient_mock
-):
-    """An old cloud entry is not asked for a login that cannot be completed."""
-    mock_board(aioclient_mock)
-    data = {**entry_data(), **local_entry_data(), "local_only": False}
-    data.pop("client_id")
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    assert entry.state == ConfigEntryState.LOADED
-    assert entry.runtime_data.cloud is None
-    assert state(hass, "binary_sensor", "local_connected") == "on"
-    assert not hass.config_entries.flow.async_progress()
-    assert not any(
-        str(call[1]).startswith(API_BASE) for call in aioclient_mock.mock_calls
-    )

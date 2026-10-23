@@ -24,7 +24,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 # What Board Manager 1.0.7, 2.0.0 and 2.0.2 answer, redacted by
 # scripts/capture_board.py; the double of the Docker end-to-end test answers like
@@ -84,25 +84,7 @@ def mock_board(
 
 
 def local_entry_data(board_id="board-1", host="192.0.2.10"):
-    return {
-        "board_id": board_id,
-        "host": host,
-        "port": 3180,
-        "local_only": True,
-    }
-
-
-def entry_data():
-    """A cloud entry, linked with a registered client ID."""
-    return {
-        "client_id": "registered-test-client",
-        "board_id": "board-1",
-        "token": {
-            "access_token": "old",
-            "refresh_token": "old-refresh",
-            "expires_at": 0,
-        },
-    }
+    return {"board_id": board_id, "host": host, "port": 3180}
 
 
 def mock_board_v2(mock, *, system=None, state=None, host=None, base=BASE):
@@ -157,7 +139,7 @@ MISS = ("M", 0, 0)
 async def setup_local(hass, aioclient_mock, **kwargs):
     """A Board Manager 1 board, set up locally."""
     mock_board(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -175,7 +157,7 @@ async def setup_bridge(hass, aioclient_mock, options=None, **kwargs):
     """A Board Manager 1 board whose entry has the options, by default the bridge on."""
     mock_board(aioclient_mock, **kwargs)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         data=local_entry_data(),
         options=BRIDGE if options is None else options,
@@ -190,7 +172,7 @@ async def setup_bridge(hass, aioclient_mock, options=None, **kwargs):
 async def setup_v2(hass, aioclient_mock, **kwargs):
     """A Board Manager 2 board, set up locally."""
     mock_board_v2(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -199,7 +181,7 @@ async def setup_v2(hass, aioclient_mock, **kwargs):
 
 def entity_id(hass, platform, key, board_id="board-1"):
     result = er.async_get(hass).async_get_entity_id(
-        platform, "autodarts", f"{board_id}_{key}"
+        platform, "homedarts", f"{board_id}_{key}"
     )
     assert result is not None
     return result
@@ -265,20 +247,6 @@ async def switch(hass, key: str, on: bool) -> None:
         blocking=True,
     )
     await hass.async_block_till_done()
-
-
-def mock_cloud(mock, board_id="board-1"):
-    """The Autodarts cloud: a token refresh and a board without a match."""
-    from custom_components.autodarts.api import API_BASE, REFRESH_URL
-
-    mock.post(
-        REFRESH_URL,
-        json={"access_token": "new", "refresh_token": "rotated", "expires_in": 900},
-    )
-    mock.get(
-        f"{API_BASE}/bs/v0/boards/{board_id}",
-        json={"id": board_id, "name": "My Board", "state": {"connected": True}},
-    )
 
 
 def entity_summary(hass, entry) -> dict[str, str]:
@@ -392,7 +360,7 @@ def win_leg(game: PracticeGame, winner: int) -> list[tuple[str, dict]]:
 
 # -- blueprints, run by Home Assistant's automation engine ------------------------
 
-BLUEPRINTS = Path(__file__).parents[1] / "blueprints" / "automation" / "autodarts"
+BLUEPRINTS = Path(__file__).parents[1] / "blueprints" / "automation" / "homedarts"
 EVENTS = "event.autodarts_board_events"
 # Consecutive events always get distinct timestamps, even with a frozen clock.
 TICKS = itertools.count(1)
@@ -400,7 +368,7 @@ TICKS = itertools.count(1)
 
 async def automate_all(hass, instances: list[tuple[str, dict]]) -> None:
     configs = [
-        {"use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs}}
+        {"use_blueprint": {"path": f"homedarts/{name}.yaml", "input": inputs}}
         for name, inputs in instances
     ]
     assert await async_setup_component(hass, "automation", {"automation": configs})

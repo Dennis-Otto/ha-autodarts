@@ -9,15 +9,15 @@ import pytest
 from hypothesis import example, given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.cricket import (
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.cricket import (
     CRICKET_NUMBERS,
     next_target,
     play_visit,
 )
-from custom_components.autodarts.practice import PracticeGame, VisitRefused
-from custom_components.autodarts.profiles import clean_name, valid_name
-from custom_components.autodarts.scoring import DOUBLE, SCORE_BEDS, STRAIGHT, score
+from custom_components.homedarts.practice import PracticeGame, VisitRefused
+from custom_components.homedarts.profiles import clean_name, valid_name
+from custom_components.homedarts.scoring import DOUBLE, SCORE_BEDS, STRAIGHT, score
 
 from .local_helpers import dart, throw
 from .test_party import game_of, kinds

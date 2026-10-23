@@ -43,9 +43,9 @@ HA = "http://homeassistant:8123"
 CLIENT_ID = f"{HA}/"
 BOARD = "http://board-mock:3180"
 LOADS = 5
-# Every request of autodarts-card.js, the module with all cards.
-CARD_MODULE = "**/autodarts-card.js*"
-# Seconds for which Safari's requests of autodarts-card.js are held back and then let
+# Every request of homedarts-card.js, the module with all cards.
+CARD_MODULE = "**/homedarts-card.js*"
+# Seconds for which Safari's requests of homedarts-card.js are held back and then let
 # go together, as on a slow network: longer than the five seconds Home Assistant
 # waits for the element of a dashboard strategy.
 CARD_MODULE_DELAY = 6
@@ -62,7 +62,7 @@ WANTED = os.environ.get("BROWSER_STEPS", "")
 # browser.sh gives each of its workers one.
 SHARD = os.environ.get("BROWSER_SHARD", "")
 # The integration as mounted by browser.sh, for the texts every language expects.
-INTEGRATION = Path(__file__).resolve().parents[2] / "custom_components" / "autodarts"
+INTEGRATION = Path(__file__).resolve().parents[2] / "custom_components" / "homedarts"
 
 
 def find(tag: str) -> str:
@@ -79,13 +79,13 @@ def find(tag: str) -> str:
 """
 
 
-CARDS = find("autodarts-card")
-TRAINING_CARDS = find("autodarts-training-card")
-STATUS_CARDS = find("autodarts-status-card")
-SCOREBOARD_CARDS = find("autodarts-scoreboard-card")
-PLAYERS_CARDS = find("autodarts-players-card")
-DOUBLES_CARDS = find("autodarts-doubles-card")
-LEADERBOARD_CARDS = find("autodarts-leaderboard-card")
+CARDS = find("homedarts-card")
+TRAINING_CARDS = find("homedarts-training-card")
+STATUS_CARDS = find("homedarts-status-card")
+SCOREBOARD_CARDS = find("homedarts-scoreboard-card")
+PLAYERS_CARDS = find("homedarts-players-card")
+DOUBLES_CARDS = find("homedarts-doubles-card")
+LEADERBOARD_CARDS = find("homedarts-leaderboard-card")
 FORM_EDITORS = find("hui-form-editor")
 SCOREBOARD_STATE = f"""
 () => {{
@@ -204,7 +204,7 @@ CALL_SERVICE = """
 async ([domain, service, key, data]) => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === key
+    (item) => item.platform === 'homedarts' && item.translation_key === key
   );
   await hass.callService(domain, service, { entity_id: entity.entity_id, ...data });
 }
@@ -214,7 +214,7 @@ STATE_OF = """
 (key) => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === key
+    (item) => item.platform === 'homedarts' && item.translation_key === key
   );
   return hass.states[entity.entity_id].state;
 }
@@ -224,7 +224,7 @@ SET_NAME = """
 async ([index, name]) => {
   const hass = document.querySelector('home-assistant').hass;
   const ids = Object.values(hass.entities)
-    .filter((item) => item.platform === 'autodarts' && item.translation_key === 'practice_player')
+    .filter((item) => item.platform === 'homedarts' && item.translation_key === 'practice_player')
     .map((item) => item.entity_id)
     .sort();
   await hass.callService('text', 'set_value', { entity_id: ids[index], value: name });
@@ -328,11 +328,11 @@ def open_view(
         "console",
         lambda message: (
             message.type == "error"
-            and "autodarts" in message.text.lower()
+            and "homedarts" in message.text.lower()
             and problems.append(f"console: {message.text}")
         ),
     )
-    page.goto(f"{HA}/autodarts-demo/{view}")
+    page.goto(f"{HA}/homedarts-demo/{view}")
     page.wait_for_function(
         f"() => ({cards})().some((card) => card.shadowRoot?.querySelector('{ready}'))",
         timeout=30000,
@@ -389,7 +389,7 @@ def visit(browser: Browser) -> None:
     # the visit too, and after one the card showed 0 points before the reset had even
     # left Home Assistant, so the check of the board's commands came too early.
     commands = len(board_requests()["commands"])
-    reset = page.locator("autodarts-card button[data-action='reset']")
+    reset = page.locator("homedarts-card button[data-action='reset']")
     reset.click()
     check(reset.text_content() == "Confirm?", "Reset did not ask for confirmation")
     check(
@@ -404,7 +404,7 @@ def visit(browser: Browser) -> None:
     )
 
     commands = len(board_requests()["commands"])
-    page.locator("autodarts-card button[data-action='toggle']").click()
+    page.locator("homedarts-card button[data-action='toggle']").click()
     page.wait_for_function(
         f"() => ({CARD_STATE})().toggle === 'Start detection'", timeout=15000
     )
@@ -413,7 +413,7 @@ def visit(browser: Browser) -> None:
         [(c["method"], c["path"]) for c in new] == [("PUT", "/api/stop")],
         f"Stop sent {new}",
     )
-    page.locator("autodarts-card button[data-action='toggle']").click()
+    page.locator("homedarts-card button[data-action='toggle']").click()
     page.wait_for_function(
         f"() => ({CARD_STATE})().toggle === 'Stop detection'", timeout=15000
     )
@@ -585,12 +585,12 @@ def progress(browser: Browser) -> None:
     page.close()
 
     page, problems = open_view(browser, "training", TRAINING_CARDS, ".heat-layer")
-    page.locator("autodarts-training-card button[data-mode='positions']").click()
+    page.locator("homedarts-training-card button[data-mode='positions']").click()
     page.wait_for_function(
         f"() => ({TRAINING_CARDS})()[0].shadowRoot.querySelectorAll('.heat-layer .position').length > 0",
         timeout=15000,
     )
-    page.locator("autodarts-training-card button[data-source='Alex']").click()
+    page.locator("homedarts-training-card button[data-source='Alex']").click()
     page.wait_for_function(
         f"() => ({TRAINING_CARDS})()[0].shadowRoot"
         ".querySelector('button[data-source=\"Alex\"]').getAttribute('aria-pressed') === 'true'",
@@ -601,7 +601,7 @@ def progress(browser: Browser) -> None:
         timeout=15000,
     )
     # Alex's aim map, from the worker of the card, or how many darts at a treble it needs.
-    page.locator("autodarts-training-card button[data-mode='aim']").click()
+    page.locator("homedarts-training-card button[data-mode='aim']").click()
     page.wait_for_function(
         f"() => {{ const root = ({TRAINING_CARDS})()[0].shadowRoot;"
         " return root.querySelector('.heat-layer .aim-best')"
@@ -618,7 +618,7 @@ def progress(browser: Browser) -> None:
         ".querySelector('[data-record=\"maximums\"] .record-leader .who')?.textContent"
     )
     check(leader == "Alex", f"Most 180s: {leader}")
-    page.locator("autodarts-leaderboard-card button[data-period='week']").click()
+    page.locator("homedarts-leaderboard-card button[data-period='week']").click()
     pressed = page.evaluate(
         f"() => ({LEADERBOARD_CARDS})()[0].shadowRoot"
         ".querySelector('[data-period=\"week\"]').getAttribute('aria-pressed')"
@@ -656,7 +656,7 @@ def training(browser: Browser) -> None:
     check(state == expected, f"Training card state {state} != {expected}")
 
     # Ending a session needs a second tap; starting one does not.
-    toggle = page.locator("autodarts-training-card button[data-action='session']")
+    toggle = page.locator("homedarts-training-card button[data-action='session']")
     toggle.click()
     check(toggle.text_content() == "Confirm?", "Ending did not ask for confirmation")
     toggle.click()
@@ -687,7 +687,7 @@ def status(browser: Browser) -> None:
     check(state["info"] == expected_info, f"Status card board PC: {state}")
 
     commands = len(board_requests()["commands"])
-    toggle = page.locator("autodarts-status-card .toggle")
+    toggle = page.locator("homedarts-status-card .toggle")
     toggle.click()
     page.wait_for_function(
         f"() => ({STATUS_STATE})().detection === 'false'", timeout=15000
@@ -703,7 +703,7 @@ def status(browser: Browser) -> None:
     )
 
     # Restarting the Board Manager needs a second tap.
-    restart = page.locator("autodarts-status-card button[data-action='restart']")
+    restart = page.locator("homedarts-status-card button[data-action='restart']")
     commands = len(board_requests()["commands"])
     restart.click()
     check(restart.text_content() == "Confirm?", "Restart did not ask for confirmation")
@@ -720,7 +720,7 @@ def scoreboard(browser: Browser) -> None:
     """The scoreboard view follows the visit, an X01 match, Cricket and a training game."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.goto(f"{HA}/homedarts-auto/scoreboard")
     page.wait_for_function(
         f"() => ({SCOREBOARD_CARDS})().some((card) => card.shadowRoot?.querySelector('.main'))",
         timeout=30000,
@@ -829,7 +829,7 @@ def scoreboard(browser: Browser) -> None:
 CALL_ACTION = """
 async ([service, data]) => {
   const hass = document.querySelector('home-assistant').hass;
-  await hass.callService('autodarts', service, data);
+  await hass.callService('homedarts', service, data);
 }
 """
 
@@ -839,8 +839,8 @@ def play_comfort(browser: Browser) -> None:
     last visit comes back, and the live card corrects a dart the same way."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-demo/keypad")
-    card = page.locator("autodarts-scoreboard-card")
+    page.goto(f"{HA}/homedarts-demo/keypad")
+    card = page.locator("homedarts-scoreboard-card")
     card.locator(".main").wait_for(timeout=30000)
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     page.evaluate(
@@ -901,7 +901,7 @@ def play_comfort(browser: Browser) -> None:
     )
 
     # A keyboard types the score of a visit into the score view, Enter sends it with
-    # autodarts.enter_visit, and the pad keeps the keys for the next one.
+    # homedarts.enter_visit, and the pad keeps the keys for the next one.
     page.evaluate(
         CALL_ACTION,
         ["start_game", {"game": "301", "players": ["Alex"], "bot_level": 0}],
@@ -935,8 +935,8 @@ def play_comfort(browser: Browser) -> None:
     # The live card corrects a dart of the visit the same way; a pencil shows which.
     live = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
     live.add_init_script(CAPTURE_ERRORS)
-    live.goto(f"{HA}/autodarts-auto/live")
-    live_card = live.locator("autodarts-card").first
+    live.goto(f"{HA}/homedarts-auto/live")
+    live_card = live.locator("homedarts-card").first
     live_card.locator(".slots").wait_for(timeout=30000)
     control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
     slots = f"({CARDS})()[0].shadowRoot.querySelectorAll('.slot')"
@@ -966,8 +966,8 @@ def lobby(browser: Browser) -> None:
     """A game is chosen and started on the scoreboard, and ended there again."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
-    card = "autodarts-scoreboard-card"
+    page.goto(f"{HA}/homedarts-auto/scoreboard")
+    card = "homedarts-scoreboard-card"
     page.locator(f"{card} .main").wait_for(timeout=30000)
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     page.evaluate(
@@ -1041,7 +1041,7 @@ def more_games(browser: Browser) -> None:
     """A team match, Tactics and Golf on the scoreboard."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.goto(f"{HA}/homedarts-auto/scoreboard")
     page.wait_for_function(
         f"() => ({SCOREBOARD_CARDS})().some((card) => card.shadowRoot?.querySelector('.main'))",
         timeout=30000,
@@ -1113,8 +1113,8 @@ def tournament(browser: Browser) -> None:
     page.add_init_script(CAPTURE_ERRORS)
     # The step runs the clock of the page through the summary of the match.
     page.clock.install()
-    page.goto(f"{HA}/autodarts-demo/tournament")
-    card = "autodarts-scoreboard-card"
+    page.goto(f"{HA}/homedarts-demo/tournament")
+    card = "homedarts-scoreboard-card"
     page.locator(f"{card} .main").wait_for(timeout=30000)
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     page.evaluate(
@@ -1272,7 +1272,7 @@ def tablet_screen(browser: Browser) -> None:
     # The step runs the clock of the page through the summary of a match and the
     # time before idle mode.
     page.clock.install()
-    card = "autodarts-scoreboard-card"
+    card = "homedarts-scoreboard-card"
 
     def fits(screen: str, targets: bool = True) -> None:
         layout = page.evaluate(TABLET_LAYOUT)
@@ -1295,7 +1295,7 @@ def tablet_screen(browser: Browser) -> None:
     def open_screen(view: str) -> None:
         errors = page_errors(page, [])
         check(not errors, f"Console problems: {errors}")
-        page.goto(f"{HA}/autodarts-demo/{view}")
+        page.goto(f"{HA}/homedarts-demo/{view}")
         page.locator(f"{card} .main").wait_for(timeout=30000)
 
     def game_off() -> None:
@@ -1325,7 +1325,7 @@ def tablet_screen(browser: Browser) -> None:
         page.locator(f"{card} .game", has_text=game).first.click()
 
     # Between games, then the new game screen and an X01 match it starts.
-    page.goto(f"{HA}/autodarts-demo/tournament")
+    page.goto(f"{HA}/homedarts-demo/tournament")
     page.locator(f"{card} .main").wait_for(timeout=30000)
     game_off()
     page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
@@ -1530,7 +1530,7 @@ PHONE_WIDTH = """
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && el.shadowRoot) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-') && el.shadowRoot) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -1730,7 +1730,7 @@ def safari(playwright: Playwright) -> None:
         page = context.new_page()
         page.add_init_script(CAPTURE_ERRORS)
         timeline.follow(page)
-        card = "autodarts-scoreboard-card"
+        card = "homedarts-scoreboard-card"
 
         # With an empty cache on slow Wi-Fi: the cards come after Home Assistant
         # stopped waiting for the strategy, which registered on its own. The request
@@ -1744,7 +1744,7 @@ def safari(playwright: Playwright) -> None:
 
         page.route(CARD_MODULE, hold)
         # Only until the page is there: its load waits for the held module.
-        page.goto(f"{HA}/autodarts-auto/scoreboard", wait_until="commit")
+        page.goto(f"{HA}/homedarts-auto/scoreboard", wait_until="commit")
         page.wait_for_timeout(CARD_MODULE_DELAY * 1000)
         check(
             "/auth/" not in page.url,
@@ -1754,7 +1754,7 @@ def safari(playwright: Playwright) -> None:
         # Once: the strategy's import finds the module that Home Assistant loads.
         check(
             len(held) == 1,
-            f"autodarts-card.js loaded {len(held)} times instead of once",
+            f"homedarts-card.js loaded {len(held)} times instead of once",
         )
         for route in held:
             route.continue_()
@@ -1805,7 +1805,7 @@ def touch_screen(
     page = context.new_page()
     page.add_init_script(CAPTURE_ERRORS)
     page.add_init_script(phone_style(*insets))
-    card = "autodarts-scoreboard-card"
+    card = "homedarts-scoreboard-card"
 
     def fits(screen: str, targets: bool = True, high: bool = True) -> None:
         """Nothing wider than the screen, every control big enough for a finger, and a
@@ -1869,7 +1869,7 @@ def touch_screen(
         )
         control({"status": "Throw", "event": "Takeout finished", "throws": []})
 
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.goto(f"{HA}/homedarts-auto/scoreboard")
     page.locator(f"{card} .main").wait_for(timeout=30000)
     game_off()
     page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
@@ -1928,7 +1928,7 @@ def touch_screen(
     # fingers zoom in, and a finger slides with the loupe from the single 20 to the
     # treble 20 and enters it where it lets go. The keypad is a choice of the card; the
     # demo's keypad view has it.
-    page.goto(f"{HA}/autodarts-demo/keypad")
+    page.goto(f"{HA}/homedarts-demo/keypad")
     page.locator(f"{card} .main").wait_for(timeout=30000)
     page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
     page.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
@@ -1997,11 +1997,11 @@ def touch_screen(
     # The other views: every card as wide as the screen, the tiles' names whole, once
     # the view before has faded out and what the cards show has arrived.
     for view in ("live", "training", "players"):
-        show(page, f"{HA}/autodarts-auto/{view}")
+        show(page, f"{HA}/homedarts-auto/{view}")
         settle(page, scope="page")
         wide(view)
     # What a mouse sees as a tooltip, a finger sees in a bubble over the card.
-    show(page, f"{HA}/autodarts-auto/live")
+    show(page, f"{HA}/homedarts-auto/live")
     page.wait_for_function(
         f"() => ({CARDS})()[0]?.shadowRoot?.querySelector('.recent-visit')",
         timeout=30000,
@@ -2074,7 +2074,7 @@ AUTO_VIEWS = ("live", "scoreboard", "training", "players", "board")
 DEMO_VIEWS = """
 async () => {
   const hass = document.querySelector('home-assistant').hass;
-  const config = await hass.callWS({ type: 'lovelace/config', url_path: 'autodarts-demo' });
+  const config = await hass.callWS({ type: 'lovelace/config', url_path: 'homedarts-demo' });
   return config.views.map((view) => view.path);
 }
 """
@@ -2089,7 +2089,7 @@ LAYOUT_PROBLEMS = """
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -2365,7 +2365,7 @@ def thrown(pages: list[Page], darts: list[dict]) -> None:
 def scoreboard_in_game(pages: list[Page]) -> None:
     """The scoreboard of the demo, not full height, during a practice game: the new
     game button and the caller beside the status, which reads "ready"."""
-    show(pages, f"{HA}/autodarts-demo/scoreboard")
+    show(pages, f"{HA}/homedarts-demo/scoreboard")
     pages[0].evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "301"}]
     )
@@ -2414,9 +2414,9 @@ def screen_views(screens: list[Screen]) -> None:
                 for problem in screen.page.evaluate(PAD_PROBLEMS)
             )
 
-    show(pages, f"{HA}/autodarts-auto/live")
-    views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
-    views += [f"autodarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
+    show(pages, f"{HA}/homedarts-auto/live")
+    views = [f"homedarts-auto/{view}" for view in AUTO_VIEWS]
+    views += [f"homedarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
     for view in views:
         show(pages, f"{HA}/{view}")
         look(screens, view.replace("/", "-"))
@@ -2428,7 +2428,7 @@ def screen_views(screens: list[Screen]) -> None:
 
     # The scoreboard's own screens: the new game screen, four players with long names
     # and the keypad, its board to tap, and Cricket for four.
-    show(pages, f"{HA}/autodarts-auto/scoreboard")
+    show(pages, f"{HA}/homedarts-auto/scoreboard")
     first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
@@ -2439,7 +2439,7 @@ def screen_views(screens: list[Screen]) -> None:
     look(screens, "scoreboard-new-game")
     click("[data-lobby='close']")
     # The keypad is a choice of the card; the demo's keypad view has it.
-    show(pages, f"{HA}/autodarts-demo/keypad")
+    show(pages, f"{HA}/homedarts-demo/keypad")
     first.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
     first.evaluate(CALL_ACTION, ["start_game", {"game": "501", "players": LONG_NAMES}])
     wait_for(pages, f"() => {root}.querySelector('.pad')")
@@ -2496,7 +2496,7 @@ async (tags) => {
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -2639,9 +2639,9 @@ def accessibility_views(browser: Browser) -> list[tuple[str, str, list[dict]]]:
         for page in pages:
             page.evaluate(f"() => {root}.querySelector({selector!r}).click()")
 
-    show(pages, f"{HA}/autodarts-auto/live")
-    views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
-    views += [f"autodarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
+    show(pages, f"{HA}/homedarts-auto/live")
+    views = [f"homedarts-auto/{view}" for view in AUTO_VIEWS]
+    views += [f"homedarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
     for view in views:
         show(pages, f"{HA}/{view}")
         scan(view)
@@ -2649,29 +2649,29 @@ def accessibility_views(browser: Browser) -> list[tuple[str, str, list[dict]]]:
     # The idle screen of the scoreboard, once nobody threw for a while; a practice
     # match on the live card; and the scoreboard's own screens: the new game screen,
     # the keypad with its board, the board of a correction and Cricket.
-    show(pages, f"{HA}/autodarts-demo/idle")
+    show(pages, f"{HA}/homedarts-demo/idle")
     wait_for(
         pages,
         f"() => ({SCOREBOARD_CARDS})()[0]?.shadowRoot?.querySelector('.idle-panel')",
         timeout=30000,
     )
-    scan("autodarts-demo/idle · idle screen")
-    show(pages, f"{HA}/autodarts-demo/board")
+    scan("homedarts-demo/idle · idle screen")
+    show(pages, f"{HA}/homedarts-demo/board")
     pulled(pages)
     first.evaluate(
         CALL_ACTION, ["start_game", {"game": "501", "players": ["Alex", "Sam"]}]
     )
     thrown(pages, [T20, SINGLE_20])
     wait_for(pages, f"() => ({CARDS})()[0]?.shadowRoot.querySelector('.practice')")
-    scan("autodarts-demo/board · practice match")
-    show(pages, f"{HA}/autodarts-auto/scoreboard")
-    scan("autodarts-auto/scoreboard · practice match")
+    scan("homedarts-demo/board · practice match")
+    show(pages, f"{HA}/homedarts-auto/scoreboard")
+    scan("homedarts-auto/scoreboard · practice match")
     click("[data-dart='2']")
     wait_for(pages, f"() => {root}.querySelector('.pad')")
-    scan("autodarts-auto/scoreboard · correcting a dart")
+    scan("homedarts-auto/scoreboard · correcting a dart")
     click("[data-pad='board']")
     wait_for(pages, f"() => {root}.querySelector('.pad-board')")
-    scan("autodarts-auto/scoreboard · the board of a correction")
+    scan("homedarts-auto/scoreboard · the board of a correction")
     pulled(pages)
     first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
@@ -2679,19 +2679,19 @@ def accessibility_views(browser: Browser) -> list[tuple[str, str, list[dict]]]:
     wait_for(pages, f"() => {root}.querySelector('.lobby-cta')")
     click(".lobby-cta")
     wait_for(pages, f"() => {root}.querySelector('.lobby')")
-    scan("autodarts-auto/scoreboard · new game screen")
+    scan("homedarts-auto/scoreboard · new game screen")
     click("[data-lobby='close']")
-    show(pages, f"{HA}/autodarts-demo/keypad")
+    show(pages, f"{HA}/homedarts-demo/keypad")
     first.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
     first.evaluate(
         CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
     )
     wait_for(pages, f"() => {root}.querySelector('.pad')")
     thrown(pages, [T20, SINGLE_20])
-    scan("autodarts-demo/keypad · Cricket with the keypad")
+    scan("homedarts-demo/keypad · Cricket with the keypad")
     click("[data-pad='board']")
     wait_for(pages, f"() => {root}.querySelector('.pad-board')")
-    scan("autodarts-demo/keypad · the board to tap")
+    scan("homedarts-demo/keypad · the board to tap")
     first.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
     first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
@@ -2739,7 +2739,7 @@ HEIGHTS = """
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && el.shadowRoot?.querySelector('ha-card')) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-') && el.shadowRoot?.querySelector('ha-card')) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -2768,9 +2768,9 @@ STEADY_SCREENS = (
 # The live card beside the scoreboard, the full-height scoreboard and the live card
 # with its game.
 STEADY_VIEWS = (
-    "autodarts-demo/hero",
-    "autodarts-auto/scoreboard",
-    "autodarts-auto/live",
+    "homedarts-demo/hero",
+    "homedarts-auto/scoreboard",
+    "homedarts-auto/live",
 )
 # Games from their start to the last dart: the visits, dart by dart. X01 shows routes,
 # a setup with what it leaves, a bust and the game shot; a match of legs and sets
@@ -2916,19 +2916,19 @@ def strategy(browser: Browser) -> None:
         ("players", LEADERBOARD_CARDS, ".leaderboard"),
         ("board", STATUS_CARDS, ".camera"),
     ):
-        page.goto(f"{HA}/autodarts-auto/{view}")
+        page.goto(f"{HA}/homedarts-auto/{view}")
         page.wait_for_function(
             f"() => ({cards})().some((card) => card.shadowRoot?.querySelector('{ready}'))",
             timeout=30000,
         )
     # The live view is the live card alone; the game's rows have a view of their own.
-    page.goto(f"{HA}/autodarts-auto/live")
+    page.goto(f"{HA}/homedarts-auto/live")
     page.wait_for_function(f"() => ({CARDS})().length === 1", timeout=30000)
     rows = find("hui-entities-card")
     check(
         page.evaluate(f"() => ({rows})().length") == 0, "Entity rows in the live view"
     )
-    page.goto(f"{HA}/autodarts-auto/games")
+    page.goto(f"{HA}/homedarts-auto/games")
     page.wait_for_function(f"() => ({rows})().length >= 2", timeout=30000)
     headings = page.evaluate(
         f"() => ({find('hui-heading-card')})().map((card) => card.shadowRoot?.textContent.trim())"
@@ -2952,7 +2952,7 @@ def players_export(browser: Browser) -> None:
         )
     name = download.value.suggested_filename
     check(
-        name.startswith("autodarts-all-") and name.endswith(".zip"),
+        name.startswith("homedarts-all-") and name.endswith(".zip"),
         f"Unexpected export download: {name}",
     )
     with zipfile.ZipFile(download.value.path()) as archive:
@@ -2975,7 +2975,7 @@ def editor(
 ) -> None:
     """Home Assistant builds the card's form from getConfigForm."""
     page, problems = open_view(browser, view, cards, ready)
-    page.goto(f"{HA}/autodarts-demo/{view}?edit=1")
+    page.goto(f"{HA}/homedarts-demo/{view}?edit=1")
     page.wait_for_function(
         f"() => ({cards})().some((card) => card.shadowRoot?.querySelector('{ready}'))",
         timeout=30000,
@@ -3002,13 +3002,13 @@ def strategy_editor(browser: Browser) -> None:
     """Editing the generated dashboard opens the strategy's own editor."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 900})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-auto/live")
+    page.goto(f"{HA}/homedarts-auto/live")
     page.wait_for_function(
         f"() => ({CARDS})().some((card) => card.shadowRoot?.querySelector('.board svg'))",
         timeout=30000,
     )
     page.evaluate(f"() => ({find('hui-root')})()[0]._enableEditMode()")
-    form = page.locator("autodarts-strategy-editor > ha-form")
+    form = page.locator("homedarts-strategy-editor > ha-form")
     form.wait_for(timeout=15000)
     fields = form.evaluate("(element) => element.schema.map((field) => field.name)")
     check(
@@ -3053,13 +3053,13 @@ async (language) => {{
     type: 'frontend/get_translations',
     language,
     category: 'entity',
-    integration: ['autodarts'],
+    integration: ['homedarts'],
   }});
   return {{
     language: hass.locale.language,
     label: root.querySelector('.visit-label').textContent,
     reset: root.querySelector('[data-action="reset"]').textContent,
-    status: served.resources['component.autodarts.entity.sensor.local_status.name'],
+    status: served.resources['component.homedarts.entity.sensor.local_status.name'],
   }};
 }}
 """
@@ -3158,8 +3158,8 @@ class Timeline:
 
     def follow(self, page: Page) -> None:
         def requested(what: str, request: Request) -> None:
-            # The files of the integration, such as autodarts-card.js.
-            if "/autodarts/" in request.url:
+            # The files of the integration, such as homedarts-card.js.
+            if "/homedarts/" in request.url:
                 self.note(f"{what} {request.resource_type} {request.url}")
 
         def opened(frame: Frame) -> None:
@@ -3219,12 +3219,12 @@ def keep_trace(browser: Browser, step: str, timeline: Timeline) -> None:
 
 
 # A dartboard without Autodarts beside the demo board, on a dashboard of its own.
-MANUAL_DASHBOARD = "autodarts-manual"
+MANUAL_DASHBOARD = "homedarts-manual"
 ADD_MANUAL_BOARD = """
 async (name) => {
   const hass = document.querySelector('home-assistant').hass;
   const flow = (path, data) => hass.callApi('POST', `config/config_entries/flow${path}`, data);
-  const menu = await flow('', { handler: 'autodarts' });
+  const menu = await flow('', { handler: 'homedarts' });
   const form = await flow(`/${menu.flow_id}`, { next_step_id: 'manual' });
   const done = await flow(`/${form.flow_id}`, { name });
   return done.result.entry_id;
@@ -3246,9 +3246,9 @@ async ([path, device]) => {
   await hass.callWS({
     type: 'lovelace/config/save', url_path: path,
     config: { views: [
-      { title: 'Live', path: 'live', ...section([card('autodarts-card', { grid_options: { columns: 'full' } })]) },
-      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('autodarts-scoreboard-card', { full_height: true })] },
-      { title: 'Status', path: 'status', ...section([card('autodarts-status-card')]) },
+      { title: 'Live', path: 'live', ...section([card('homedarts-card', { grid_options: { columns: 'full' } })]) },
+      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('homedarts-scoreboard-card', { full_height: true })] },
+      { title: 'Status', path: 'status', ...section([card('homedarts-status-card')]) },
     ] },
   });
 }
@@ -3270,7 +3270,7 @@ def manual_board(browser: Browser) -> None:
     nothing to show, and every view on every screen size; removed again after."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
     page.add_init_script(CAPTURE_ERRORS)
-    page.goto(f"{HA}/autodarts-demo/board")
+    page.goto(f"{HA}/homedarts-demo/board")
     page.wait_for_function(CARDS_DRAWN, timeout=30000)
     entry = page.evaluate(ADD_MANUAL_BOARD, "Garage")
     page.wait_for_function(f"() => ({MANUAL_DEVICE})('{entry}')", timeout=30000)

@@ -39,7 +39,7 @@ function board(asked, answers = {}) {
 
 const setup = (config = {}, callWS, states = {}) => {
   const hass = makeHass({ states: { ...SESSION, ...PROFILES, ...states }, ...(callWS ? { callWS } : {}) });
-  return { hass, card: mount("autodarts-training-card", hass, config) };
+  return { hass, card: mount("homedarts-training-card", hass, config) };
 };
 const pressed = (card, group) =>
   $$(card, `.${group} button`).map((button) => [button.textContent, button.getAttribute("aria-pressed")]);
@@ -63,7 +63,7 @@ test("the heatmap switches between beds, numbers and positions", async () => {
   assert.equal(asked.length, 0);
 
   click(card, '[data-mode="positions"]');
-  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE }]);
+  assert.deepEqual(asked, [{ type: "homedarts/positions", device_id: DEVICE }]);
   await settle();
   assert.equal($(card, "svg[role=img]").getAttribute("aria-label"), "Dartboard with the positions of the darts");
   assert.equal($$(card, ".heat-layer .position").length, 2);
@@ -112,7 +112,7 @@ test("a failed request keeps the last drawing and asks again with the next updat
   card.hass = update(booked, { "sensor.training_points": "300" });
   await settle();
   assert.equal(asked.length, 3);
-  assert.deepEqual(asked.at(-1), { type: "autodarts/positions", device_id: DEVICE });
+  assert.deepEqual(asked.at(-1), { type: "homedarts/positions", device_id: DEVICE });
   assert.equal($$(card, ".heat-layer .position").length, 3);
   // Once answered, the same visit is not asked for again.
   card.hass = update(booked, { "sensor.training_points": "310" });
@@ -255,9 +255,9 @@ test("the heatmap shows a player's own darts", async () => {
     ["T196× · 67%", "D163× · 33%"]
   );
   click(card, '[data-mode="positions"]');
-  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE, player: "Alex" }]);
+  assert.deepEqual(asked, [{ type: "homedarts/positions", device_id: DEVICE, player: "Alex" }]);
   click(card, '[data-source=""]');
-  assert.deepEqual(asked.at(-1), { type: "autodarts/positions", device_id: DEVICE });
+  assert.deepEqual(asked.at(-1), { type: "homedarts/positions", device_id: DEVICE });
   await settle();
   assert.equal($$(card, ".heat-layer .position").length, 2);
 });
@@ -273,7 +273,7 @@ test("the player of the configuration comes first, known or not", async () => {
     ["Kim", "true"],
   ]);
   await settle();
-  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE, player: "Kim" }]);
+  assert.deepEqual(asked, [{ type: "homedarts/positions", device_id: DEVICE, player: "Kim" }]);
   assert.equal(text(card, ".heat .groups"), "No dart positions yet.");
   assert.equal(text(card, ".legend-max"), "–");
   assert.equal($$(card, ".top-row").length, 0);
@@ -334,7 +334,7 @@ test("an answer for a player the card no longer shows is dropped", async () => {
 
 test("the heatmap switches speak German", () => {
   const hass = withLanguage(makeHass({ states: { ...SESSION, ...PROFILES } }), "de");
-  const card = mount("autodarts-training-card", hass, {});
+  const card = mount("homedarts-training-card", hass, {});
   assert.deepEqual(
     pressed(card, "modes").map(([name]) => name),
     ["Felder", "Zahlen", "Positionen", "Zielpunkt"]
@@ -351,7 +351,7 @@ test("a new configuration shows its own mode and player", () => {
   click(card, '[data-source="Alex"]');
   // The button keeps the focus and its place, for keyboards and fingers.
   assert.equal(card.shadowRoot.activeElement.dataset.focus, "source:Alex");
-  card.setConfig({ type: "custom:autodarts-training-card", mode: "numbers" });
+  card.setConfig({ type: "custom:homedarts-training-card", mode: "numbers" });
   card.hass = hass;
   assert.equal($(card, '[data-mode="numbers"]').getAttribute("aria-pressed"), "true");
   assert.equal($(card, '[data-source=""]').getAttribute("aria-pressed"), "true");
@@ -389,7 +389,7 @@ test("positions stay unloaded without a heatmap, and a late answer waits for its
   // An answer after the heatmap was switched off is kept, and drawn nowhere.
   const late = [];
   const off = setup({ mode: "positions" }, () => new Promise((resolve) => late.push(resolve))).card;
-  off.setConfig({ type: "custom:autodarts-training-card", mode: "positions", show_heatmap: false });
+  off.setConfig({ type: "custom:homedarts-training-card", mode: "positions", show_heatmap: false });
   off.hass = makeHass({ states: { ...SESSION, ...PROFILES }, callWS: () => new Promise(() => {}) });
   late[0]({ positions: [[0, 0.6]], spread: [] });
   await settle();

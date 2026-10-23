@@ -1,0 +1,532 @@
+blueprint:
+  name: "HomeDarts: ask Assist about your darts"
+  description: >-
+    Answers questions about your darts when you ask Assist, in English,
+    German, Spanish, French or Dutch: your 3-dart average today or this week,
+    for example "What is my average today?", "Wie ist mein Schnitt diese
+    Woche?", "¿Cuál es mi media de hoy?", "Quelle est ma moyenne cette
+    semaine ?" or "Wat is mijn gemiddelde vandaag?", the 180s of the week, the
+    darts of the day towards the daily goal, your best checkout, the training
+    streak, who leads the leaderboard and where a player should aim, such as
+    "Where should Alex aim?". Assist answers in the language you asked in.
+
+
+    The answers come from the statistics of the board: today counts every
+    training session of the day, the week is the week of the weekly report,
+    the best checkout is the personal best of the board, and the leaderboard
+    ranks the players by their 3-dart average, as the scoreboard does. The best
+    aim follows the spread of a player's darts that the board detected; "I",
+    "ich", "yo", "je" or "ik" is the player linked to the person you are signed
+    in as, or else the player who played last.
+
+
+    Assist hears these sentences before its own commands, so each has a word of
+    darts, such as average, 180, checkout or leaderboard: "What time is it"
+    stays Assist's own.
+
+
+    Sentences saved in an automation stay as they are: re-import the blueprint
+    and leave the sentences at their default to get those of a new version.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/homedarts-for-autodarts/automations.html#ask-assist-about-your-darts)
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/blueprints/automation/homedarts/ask_about_darts.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    average_today_sentences:
+      name: Average today
+      description: >-
+        Questions for the 3-dart average of today's training sessions; parts in
+        [brackets] are optional, (a|b) means a or b.
+      default:
+        - "(what is|what's|tell me) (my|our) [three dart] average [today]"
+        - "how (am I|are we) (throwing|scoring) today"
+        - "(wie|was) ist (mein|unser) (Average|Schnitt|Durchschnitt|3-Dart-Average) [heute]"
+        - "(wie|was) ist heute (mein|unser) (Average|Schnitt|Durchschnitt|3-Dart-Average)"
+        - "wie (werfe ich|werfen wir) heute"
+        - "(cuál|cual) es (mi|nuestra) media [de tres dardos] [de hoy|hoy]"
+        - "(qué|que) media (llevo|llevamos) [hoy]"
+        - "quelle est (ma|notre) moyenne [aujourd'hui|du jour]"
+        - "quelle moyenne (ai-je|j'ai|avons-nous|on a) [aujourd'hui]"
+        - "wat is (mijn|ons) (gemiddelde|3-dart-gemiddelde) [vandaag]"
+        - "wat is vandaag (mijn|ons) (gemiddelde|3-dart-gemiddelde)"
+        - "hoe (gooi ik|gooien we) vandaag"
+      selector:
+        text:
+          multiple: true
+    average_week_sentences:
+      name: Average this week
+      description: Questions for the 3-dart average of the week of the weekly report.
+      default:
+        - "(what is|what's|tell me) (my|our) [three dart] average (this week|for the week)"
+        - "how (am I|are we) (throwing|scoring) this week"
+        - "(wie|was) ist (mein|unser) (Average|Schnitt|Durchschnitt|3-Dart-Average) [in] (diese|dieser) Woche"
+        - "(wie|was) ist diese Woche (mein|unser) (Average|Schnitt|Durchschnitt|3-Dart-Average)"
+        - "wie (werfe ich|werfen wir) diese Woche"
+        - "(cuál|cual) es (mi|nuestra) media [de tres dardos] [de] esta semana"
+        - "(qué|que) media (llevo|llevamos) esta semana"
+        - "quelle est (ma|notre) moyenne [de] cette semaine"
+        - "quelle moyenne (ai-je|j'ai|avons-nous|on a) cette semaine"
+        - "wat is (mijn|ons) (gemiddelde|3-dart-gemiddelde) [van] deze week"
+        - "wat is deze week (mijn|ons) (gemiddelde|3-dart-gemiddelde)"
+        - "hoe (gooi ik|gooien we) deze week"
+      selector:
+        text:
+          multiple: true
+    scores_180_sentences:
+      name: 180s this week
+      description: Questions for the 180s of the week of the weekly report.
+      default:
+        - "how many (180s|180's|180|one hundred eighties|one eighties|maximums) [(have|did) (I|we) (thrown|throw|hit|scored|score)] this week"
+        - "wie viele (180er|180|Hundertachtziger|Maximums) [(habe|hab|haben) (ich|wir)] [in] (diese|dieser) Woche [geworfen]"
+        - "(cuántos|cuantos) 180 [llevo|llevamos|he hecho|hemos hecho|he lanzado|hemos lanzado] esta semana"
+        - "combien de 180 [(ai-je|j'ai|avons-nous|on a) (fait|faits|lancé|lancés|réussi|réussis)] cette semaine"
+        - "hoeveel (180's|180|honderdtachtigs) [heb ik|hebben we] deze week [gegooid]"
+      selector:
+        text:
+          multiple: true
+    darts_today_sentences:
+      name: Darts today
+      description: Questions for the darts of the day, towards the daily goal.
+      default:
+        - "how many darts [(have|did) (I|we) (thrown|throw)] today"
+        - "wie viele Darts [(habe|hab|haben) (ich|wir)] heute [geworfen]"
+        - "(cuántos|cuantos) dardos [llevo|llevamos|he lanzado|hemos lanzado|he tirado|hemos tirado] hoy"
+        - "combien de fléchettes [(ai-je|j'ai|avons-nous|on a) (lancé|lancées)] aujourd'hui"
+        - "hoeveel darts [heb ik|hebben we] vandaag [gegooid]"
+      selector:
+        text:
+          multiple: true
+    checkout_sentences:
+      name: Best checkout
+      description: Questions for the highest checkout among the personal bests of the board.
+      default:
+        - "(what is|what's) (my|our|the) (best|highest) checkout"
+        - "(was|wie hoch) ist (mein|unser|der) (bester|höchster) Checkout"
+        - "(cuál|cual) es (mi|nuestro|el) (mejor cierre|cierre más alto|cierre mas alto)"
+        - "quel est (mon|notre|le) (meilleur|plus haut|plus gros) (finish|checkout)"
+        - "wat is (mijn|onze|de) (hoogste|beste) (uitgooi|finish|checkout)"
+      selector:
+        text:
+          multiple: true
+    streak_sentences:
+      name: Training streak
+      description: Questions for the days in a row with darts, and the longest streak.
+      default:
+        - "(how long is|what is|what's) (my|our) [training] streak"
+        - "how many days in a row [have (I|we) (trained|played|thrown)]"
+        - "wie lang ist (meine|unsere) (Serie|Trainingsserie)"
+        - "wie viele Tage in Folge [(habe|hab|haben) (ich|wir) trainiert]"
+        - "(cuál|cual) es (mi|nuestra) racha [de entrenamiento]"
+        - "(cuántos|cuantos) días seguidos [llevo|llevamos]"
+        - "quelle est (ma|notre) série [d'entraînement]"
+        - "combien de jours d'affilée"
+        - "hoe lang is (mijn|onze) (reeks|trainingsreeks)"
+        - "hoeveel dagen op rij [(heb ik|hebben we) getraind]"
+      selector:
+        text:
+          multiple: true
+    leader_sentences:
+      name: Leaderboard
+      description: Questions for the player at the top of the leaderboard.
+      default:
+        - "who (leads|is leading|tops|is on top of|is top of|is first on) the leaderboard"
+        - "wer führt die Bestenliste [an]"
+        - "wer (ist|steht) (vorne|oben|ganz oben|an der Spitze) (in der|auf der) Bestenliste"
+        - "(quién|quien) (lidera|encabeza) la clasificación"
+        - "(quién|quien) (es|va) (el primero|primero) (de|en) la clasificación"
+        - "qui (mène|domine) le classement"
+        - "qui est (en tête|premier|première) du classement"
+        - "wie leidt de ranglijst"
+        - "wie staat (bovenaan|eerste|op één) [op] de ranglijst"
+      selector:
+        text:
+          multiple: true
+    aim_sentences:
+      name: Best aim
+      description: >-
+        Questions for the best aim of a player, `{player}`: "I", "ich", "yo",
+        "je" or "ik" is you, as are sentences without a player.
+      default:
+        - "where (should|do|does|must) {player} aim [at]"
+        - "(wohin|worauf) soll {player} zielen"
+        - "(dónde|donde|a dónde|a donde) (debe|tiene que|debería) apuntar {player}"
+        - "(dónde|donde|a dónde|a donde) (debo|tengo que|debería) apuntar"
+        - "où (doit|devrait) viser {player}"
+        - "où (dois-je|devrais-je) viser"
+        - "où est-ce que je dois viser"
+        - "waar (moet|zou) {player} [op] (mikken|richten)"
+      selector:
+        text:
+          multiple: true
+    board:
+      name: Board
+      description: The Autodarts board whose statistics answer. Without one, the board with the most darts this week answers.
+      default: ""
+      selector:
+        config_entry:
+          integration: homedarts
+
+mode: queued
+
+triggers:
+  - trigger: conversation
+    id: average_today
+    command: !input average_today_sentences
+  - trigger: conversation
+    id: average_week
+    command: !input average_week_sentences
+  - trigger: conversation
+    id: scores_180
+    command: !input scores_180_sentences
+  - trigger: conversation
+    id: darts_today
+    command: !input darts_today_sentences
+  - trigger: conversation
+    id: checkout
+    command: !input checkout_sentences
+  - trigger: conversation
+    id: streak
+    command: !input streak_sentences
+  - trigger: conversation
+    id: leader
+    command: !input leader_sentences
+  - trigger: conversation
+    id: aim
+    command: !input aim_sentences
+
+variables:
+  board: !input board
+  # What Assist answers, in each language of the integration. {name} and the other
+  # words in braces are filled in; French has a no-break space before : and !.
+  answers:
+    en:
+      decimal: "."
+      average_today: "Today: a 3-dart average of {average} from {darts} darts."
+      average_session: "This session: a 3-dart average of {average} from {darts} darts."
+      no_darts_today: "No darts today yet."
+      average_week: "This week: a 3-dart average of {average}."
+      average_week_up: "This week: a 3-dart average of {average}, {change} more than last week."
+      average_week_down: "This week: a 3-dart average of {average}, {change} less than last week."
+      no_darts_week: "No darts this week yet."
+      scores_180: "180s this week: {count}."
+      no_180: "No 180 this week yet."
+      darts_today: "{darts} darts today."
+      darts_today_one: "One dart today."
+      goal_left: "{left} more for your daily goal of {goal}."
+      goal_reached: "Daily goal reached!"
+      checkout: "Your best checkout is {checkout}."
+      no_checkout: "No checkout yet."
+      streak: "{days} days in a row. Your record: {best}."
+      streak_one: "One day in a row. Your record: {best}."
+      no_streak: "No streak right now. Your record: {best}."
+      never_streak: "No streak yet."
+      leader: "{name} leads the leaderboard with a 3-dart average of {average}."
+      leader_plain: "{name} leads the leaderboard."
+      no_leader: "Nobody is on the leaderboard yet."
+      aim: "{name}, aim at {bed}: {points} points per dart."
+      no_aim: "{name} has no best aim yet: it takes darts that the board detected."
+      unknown_player: "I don't know a player called {name}."
+      no_players: "No player has thrown yet."
+      beds: {"single": "Single {number}", "double": "Double {number}", "triple": "Triple {number}", "bull": "Bull"}
+    de:
+      decimal: ","
+      average_today: "Heute: 3-Dart-Average {average} aus {darts} Darts."
+      average_session: "Diese Session: 3-Dart-Average {average} aus {darts} Darts."
+      no_darts_today: "Heute noch keine Darts."
+      average_week: "Diese Woche: 3-Dart-Average {average}."
+      average_week_up: "Diese Woche: 3-Dart-Average {average}, {change} mehr als letzte Woche."
+      average_week_down: "Diese Woche: 3-Dart-Average {average}, {change} weniger als letzte Woche."
+      no_darts_week: "Diese Woche noch keine Darts."
+      scores_180: "180er diese Woche: {count}."
+      no_180: "Diese Woche noch keine 180."
+      darts_today: "Heute {darts} Darts."
+      darts_today_one: "Heute ein Dart."
+      goal_left: "Noch {left} bis zu deinem Tagesziel von {goal}."
+      goal_reached: "Tagesziel erreicht!"
+      checkout: "Dein höchster Checkout ist {checkout}."
+      no_checkout: "Noch kein Checkout."
+      streak: "{days} Tage in Folge. Dein Rekord: {best}."
+      streak_one: "Ein Tag in Folge. Dein Rekord: {best}."
+      no_streak: "Gerade keine Serie. Dein Rekord: {best}."
+      never_streak: "Noch keine Serie."
+      leader: "{name} führt die Bestenliste an, mit einem 3-Dart-Average von {average}."
+      leader_plain: "{name} führt die Bestenliste an."
+      no_leader: "Noch steht niemand in der Bestenliste."
+      aim: "{name}, ziel auf {bed}: {points} Punkte pro Dart."
+      no_aim: "{name} hat noch keinen besten Zielpunkt: dafür braucht es Darts, die das Board erkannt hat."
+      unknown_player: "Ich kenne keinen Spieler namens {name}."
+      no_players: "Noch hat kein Spieler geworfen."
+      beds: {"single": "Single {number}", "double": "Doppel {number}", "triple": "Triple {number}", "bull": "Bull"}
+    es:
+      decimal: ","
+      average_today: "Hoy: media de 3 dardos de {average} en {darts} dardos."
+      average_session: "Esta sesión: media de 3 dardos de {average} en {darts} dardos."
+      no_darts_today: "Todavía no hay dardos hoy."
+      average_week: "Esta semana: media de 3 dardos de {average}."
+      average_week_up: "Esta semana: media de 3 dardos de {average}, {change} más que la semana pasada."
+      average_week_down: "Esta semana: media de 3 dardos de {average}, {change} menos que la semana pasada."
+      no_darts_week: "Todavía no hay dardos esta semana."
+      scores_180: "180 esta semana: {count}."
+      no_180: "Todavía no hay ningún 180 esta semana."
+      darts_today: "{darts} dardos hoy."
+      darts_today_one: "Un dardo hoy."
+      goal_left: "Te faltan {left} para tu objetivo diario de {goal}."
+      goal_reached: "¡Objetivo diario cumplido!"
+      checkout: "Tu cierre más alto es {checkout}."
+      no_checkout: "Todavía no hay ningún cierre."
+      streak: "Llevas {days} días seguidos. Tu récord: {best}."
+      streak_one: "Llevas un día. Tu récord: {best}."
+      no_streak: "Ahora mismo no tienes racha. Tu récord: {best}."
+      never_streak: "Todavía no tienes racha."
+      leader: "{name} lidera la clasificación con una media de 3 dardos de {average}."
+      leader_plain: "{name} lidera la clasificación."
+      no_leader: "Todavía no hay nadie en la clasificación."
+      aim: "{name}, apunta a {bed}: {points} puntos por dardo."
+      no_aim: "{name} todavía no tiene un mejor punto de mira: hacen falta dardos que detecte la diana."
+      unknown_player: "No conozco a ningún jugador llamado {name}."
+      no_players: "Todavía no ha lanzado ningún jugador."
+      beds: {"single": "Simple {number}", "double": "Doble {number}", "triple": "Triple {number}", "bull": "Bull"}
+    fr:
+      decimal: ","
+      average_today: "Aujourd'hui, une moyenne 3 fléchettes de {average} sur {darts} fléchettes."
+      average_session: "Cette session, une moyenne 3 fléchettes de {average} sur {darts} fléchettes."
+      no_darts_today: "Pas encore de fléchettes aujourd'hui."
+      average_week: "Cette semaine, une moyenne 3 fléchettes de {average}."
+      average_week_up: "Cette semaine, une moyenne 3 fléchettes de {average}, {change} de plus que la semaine dernière."
+      average_week_down: "Cette semaine, une moyenne 3 fléchettes de {average}, {change} de moins que la semaine dernière."
+      no_darts_week: "Pas encore de fléchettes cette semaine."
+      scores_180: "180 cette semaine\u00a0: {count}."
+      no_180: "Pas encore de 180 cette semaine."
+      darts_today: "{darts} fléchettes aujourd'hui."
+      darts_today_one: "Une fléchette aujourd'hui."
+      goal_left: "Encore {left} pour votre objectif quotidien de {goal}."
+      goal_reached: "Objectif quotidien atteint\u00a0!"
+      checkout: "Votre meilleur finish est {checkout}."
+      no_checkout: "Pas encore de finish."
+      streak: "{days} jours d'affilée. Votre record\u00a0: {best}."
+      streak_one: "Un jour d'affilée. Votre record\u00a0: {best}."
+      no_streak: "Pas de série en cours. Votre record\u00a0: {best}."
+      never_streak: "Pas encore de série."
+      leader: "{name} est en tête du classement avec une moyenne 3 fléchettes de {average}."
+      leader_plain: "{name} est en tête du classement."
+      no_leader: "Personne n'est encore au classement."
+      aim: "{name}, visez {bed}\u00a0: {points} points par fléchette."
+      no_aim: "{name} n'a pas encore de meilleure visée\u00a0: il faut des fléchettes détectées par la cible."
+      unknown_player: "Je ne connais aucun joueur nommé {name}."
+      no_players: "Aucun joueur n'a encore lancé."
+      beds: {"single": "Simple {number}", "double": "Double {number}", "triple": "Triple {number}", "bull": "Bull"}
+    nl:
+      decimal: ","
+      average_today: "Vandaag: 3-dart-gemiddelde {average} uit {darts} darts."
+      average_session: "Deze sessie: 3-dart-gemiddelde {average} uit {darts} darts."
+      no_darts_today: "Vandaag nog geen darts."
+      average_week: "Deze week: 3-dart-gemiddelde {average}."
+      average_week_up: "Deze week: 3-dart-gemiddelde {average}, {change} hoger dan vorige week."
+      average_week_down: "Deze week: 3-dart-gemiddelde {average}, {change} lager dan vorige week."
+      no_darts_week: "Deze week nog geen darts."
+      scores_180: "180's deze week: {count}."
+      no_180: "Deze week nog geen 180."
+      darts_today: "Vandaag {darts} darts."
+      darts_today_one: "Vandaag één dart."
+      goal_left: "Nog {left} tot je dagdoel van {goal}."
+      goal_reached: "Dagdoel gehaald!"
+      checkout: "Je hoogste uitgooi is {checkout}."
+      no_checkout: "Nog geen uitgooi."
+      streak: "{days} dagen op rij. Je record: {best}."
+      streak_one: "Eén dag op rij. Je record: {best}."
+      no_streak: "Op dit moment geen reeks. Je record: {best}."
+      never_streak: "Nog geen reeks."
+      leader: "{name} staat bovenaan de ranglijst met een 3-dart-gemiddelde van {average}."
+      leader_plain: "{name} staat bovenaan de ranglijst."
+      no_leader: "Er staat nog niemand op de ranglijst."
+      aim: "{name}, mik op {bed}: {points} punten per dart."
+      no_aim: "{name} heeft nog geen beste mikpunt: daarvoor zijn darts nodig die het bord heeft herkend."
+      unknown_player: "Ik ken geen speler die {name} heet."
+      no_players: "Er heeft nog geen speler gegooid."
+      beds: {"single": "Enkel {number}", "double": "Dubbel {number}", "triple": "Triple {number}", "bull": "Bull"}
+  # The language of the question, such as de for de-CH; English for any other.
+  language: >-
+    {% set spoken = (trigger.user_input.language if trigger.user_input is defined else '')
+       | default('', true) | lower | regex_replace('[-_].*$', '') %}
+    {{ spoken if spoken in answers else 'en' }}
+  # The statistics of the board, found by the attributes each sensor always has,
+  # so they are found under any name and in any language. Without a board chosen,
+  # the board with the most darts this week answers, all of it from that board.
+  sensors: >-
+    {% set ns = namespace(boards={}) %}
+    {%- for state in expand(integration_entities('homedarts'))
+        if state.domain == 'sensor'
+        and (not board or config_entry_id(state.entity_id) == board) %}
+    {%- set a = state.attributes %}
+    {%- set kind = 'week' if 'training_minutes' in a
+        else 'profiles' if a.unit_of_measurement == 'players' and 'players' in a
+        else 'records' if 'record' in a and 'previous' in a
+        else 'streak' if 'best_streak' in a and 'trained_today' in a
+        else 'today' if 'goal_reached' in a
+        else 'sessions' if a.sessions is list
+        else 'darts' if 'hits' in a and 'last_reset' in a
+        else 'points' if a.unit_of_measurement == 'points' and 'last_reset' in a
+        else '' %}
+    {%- set entry = config_entry_id(state.entity_id) %}
+    {%- set found = ns.boards.get(entry, {}) %}
+    {%- if kind and kind not in found %}
+    {%- set ns.boards = ns.boards | combine({entry: found | combine({kind: state.entity_id})}) %}
+    {%- endif %}
+    {%- endfor %}
+    {%- set pick = namespace(found={}, darts=-1) %}
+    {%- for found in ns.boards.values() %}
+    {%- set darts = states(found.week) | int(0) if 'week' in found else 0 %}
+    {%- if darts > pick.darts %}
+    {%- set pick.found = found %}
+    {%- set pick.darts = darts %}
+    {%- endif %}
+    {%- endfor %}
+    {{ pick.found }}
+  # The player a question about the best aim is for: one named, or you.
+  asked: "{{ trigger.slots.player | default('', true) | trim }}"
+  person: >-
+    {% set user = trigger.user_input.context.user_id
+       if trigger.user_input is defined else none %}
+    {{ (states.person | selectattr('attributes.user_id', 'eq', user)
+        | map(attribute='entity_id') | first | default('')) if user else '' }}
+
+actions:
+  - variables:
+      reply: >-
+        {% set say = answers[language] %}
+        {% set id = trigger.id %}
+        {# A number as it is said: one decimal, none for a whole number. #}
+        {% macro decimal(value) %}{% set rounded = value | float | round(1) %}{{
+          (rounded | int if rounded == rounded | int else rounded) | string
+          | replace('.', answers[language].decimal) }}{% endmacro %}
+        {% if id == 'average_today' %}
+          {# The sessions that started today: those that ended, and the one the
+             sensors of the session show, also after it ended. #}
+          {% set ns = namespace(darts=0, points=0) %}
+          {% set current = as_datetime(state_attr(sensors.darts, 'last_reset'), none)
+             if sensors.darts is defined else none %}
+          {% for session in (state_attr(sensors.sessions, 'sessions')
+                             if sensors.sessions is defined else none) or [] %}
+            {% set started = as_datetime(session.started, none) %}
+            {% if started and started >= today_at() and started != current %}
+              {% set ns.darts = ns.darts + session.darts | int(0) %}
+              {% set ns.points = ns.points + session.points | int(0) %}
+            {% endif %}
+          {% endfor %}
+          {% set darts = states(sensors.darts) | int(0) if sensors.darts is defined else 0 %}
+          {% set points = states(sensors.points) | int(0) if sensors.points is defined else 0 %}
+          {% if current and current >= today_at() %}
+            {% set ns.darts = ns.darts + darts %}
+            {% set ns.points = ns.points + points %}
+          {% endif %}
+          {# A session that began before midnight and runs on has no day of its own. #}
+          {% set today = states(sensors.today) | int(0) if sensors.today is defined else 0 %}
+          {% if ns.darts %}
+            {{ say.average_today | replace('{average}', decimal(ns.points / ns.darts * 3))
+               | replace('{darts}', ns.darts | string) }}
+          {% elif today and darts %}
+            {{ say.average_session | replace('{average}', decimal(points / darts * 3))
+               | replace('{darts}', darts | string) }}
+          {% else %}
+            {{ say.no_darts_today }}
+          {% endif %}
+        {% elif id in ['average_week', 'scores_180'] %}
+          {% set week = sensors.week if sensors.week is defined else none %}
+          {% set average = state_attr(week, 'average') if week else none %}
+          {% set count = state_attr(week, 'scores_180') | int(0) if week else 0 %}
+          {% if id == 'scores_180' %}
+            {{ say.scores_180 | replace('{count}', count | string)
+               if count else say.no_180 }}
+          {% elif average is number %}
+            {% set change = state_attr(week, 'average_change') %}
+            {% set change = change | round(1) if change is number else 0 %}
+            {{ (say.average_week_up if change > 0
+                else say.average_week_down if change < 0 else say.average_week)
+               | replace('{average}', decimal(average))
+               | replace('{change}', decimal(change | abs)) }}
+          {% else %}
+            {{ say.no_darts_week }}
+          {% endif %}
+        {% elif id == 'darts_today' %}
+          {% set today = sensors.today if sensors.today is defined else none %}
+          {% set darts = states(today) | int(0) if today else 0 %}
+          {% set goal = state_attr(today, 'goal') | int(0) if today else 0 %}
+          {% if not darts %}
+            {{ say.no_darts_today }}
+          {% else %}
+            {{ (say.darts_today_one if darts == 1
+                else say.darts_today | replace('{darts}', darts | string))
+               ~ (' ' ~ say.goal_reached if goal and state_attr(today, 'goal_reached')
+                  else ' ' ~ say.goal_left | replace('{left}', (goal - darts) | string)
+                       | replace('{goal}', goal | string) if goal else '') }}
+          {% endif %}
+        {% elif id == 'checkout' %}
+          {% set best = state_attr(sensors.records, 'highest_checkout')
+             if sensors.records is defined else none %}
+          {{ say.checkout | replace('{checkout}', best | int | string)
+             if best else say.no_checkout }}
+        {% elif id == 'streak' %}
+          {% set streak = sensors.streak if sensors.streak is defined else none %}
+          {% set days = states(streak) | int(0) if streak else 0 %}
+          {% set best = state_attr(streak, 'best_streak') | int(0) if streak else 0 %}
+          {{ (say.never_streak if not best else say.no_streak if not days
+              else say.streak_one if days == 1
+              else say.streak | replace('{days}', days | string))
+             | replace('{best}', best | string) }}
+        {% else %}
+          {% set players = (state_attr(sensors.profiles, 'players')
+                            if sensors.profiles is defined else none) or [] %}
+          {% if id == 'leader' %}
+            {# The ranking of the scoreboard: the 3-dart average, then the legs
+               won, then the name. #}
+            {% set ns = namespace(best=none, average=-1, won=0) %}
+            {% for player in players if player.legs_played | int(0) > 0 %}
+              {% set average = player.average if player.average is number else -1 %}
+              {% set won = player.legs_won | int(0) %}
+              {% if ns.best is none or average > ns.average
+                 or (average == ns.average and (won > ns.won
+                     or (won == ns.won and player.name | lower < ns.best.name | lower))) %}
+                {% set ns.best = player %}
+                {% set ns.average = average %}
+                {% set ns.won = won %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.best is none %}
+              {{ say.no_leader }}
+            {% elif ns.best.average is number %}
+              {{ say.leader | replace('{name}', ns.best.name)
+                 | replace('{average}', decimal(ns.best.average)) }}
+            {% else %}
+              {{ say.leader_plain | replace('{name}', ns.best.name) }}
+            {% endif %}
+          {% else %}
+            {% set name = asked | string %}
+            {% set me = not name
+               or name | lower in ['i', 'me', 'ich', 'mich', 'yo', 'je', 'moi', 'ik'] %}
+            {% set ns = namespace(profile=none) %}
+            {% for player in players if ns.profile is none %}
+              {% if (me and person and player.person == person)
+                 or (not me and player.name | lower == name | lower) %}
+                {% set ns.profile = player %}
+              {% endif %}
+            {% endfor %}
+            {% set profile = ns.profile or (players | first if me else none) %}
+            {% if not profile %}
+              {{ say.no_players if me else say.unknown_player | replace('{name}', name) }}
+            {% elif profile.best_aim %}
+              {% set bed = profile.best_aim | string %}
+              {% set spoken = say.beds.bull if bed == 'BULL' else bed if bed == '25'
+                 else say.beds[{'S': 'single', 'D': 'double', 'T': 'triple'}[bed[:1]]]
+                      | replace('{number}', bed[1:]) %}
+              {{ say.aim | replace('{name}', profile.name) | replace('{bed}', spoken)
+                 | replace('{points}', decimal(profile.expected_ppd)) }}
+            {% else %}
+              {{ say.no_aim | replace('{name}', profile.name) }}
+            {% endif %}
+          {% endif %}
+        {% endif %}
+  - set_conversation_response: "{{ reply | trim }}"

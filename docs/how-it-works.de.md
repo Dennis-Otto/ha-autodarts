@@ -10,13 +10,10 @@ description: "Wie die Integration mit dem Board Manager spricht, ihre Entitäten
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/architecture-dark.png">
-  <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant. Sie liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit; die Autodarts-Cloud liefert optional Spieldaten." width="560">
+  <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an HomeDarts in Home Assistant. Die Integration liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit." width="560">
 </picture>
 
-Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen:
-
-- **Lokal** (empfohlen): direkt zum Board Manager in deinem Netzwerk. Ohne Anmeldung; liefert Steuerung, Echtzeitereignisse und Training.
-- **Cloud** (optional): Spieldaten von Autodarts. Fällt sie aus, läuft die lokale Steuerung weiter, und umgekehrt.
+Ein Board ist ein Integrationseintrag mit einer Verbindung: direkt zum Board Manager in deinem Netzwerk. Sie braucht keine Anmeldung und liefert Steuerung, Echtzeitereignisse und Training. Eine Verknüpfung mit der Autodarts-Cloud gibt es nicht, weil Autodarts keine Client-IDs an Integrationen von Dritten vergibt ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 ## Aktualisierung
 
@@ -29,7 +26,6 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 | Board Manager 2 | Ein gemeinsamer Aufruf von `/api/system` pro Intervall | Wie oben |
 | Board-PC-Details bei Board Manager 2 | HTTP-Lesen von `/api/host`; übernommen werden nur System, Prozessor und Softwareversionen | Beim Start, stündlich und nach einem Board-Manager-Update |
 | Einstellungen und Version bei Board Manager 1 | HTTP-Lesen | Alle 30 Sekunden und nach jeder Aktion |
-| Cloud-Spieldaten | Autodarts-API | Während eines Matches alle 5 Sekunden, sonst jede Minute |
 
 Jede Nachricht und jeder Lesevorgang aktualisiert nur die Entitäten, die zeigen, was sich geändert hat. Eine Hand am Board, die in jeder Aufnahme mehrmals kommt und geht, aktualisiert nur die Bewegungssensoren, nicht die über hundert Entitäten eines Boards mit seinen Spielen und Statistiken.
 
@@ -74,7 +70,6 @@ Ein Board, das Version 2 meldet, aber kein `/api/system` hat, gilt als Board Man
 ## Adresswechsel
 
 - **Board Manager 2** meldet sich im Netzwerk (mDNS). Meldet er eine neue Adresse und antwortet das Board unter seiner eingerichteten nicht mehr mit seiner Board-ID, bietet ein Reparaturhinweis die neue Adresse an. Der Eintrag zieht erst um und die Integration lädt sich neu, wenn du bestätigst und das Board sich unter der neuen Adresse noch einmal ausgewiesen hat: Jedes Gerät im Netzwerk kann eine Board-ID melden. Genutzt werden nur die Adressen, von denen die Meldung kommt, und ein Board, das unter seiner eingerichteten Adresse noch antwortet, wird nie umgezogen.
-- **Einträge mit Autodarts-Cloud-Verknüpfung** nutzen beim Start die Adresse, die die Cloud meldet, wenn die eingerichtete nicht antwortet. Fehlt das Board im Betrieb fünf Minuten und antwortet es unter einer Adresse, die die Cloud meldet, mit seiner Board-ID, bietet ein Reparaturhinweis den Wechsel an. Die Cloud-Adressen werden höchstens alle 30 Minuten geprüft.
 - **Sonst** öffnest du die Integration, wählst **Neu konfigurieren** und suchst das Board oder gibst seine Adresse ein. Den Suchdienst von Autodarts fragt die Integration nie von sich aus.
 
 ## Trainingssession
@@ -200,14 +195,14 @@ Der Wochenbericht zählt, was das Board erkennt, wie bei den Darts des Tages, un
 - **Journal.** Der Trainingskalender behält jede beendete Session und jedes Match mehrerer Spieler 365 Tage lang, höchstens je 3.000, in einem eigenen Speicher in `.storage`. Er wird gespeichert, wenn eine Session oder ein Match endet, und mit der Integration gelöscht. Beim ersten Start übernimmt er die Sessions und Matches, die die Integration schon gespeichert hat. Ein Match hat bis zu acht Spieler, wie Partyspiele; bei jedem Start übernimmt das Journal außerdem die letzten Matches der Spielerprofile, die ihm fehlen, etwa die Partymatches mit mehr als vier Spielern, die Versionen bis 1.12.2 ausgelassen haben.
 - **Erster Dart.** Ein Match beginnt mit seinem ersten Dart, das Ausbullen eingeschlossen; das Übungsspiel merkt sich diesen Moment mit dem Match. Ein neues Match, auch desselben Spiels, beginnt von vorn, ein abgebrochenes Match verlängert also nie das nächste.
 - **Titel** folgen der Sprache von Home Assistant: Deutsch, Niederländisch, Französisch und Spanisch haben eigene Wörter und das Dezimalkomma, etwa *Training · 312 Darts · Ø 54,2*; andere Sprachen lesen sich wie Englisch. Der Bot heißt *Bot*, und ein Team-Match nennt beide Teams, etwa *501 · Alex & Kim 1:0 Sam & Lea*. Der Kalender kennt jedes Cricket- und Partyspiel mit seinem Namen.
-- **Exporte** schreibt nur die Aktion `autodarts.export`, die Administratoren und Automationen ausführen, höchstens 20 pro Stunde. Standardmäßig landen sie in `autodarts/exports` im Medienordner; ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf: `www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`. Der Ordner wird vor dem Schreiben aufgelöst, sodass weder `..` noch ein symbolischer Link woandershin führt; versteckte Ordner wie `.storage` und Namen mit Steuerzeichen werden abgelehnt. Jeder Export bekommt einen neuen Namen mit einem zufälligen Teil und ersetzt nie eine Datei. Eine CSV der Matches hat die Spalten von acht Spielern, `player_1_name` bis `player_8_points`; neue Spalten kommen immer nur hinter die anderen. In CSV bekommt ein Text, der wie eine Tabellenformel beginnt (`=`, `+`, `-`, `@`), einen Apostroph vorangestellt, damit ein Spielername nicht als Formel läuft.
-- **Downloads.** Administratoren können die seit dem Start von Home Assistant geschriebenen Exporte unter `/api/autodarts/export/<Name>` herunterladen; die Spielerkarte nutzt diese Adresse mit einem signierten Link, der nach einer Minute abläuft. Exporte in `www` liefert Home Assistant außerdem unter `/local/` aus, ohne Anmeldung.
+- **Exporte** schreibt nur die Aktion `homedarts.export`, die Administratoren und Automationen ausführen, höchstens 20 pro Stunde. Standardmäßig landen sie in `homedarts/exports` im Medienordner; ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf: `www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`. Der Ordner wird vor dem Schreiben aufgelöst, sodass weder `..` noch ein symbolischer Link woandershin führt; versteckte Ordner wie `.storage` und Namen mit Steuerzeichen werden abgelehnt. Jeder Export bekommt einen neuen Namen mit einem zufälligen Teil und ersetzt nie eine Datei. Eine CSV der Matches hat die Spalten von acht Spielern, `player_1_name` bis `player_8_points`; neue Spalten kommen immer nur hinter die anderen. In CSV bekommt ein Text, der wie eine Tabellenformel beginnt (`=`, `+`, `-`, `@`), einen Apostroph vorangestellt, damit ein Spielername nicht als Formel läuft.
+- **Downloads.** Administratoren können die seit dem Start von Home Assistant geschriebenen Exporte unter `/api/homedarts/export/<Name>` herunterladen; die Spielerkarte nutzt diese Adresse mit einem signierten Link, der nach einer Minute abläuft. Exporte in `www` liefert Home Assistant außerdem unter `/local/` aus, ohne Anmeldung.
 
 ## Highlight-Galerie
 
-Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automations.de.md#highlight-galerie) mit [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight) speichert, und die [Clips](automations.de.md#highlight-clips), die er mit `camera.record` aufnimmt:
+Die Medienquelle *HomeDarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automations.de.md#highlight-galerie) mit [`homedarts.save_highlight`](entities.de.md#highlight-foto-speichern-homedartssave_highlight) speichert, und die [Clips](automations.de.md#highlight-clips), die er mit `camera.record` aufnimmt:
 
-- **Ordner:** `autodarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
+- **Ordner:** `homedarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
 - **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`, und ein zweites Foto derselben Sekunde mit demselben Namen endet mit einem Leerzeichen und `(2)`. Ein Clip hat den Namen seines Fotos mit `.mp4`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) und Clips (`.mp4`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
 - **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos und Clips eines Monats, die neuesten zuerst, ein Clip vor seinem Foto.
 - **Clips:** Die Galerie zeigt einen Clip mit dem Vorschaubild des Fotos seines Namens, oder ohne eines, und der Browser spielt ihn als MP4 ab.
@@ -233,7 +228,7 @@ Der Board Manager meldet, wo jeder Dart gelandet ist, relativ zum äußeren Rand
 - **Doppeltraining und Bob's 27:** das Double der Runde. **Checkout-Training:** der Weg wie bei X01. **Ausbullen:** das Bullseye.
 - **Around the Clock, Cricket und die Partyspiele:** kein Ziel, weil dort jedes Feld einer Zahl zählt.
 
-Positionen werden auf ein Zehntel Millimeter mit dem Training gespeichert. Sie sagen nur, wo Darts landen, und verlassen Home Assistant nie; die Diagnosedaten zählen sie nur. Die Karten lesen sie bei Bedarf über den WebSocket-Befehl `autodarts/positions` (`device_id`, optional `player` und `aim`), weil Tausende Positionen zu viele für Attribute von Entitäten sind. Eine Aufnahme wird gespeichert, wenn sie gebucht wird, also beim Ziehen der Darts; bis dahin zeichnet die Trainingskarte die Darts der aktuellen Aufnahme aus dem Aufnahme-Sensor.
+Positionen werden auf ein Zehntel Millimeter mit dem Training gespeichert. Sie sagen nur, wo Darts landen, und verlassen Home Assistant nie; die Diagnosedaten zählen sie nur. Die Karten lesen sie bei Bedarf über den WebSocket-Befehl `homedarts/positions` (`device_id`, optional `player` und `aim`), weil Tausende Positionen zu viele für Attribute von Entitäten sind. Eine Aufnahme wird gespeichert, wenn sie gebucht wird, also beim Ziehen der Darts; bis dahin zeichnet die Trainingskarte die Darts der aktuellen Aufnahme aus dem Aufnahme-Sensor.
 
 ### Streuung
 
@@ -261,7 +256,7 @@ Die Zielkarte zeigt, wo ein Spieler mit seiner eigenen Streuung die meisten Punk
 4. **Bester Zielpunkt.** Home Assistant sucht den Punkt eines 2-mm-Rasters mit den meisten Punkten pro Dart: 144 Würfe ordnen die Punkte eines 10-mm-Rasters, und das 2-mm-Raster bis 4 mm um seine besten vier Punkte und um die beste Mitte eines Triples oder des Bullseyes wird mit allen 1000 Würfen geprüft. Der beste Zielpunkt schlägt immer jedes Triple und das Bullseye; bei Gleichstand gewinnt der Punkt näher an der Mitte. Nach jeder Aufnahme rechnet Home Assistant das Modell des Spielers neu, in etwa 10 bis 25 Millisekunden für 1000 bis 5000 Darts auf einem Desktop-PC und einem Mehrfachen davon auf einem Raspberry Pi, und sucht seinen besten Zielpunkt nur, wenn sich das Modell geändert hat, in etwa 20 bis 40 Millisekunden. Beides läuft in einem Executor-Thread neben der Ereignisschleife, so dass die Scheibe, die Sensoren und die Automationen nie darauf warten; bis es fertig ist, behält das Profil den vorigen besten Zielpunkt. Das Modell der Session wird nur gerechnet, wenn die Zielkarte danach fragt. Wo mehrere Stellen fast gleich viel bringen, etwa bei weiter Streuung, ist der beste Zielpunkt eine davon.
 5. **Die Karte.** Die Trainingskarte berechnet die Punkte pro Dart jedes Punkts des 2-mm-Rasters, etwa 22.700 Punkte mit je 1000 Würfen, in einem Web Worker des Browsers, damit die Seite flüssig bleibt; ihre Zahlen sind die von Home Assistant bis auf die letzte Stelle. Wo der Browser der Karte keinen Worker erlaubt, etwa bei einer strengen Content Security Policy, rechnet die Karte selbst. Die Farben reichen von 60 % der meisten Punkte pro Dart bis zu den meisten.
 
-Das Spielerprofil nennt das Feld des besten Zielpunkts als `best_aim`, etwa `T19` oder `S16`, und seine Punkte pro Dart, auf ein Zehntel, als `expected_ppd`; ohne Modell sind beide leer. Der WebSocket-Befehl `autodarts/positions` ergänzt das Modell als `aim`, wenn er mit `aim: true` gefragt wird: `darts` auf ein Triple, die nötigen 30 als `needed`, `offset_x`, `offset_y`, `sd_x`, `sd_y` und `correlation` sowie den besten Zielpunkt als `best` mit `bed`, `x` und `y` in Millimetern, `expected` Punkten pro Dart und den Punkten pro Dart der Triple 20, der Triple 19 und des Bulls als `compared`.
+Das Spielerprofil nennt das Feld des besten Zielpunkts als `best_aim`, etwa `T19` oder `S16`, und seine Punkte pro Dart, auf ein Zehntel, als `expected_ppd`; ohne Modell sind beide leer. Der WebSocket-Befehl `homedarts/positions` ergänzt das Modell als `aim`, wenn er mit `aim: true` gefragt wird: `darts` auf ein Triple, die nötigen 30 als `needed`, `offset_x`, `offset_y`, `sd_x`, `sd_y` und `correlation` sowie den besten Zielpunkt als `best` mit `bed`, `x` und `y` in Millimetern, `expected` Punkten pro Dart und den Punkten pro Dart der Triple 20, der Triple 19 und des Bulls als `compared`.
 
 ## Kamerazustand
 
@@ -273,10 +268,9 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 
 - **Lokaler Betrieb:** Die Integration spricht nur mit dem Board Manager in deinem Netzwerk; ins Internet geht nichts.
 - **Boards im Netzwerk suchen:** Fragt einmalig bei Benutzung `discover.autodarts.com`, den öffentlichen Suchdienst von Autodarts. Er sieht deine öffentliche IP-Adresse und liefert die von dort registrierten Boards.
-- **Die optionale Cloud-Verknüpfung** nutzt die Geräteanmeldung von Autodarts. Home Assistant speichert OAuth-Token, nie dein Passwort.
 - **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](online-matches.de.md).
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
-- **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
+- **Diagnosedaten** schwärzen Board-ID, Adresse und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 - **Exporte** enthalten Spielernamen. Die Aktion schreibt sie nur auf Anforderung; Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung aus, siehe [Exporte](#trainingskalender-und-exporte).
 - **Highlight-Fotos** bleiben in deinem Medienordner; die Galerie liest nichts anderes.
 - **Personen:** Ein mit einer Person verknüpfter Spieler behält nur die Entitäts-ID der Person; Bild und Anwesenheit liest die Karte aus Home Assistant.
@@ -288,11 +282,21 @@ Alles, was die Integration speichert, liegt im Ordner `.storage` von Home Assist
 
 | Speicher | Inhalt |
 | --- | --- |
-| `autodarts.<entry>.training` | Die Trainingssession mit ihren Einstellungen, die letzten 20 Sessions und die letzten 10 Aufnahmen; das Übungsspiel mit Regeln, Teams, Startpunkten, Spielernamen und den letzten 10 Legs; die Bestleistungen, die Trainingsserie und die Darts des Tages; die Spielerprofile mit Statistik, Bestleistungen, Doubles und verknüpften Personen, die letzten 20 Matches und die direkten Vergleiche; der Fortschritt jedes Spielers mit Wochensummen, Erfolgen und den Positionen seiner letzten 1000 Darts; die Doppelanalyse; das Turnier mit seinen Ergebnissen |
-| `autodarts.<entry>.report` | Die laufende Woche und der letzte Wochenbericht |
-| `autodarts.<entry>.journal` | Sessions und Matches des Trainingskalenders, 365 Tage, höchstens je 3.000 |
+| `homedarts.<entry>.training` | Die Trainingssession mit ihren Einstellungen, die letzten 20 Sessions und die letzten 10 Aufnahmen; das Übungsspiel mit Regeln, Teams, Startpunkten, Spielernamen und den letzten 10 Legs; die Bestleistungen, die Trainingsserie und die Darts des Tages; die Spielerprofile mit Statistik, Bestleistungen, Doubles und verknüpften Personen, die letzten 20 Matches und die direkten Vergleiche; der Fortschritt jedes Spielers mit Wochensummen, Erfolgen und den Positionen seiner letzten 1000 Darts; die Doppelanalyse; das Turnier mit seinen Ergebnissen |
+| `homedarts.<entry>.report` | Die laufende Woche und der letzte Wochenbericht |
+| `homedarts.<entry>.journal` | Sessions und Matches des Trainingskalenders, 365 Tage, höchstens je 3.000 |
 
 Highlight-Fotos und Exporte sind Dateien, die du bewusst anlegst. Sie bleiben im Medienordner und im Exportordner, wenn die Integration gelöscht wird.
+
+### Vom früheren Namen übernommen
+
+Bis Version 1.18 hieß die Integration Autodarts, mit der Domain `autodarts` und Speichern wie `autodarts.<entry>.training`. Wenn HomeDarts [ein Board übernimmt](new-name.de.md), das unter diesem Namen eingerichtet ist, geschieht alles in Home Assistant, ohne Anmeldung, ohne Token und ohne Verbindung ins Internet:
+
+- **Speicher.** Die drei Speicher des alten Eintrags, mit Training, Spielen, Berichten und Kalender, werden geladen und als Speicher des neuen Eintrags gesichert, `homedarts.<entry>.…`; danach wird der alte Eintrag entfernt.
+- **Verwaltung.** Die Entitäten und das Gerät des Boards wechseln in der Entitäts- und Geräteverwaltung von Home Assistant zum neuen Eintrag, mit ihren IDs, Namen, Bereichen und Anpassungen, sodass Verlauf und Statistiken bei ihnen bleiben.
+- **Medien.** Die Highlights, Exporte und Voice-Packs ziehen im Medienordner vom Ordner `autodarts` nach `homedarts`; eine Datei, die dort schon liegt, bleibt.
+- **Dashboards.** Die Karten und die Strategie in den Dashboards, die Home Assistant verwaltet, bekommen ihre neuen Typen, und aus `board_style: autodarts` wird `flat`; Dashboards in YAML, Automationen und Skripte bleiben, wie sie sind, und eine Reparatur listet die, die noch den alten Namen nutzen.
+- **Alte Dateien.** Mit dem letzten Board löscht die Übernahme den Ordner der Integration unter ihrem früheren Namen, `autodarts` in `custom_components`, erkannt an ihrem Manifest. Andere Integrationen mit der Domain `autodarts` und ihre Boards bleiben unberührt.
 
 ## Sicherheit
 

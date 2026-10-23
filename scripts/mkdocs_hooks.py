@@ -76,9 +76,9 @@ START = {"README.md": "index.md", f"README.{GERMAN}.md": f"index.{GERMAN}.md"}
 CARDS = (
     Path(__file__).resolve().parents[1]
     / "custom_components"
-    / "autodarts"
+    / "homedarts"
     / "frontend"
-    / "autodarts-card.js"
+    / "homedarts-card.js"
 )
 CARD_TEXTS = CARDS.parent / "text"
 DEMO = "demo"

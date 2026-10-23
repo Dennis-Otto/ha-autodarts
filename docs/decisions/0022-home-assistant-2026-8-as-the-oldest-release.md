@@ -9,7 +9,7 @@ description: "Why Home Assistant 2026.8 stays the oldest supported release: the 
 
 ## Context
 
-The integration, its blueprints and HACS require Home Assistant 2026.8.0 (`hacs.json`), and the end-to-end tests run that release beside the current one. Home Assistant's [analytics](https://analytics.home-assistant.io/) of 18 October 2026 count 704,380 installations: 71.7 % run 2026.8 or a newer release, 76.5 % at least 2026.7, 84.1 % at least 2026.4 and 88.7 % at least 2026.1. A lower minimum would reach more of them, if the gap is small ([#377](https://github.com/Dennis-Otto/ha-autodarts/issues/377)).
+The integration, its blueprints and HACS require Home Assistant 2026.8.0 (`hacs.json`), and the end-to-end tests run that release beside the current one. Home Assistant's [analytics](https://analytics.home-assistant.io/) of 18 October 2026 count 704,380 installations: 71.7 % run 2026.8 or a newer release, 76.5 % at least 2026.7, 84.1 % at least 2026.4 and 88.7 % at least 2026.1. A lower minimum would reach more of them, if the gap is small ([#377](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/377)).
 
 To measure the gap, the whole test suite ran in a Linux container against the test harness of two older releases: `pytest-homeassistant-custom-component` 0.13.308 for Home Assistant 2026.1.3 and 0.13.344 for 2026.7.0, each with the versions of Assist that its release installs. What the integration uses, by the first release that has it:
 

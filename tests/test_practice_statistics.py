@@ -3,7 +3,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.practice import STATS_LEGS, PracticeGame
+from custom_components.homedarts.practice import STATS_LEGS, PracticeGame
 
 from .local_helpers import match, playing, throw
 

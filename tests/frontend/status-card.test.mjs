@@ -21,7 +21,7 @@ const BOARD = {
 const CAMERAS = [camera(2, { fps: "29.97" }), camera(1, { problem: "on" })];
 const setup = (states = {}, config = {}, options = {}) => {
   const hass = makeHass({ states: { ...BOARD, ...states }, cameras: CAMERAS, ...options });
-  return { hass, card: mount("autodarts-status-card", hass, config) };
+  return { hass, card: mount("homedarts-status-card", hass, config) };
 };
 const without = (...keys) => Object.fromEntries(Object.entries(BOARD).filter(([key]) => !keys.includes(key)));
 const cameraRows = (card) =>
@@ -88,7 +88,7 @@ test("the detection switch stops and starts detection", () => {
 test("without a detection switch the buttons follow the board status; offline or in the preview nothing happens", () => {
   // The board detects darts, so the switch is on and a tap stops detection.
   const hass = makeHass({ states: without("switch.detection") });
-  const card = mount("autodarts-status-card", hass);
+  const card = mount("homedarts-status-card", hass);
   assert.equal($(card, ".toggle").getAttribute("aria-checked"), "true");
   $(card, ".toggle").click();
   assert.deepEqual(hass.calls, [["button", "press", { entity_id: "button.dartboard_stop" }]]);
@@ -101,7 +101,7 @@ test("without a detection switch the buttons follow the board status; offline or
   const offline = setup({ "binary_sensor.local_connected": "off" }).card;
   assert.equal(text(offline, ".pill"), "Board unreachable");
   assert.equal($(offline, ".toggle").disabled, true);
-  const lean = mount("autodarts-status-card", makeHass({ states: without("switch.detection", "button.stop") }));
+  const lean = mount("homedarts-status-card", makeHass({ states: without("switch.detection", "button.stop") }));
   assert.equal($(lean, ".toggle").disabled, true);
 
   const preview = setup();
@@ -127,14 +127,14 @@ test("connection chips show the board, realtime and cloud links and open more-in
 
   // Older integrations report the cloud upstream as a switch.
   const upstream = mount(
-    "autodarts-status-card",
+    "homedarts-status-card",
     makeHass({ states: { ...without("binary_sensor.cloud_link"), "switch.upstream": "off" } })
   );
   assert.deepEqual(
     $$(upstream, ".chip").map((chip) => [chip.className, chip.dataset.entity]).at(-1),
     ["chip off", "switch.dartboard_upstream"]
   );
-  const lean = mount("autodarts-status-card", makeHass({ states: without("binary_sensor.realtime_connected") }));
+  const lean = mount("homedarts-status-card", makeHass({ states: without("binary_sensor.realtime_connected") }));
   assert.deepEqual(
     $$(lean, ".chip").map((chip) => chip.textContent),
     ["Board Manager", "Cloud"]
@@ -183,11 +183,11 @@ test("the board PC tile shows load, memory, detection rate and the system", () =
 
 test("the board PC tile hides without data and shows the system alone", () => {
   const system = ["sensor.cpu_usage", "sensor.memory_usage", "sensor.detection_fps"];
-  const infoOnly = mount("autodarts-status-card", makeHass({ states: without(...system) }));
+  const infoOnly = mount("homedarts-status-card", makeHass({ states: without(...system) }));
   assert.equal($(infoOnly, ".system-tile").hidden, false);
   assert.equal($$(infoOnly, ".metric").length, 0);
   const nothing = mount(
-    "autodarts-status-card",
+    "homedarts-status-card",
     makeHass({ states: without(...system, "sensor.host_os", "sensor.host_processor", "sensor.vision_version") })
   );
   assert.equal($(nothing, ".system-tile").hidden, true);
@@ -215,7 +215,7 @@ test("cameras without an image, a frame rate or a calibration still appear", () 
     // A camera attribute that is not a camera number is ignored.
     camera(0),
   ];
-  const card = mount("autodarts-status-card", makeHass({ states: BOARD, cameras }));
+  const card = mount("homedarts-status-card", makeHass({ states: BOARD, cameras }));
   assert.deepEqual(cameraRows(card), [
     ["camera", "Camera 1", "OK", "OK", null],
     ["camera", "Camera 2", "OK", "30.0 fps", "Calibrate"],
@@ -225,7 +225,7 @@ test("cameras without an image, a frame rate or a calibration still appear", () 
     $$(card, ".camera-name").map((name) => name.dataset.entity),
     ["binary_sensor.dartboard_camera_1_individual_camera_problem", "sensor.dartboard_camera_2_camera_fps", ""]
   );
-  const none = mount("autodarts-status-card", makeHass({ states: BOARD }));
+  const none = mount("homedarts-status-card", makeHass({ states: BOARD }));
   assert.equal($(none, ".cameras-section").hidden, true);
 });
 
@@ -289,7 +289,7 @@ test("calibration, reset and restart need a second tap within four seconds", (t)
 });
 
 test("maintenance buttons hide without their entity and wait while the board is offline", () => {
-  const lean = mount("autodarts-status-card", makeHass({ states: without("button.restart") }));
+  const lean = mount("homedarts-status-card", makeHass({ states: without("button.restart") }));
   assert.deepEqual(
     $$(lean, ".controls button").map((item) => item.hidden),
     [false, false, true]
@@ -337,7 +337,7 @@ test("the status card speaks German", () => {
 });
 
 test("a card removed before it was drawn has nothing to redraw", () => {
-  const card = document.createElement("autodarts-status-card");
+  const card = document.createElement("homedarts-status-card");
   document.body.append(card);
   card.remove();
   assert.equal(card.shadowRoot.innerHTML, "");
@@ -355,7 +355,7 @@ test("the share of corrected darts shows how well detection works", () => {
 });
 
 test("an empty board PC tile stays hidden, since hidden beats every display rule", () => {
-  const card = mount("autodarts-status-card", makeHass({ states: without("sensor.cpu_usage", "sensor.memory_usage", "sensor.detection_fps", "sensor.host_os", "sensor.host_processor", "sensor.vision_version") }));
+  const card = mount("homedarts-status-card", makeHass({ states: without("sensor.cpu_usage", "sensor.memory_usage", "sensor.detection_fps", "sensor.host_os", "sensor.host_processor", "sensor.vision_version") }));
   assert.equal($(card, ".system-tile").hidden, true);
   assert.match($(card, "style").textContent, /\[hidden\] \{ display: none !important; \}/);
 });

@@ -19,10 +19,10 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.diagnostics import (
+from custom_components.homedarts.diagnostics import (
     async_get_config_entry_diagnostics,
 )
-from custom_components.autodarts.export import (
+from custom_components.homedarts.export import (
     FORMULA_START,
     ExportFolderError,
     csv_text,
@@ -53,7 +53,7 @@ def attributes(hass, platform: str, key: str) -> dict:
 
 
 def stored(hass_storage, entry, name: str) -> dict:
-    return hass_storage[f"autodarts.{entry.entry_id}.{name}"]["data"]
+    return hass_storage[f"homedarts.{entry.entry_id}.{name}"]["data"]
 
 
 async def press(hass, key: str) -> None:
@@ -149,11 +149,11 @@ async def test_a_report_due_while_home_assistant_was_stopped_follows_at_start(
 ):
     freezer.move_to("2026-10-07 09:00:00+00:00")
     mock_board(aioclient_mock, state=board())
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
-    hass_storage[f"autodarts.{entry.entry_id}.report"] = {
+    hass_storage[f"homedarts.{entry.entry_id}.report"] = {
         "version": 1,
-        "key": f"autodarts.{entry.entry_id}.report",
+        "key": f"homedarts.{entry.entry_id}.report",
         "data": {
             "weekday": 0,
             "time": "00:00",
@@ -335,16 +335,16 @@ async def test_the_journal_takes_over_the_stored_history_once(
     hass, aioclient_mock, hass_storage
 ):
     mock_board(aioclient_mock, state=board())
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     now = dt_util.utcnow()
 
     def ago(days: int) -> str:
         return (now - timedelta(days=days)).isoformat()
 
-    hass_storage[f"autodarts.{entry.entry_id}.training"] = {
+    hass_storage[f"homedarts.{entry.entry_id}.training"] = {
         "version": 1,
-        "key": f"autodarts.{entry.entry_id}.training",
+        "key": f"homedarts.{entry.entry_id}.training",
         "data": {
             "active": False,
             "history": [
@@ -383,7 +383,7 @@ async def test_the_journal_takes_over_the_stored_history_once(
     assert len(journal["sessions"]) == 1
     assert await hass.config_entries.async_remove(entry.entry_id)
     for name in ("training", "report", "journal"):
-        assert f"autodarts.{entry.entry_id}.{name}" not in hass_storage
+        assert f"homedarts.{entry.entry_id}.{name}" not in hass_storage
 
 
 # -- export ------------------------------------------------------------------------------
@@ -391,7 +391,7 @@ async def test_the_journal_takes_over_the_stored_history_once(
 
 async def export(hass, **data) -> dict:
     return await hass.services.async_call(
-        "autodarts", "export", data, blocking=True, return_response=True
+        "homedarts", "export", data, blocking=True, return_response=True
     )
 
 
@@ -402,7 +402,7 @@ def folders(hass, config: Path, media: Path | None = None) -> Path:
     hass.config.config_dir = str(config)
     hass.config.media_dirs = {"local": str(media)}
     hass.config.allowlist_external_dirs = {str(config / "www"), str(media)}
-    return media / "autodarts" / "exports"
+    return media / "homedarts" / "exports"
 
 
 @pytest.fixture
@@ -422,10 +422,10 @@ async def test_export_everything_as_json(hass, played):
     result = await export(hass, format="json")
     path = Path(result["path"])
     # The media folder needs a login.
-    assert path.parent == played / "media" / "autodarts" / "exports"
-    assert path.name.startswith("autodarts-all-20260927-")
+    assert path.parent == played / "media" / "homedarts" / "exports"
+    assert path.name.startswith("homedarts-all-20260927-")
     assert result["url"] is None
-    assert result["download"] == f"/api/autodarts/export/{path.name}"
+    assert result["download"] == f"/api/homedarts/export/{path.name}"
     assert result["rows"] == {"sessions": 1, "matches": 1, "profiles": 2}
     content = json.loads(path.read_text(encoding="utf-8"))
     assert content["exported"].startswith("2026-09-27T11:")
@@ -438,10 +438,10 @@ async def test_export_everything_as_json(hass, played):
     assert match["started"] == "2026-09-27T18:00:00+00:00"
     assert {profile["name"] for profile in content["profiles"]} == {"=Alex", "Sam"}
     # In www, which Home Assistant serves without a login, only on request.
-    result = await export(hass, format="json", folder="www/autodarts")
+    result = await export(hass, format="json", folder="www/homedarts")
     path = Path(result["path"])
-    assert path.parent == played / "www" / "autodarts"
-    assert result["url"] == f"/local/autodarts/{path.name}"
+    assert path.parent == played / "www" / "homedarts"
+    assert result["url"] == f"/local/homedarts/{path.name}"
 
 
 async def test_export_tables_as_csv(hass, played):
@@ -525,7 +525,7 @@ async def test_an_empty_export_still_has_its_columns(hass, aioclient_mock, tmp_p
     ]
     # The action also runs without asking for its response.
     await hass.services.async_call(
-        "autodarts", "export", {"what": "sessions"}, blocking=True
+        "homedarts", "export", {"what": "sessions"}, blocking=True
     )
     assert len(list(default.iterdir())) == 3
 
@@ -572,7 +572,7 @@ async def test_a_party_of_eight_reaches_the_calendar_and_the_export(
         ("/etc", "/etc"),
         # Only where Home Assistant allows writing.
         ("exports", "exports"),
-        ("custom_components/autodarts", "custom_components/autodarts"),
+        ("custom_components/homedarts", "custom_components/homedarts"),
         # Control characters never reach the file system or the message.
         ("www/a\x00b", "www/a?b"),
         ("www/tab\there", "www/tab?here"),
@@ -603,7 +603,7 @@ async def test_export_to_an_allowed_folder_of_your_own(hass, aioclient_mock, tmp
     # A hidden configuration folder, as in a Home Assistant Core install, is fine.
     result = await export(hass, what="sessions")
     assert Path(result["path"]).parent == (
-        tmp_path / ".homeassistant" / "media" / "autodarts" / "exports"
+        tmp_path / ".homeassistant" / "media" / "homedarts" / "exports"
     )
     with pytest.raises(ServiceValidationError) as error:
         await export(hass, folder=str(share / ".secret"))
@@ -624,7 +624,7 @@ async def test_the_default_folder_must_be_allowed_too(hass, aioclient_mock, tmp_
     await setup_local(hass, aioclient_mock, state=board())
     with pytest.raises(ServiceValidationError) as error:
         await export(hass, what="sessions")
-    assert error.value.translation_placeholders == {"folder": "autodarts/exports"}
+    assert error.value.translation_placeholders == {"folder": "homedarts/exports"}
     assert not (tmp_path / "media").exists()
 
 
@@ -642,9 +642,9 @@ def test_the_default_folder_without_a_local_media_folder(tmp_path):
     config = Config.__new__(Config)
     config.config_dir = str(tmp_path)
     config.media_dirs = {"recordings": str(tmp_path / "recordings")}
-    assert default_folder(config) == tmp_path / "recordings" / "autodarts" / "exports"
+    assert default_folder(config) == tmp_path / "recordings" / "homedarts" / "exports"
     config.media_dirs = {}
-    assert default_folder(config) == tmp_path / "media" / "autodarts" / "exports"
+    assert default_folder(config) == tmp_path / "media" / "homedarts" / "exports"
 
 
 async def test_exports_are_limited_per_hour(hass, aioclient_mock, tmp_path):
@@ -652,8 +652,8 @@ async def test_exports_are_limited_per_hour(hass, aioclient_mock, tmp_path):
     folders(hass, tmp_path)
     await setup_local(hass, aioclient_mock, state=board())
     with (
-        patch("custom_components.autodarts.export.EXPORT_LIMIT", 2),
-        patch("custom_components.autodarts.export.monotonic", return_value=1000.0),
+        patch("custom_components.homedarts.export.EXPORT_LIMIT", 2),
+        patch("custom_components.homedarts.export.monotonic", return_value=1000.0),
     ):
         await export(hass, what="sessions")
         # A refused folder writes nothing and does not count.
@@ -666,8 +666,8 @@ async def test_exports_are_limited_per_hour(hass, aioclient_mock, tmp_path):
     assert error.value.translation_placeholders == {"count": "2"}
     # An hour later, the next export is written.
     with (
-        patch("custom_components.autodarts.export.EXPORT_LIMIT", 2),
-        patch("custom_components.autodarts.export.monotonic", return_value=4600.0),
+        patch("custom_components.homedarts.export.EXPORT_LIMIT", 2),
+        patch("custom_components.homedarts.export.monotonic", return_value=4600.0),
     ):
         await export(hass, what="sessions")
 
@@ -716,7 +716,7 @@ async def test_administrators_download_the_exports_of_this_run(
     name = Path(result["path"]).name
     assert (result["url"], result["download"]) == (
         None,
-        f"/api/autodarts/export/{name}",
+        f"/api/homedarts/export/{name}",
     )
     client = await hass_client()
     response = await client.get(result["download"])
@@ -728,11 +728,11 @@ async def test_administrators_download_the_exports_of_this_run(
     # A user who is no administrator gets no player data either.
     user = await hass_client(access_token=hass_read_only_access_token)
     assert (await user.get(result["download"])).status == 401
-    assert (await client.get("/api/autodarts/export/other.csv")).status == 404
+    assert (await client.get("/api/homedarts/export/other.csv")).status == 404
     Path(result["path"]).unlink()
     assert (await client.get(result["download"])).status == 404
     # Only the latest exports stay available for download.
-    with patch("custom_components.autodarts.export.KEPT_DOWNLOADS", 1):
+    with patch("custom_components.homedarts.export.KEPT_DOWNLOADS", 1):
         first = await export(hass, what="profiles")
         second = await export(hass, what="matches")
     assert (await client.get(first["download"])).status == 404

@@ -3,8 +3,8 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.practice import (
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.practice import (
     GAMES,
     MAX_PLAYERS,
     PARTY_PLAYERS,

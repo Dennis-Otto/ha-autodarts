@@ -4,8 +4,8 @@ score wins the leg."""
 
 import pytest
 
-from custom_components.autodarts.bot import aim, play_leg, x01_aim
-from custom_components.autodarts.practice import (
+from custom_components.homedarts.bot import aim, play_leg, x01_aim
+from custom_components.homedarts.practice import (
     DEFAULT_RULES,
     X01_RULES,
     PracticeGame,
@@ -14,7 +14,7 @@ from custom_components.autodarts.practice import (
     valid_rule,
     valid_settings,
 )
-from custom_components.autodarts.scoring import (
+from custom_components.homedarts.scoring import (
     BULL_25_50,
     BULL_50_50,
     DOUBLE,

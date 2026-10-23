@@ -3,7 +3,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "ha-autodarts",
+      "package-name": "homedarts-for-autodarts",
       "include-component-in-tag": false,
       "initial-version": "0.1.0",
       "bump-minor-pre-major": true,
@@ -26,7 +26,7 @@
         { "type": "style", "section": "Style", "hidden": true }
       ],
       "extra-files": [
-        { "type": "json", "path": "custom_components/autodarts/manifest.json", "jsonpath": "$.version" }
+        { "type": "json", "path": "custom_components/homedarts/manifest.json", "jsonpath": "$.version" }
       ]
     }
   }

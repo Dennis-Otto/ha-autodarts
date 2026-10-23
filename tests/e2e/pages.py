@@ -71,7 +71,7 @@ CARDS_DRAWN = """
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR')) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-') && !el.tagName.endsWith('-EDITOR')) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -93,7 +93,7 @@ ANIMATIONS = """
   const roots = scope === 'page' ? [document] : [];
   (function collect(root, inCard) {
     root.querySelectorAll('*').forEach((el) => {
-      const card = inCard || el.tagName.startsWith('AUTODARTS-');
+      const card = inCard || el.tagName.startsWith('HOMEDARTS-');
       if (el.shadowRoot) {
         if (card || scope === 'page') roots.push(el.shadowRoot);
         collect(el.shadowRoot, card);
@@ -118,7 +118,7 @@ NAVIGATE = """
   const cards = [];
   (function collect(root) {
     root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-')) cards.push(el);
+      if (el.tagName.startsWith('HOMEDARTS-')) cards.push(el);
       if (el.shadowRoot) collect(el.shadowRoot);
     });
   })(document);
@@ -142,7 +142,7 @@ STATES = """
   const hass = document.querySelector('home-assistant')?.hass;
   return Object.fromEntries(keys.map((key) => {
     const entity = Object.values(hass?.entities ?? {}).find(
-      (item) => item.platform === 'autodarts' && item.translation_key === key
+      (item) => item.platform === 'homedarts' && item.translation_key === key
     );
     return [key, entity ? hass.states?.[entity.entity_id]?.state ?? null : null];
   }));

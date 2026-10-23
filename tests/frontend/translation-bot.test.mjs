@@ -54,8 +54,8 @@ Object.assign(process.env, {
 });
 
 const LINKS = {
-  blob: "https://github.com/Dennis-Otto/ha-autodarts/blob/main",
-  edit: "https://github.com/Dennis-Otto/ha-autodarts/edit/main",
+  blob: "https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main",
+  edit: "https://github.com/Dennis-Otto/homedarts-for-autodarts/edit/main",
 };
 const file = (language) => `${TRANSLATIONS}/${language}.json`;
 const json = (tree) => `${JSON.stringify(tree, null, 2)}\n`;
@@ -67,7 +67,7 @@ function textModule(texts) {
   return ["// The texts of the cards.", "export default {", "  // Status", entries.join(",\n"), "};", ""].join("\n");
 }
 
-// A card module as autodarts-card.js wrote it before its texts moved: TEXT between
+// A card module as homedarts-card.js wrote it before its texts moved: TEXT between
 // other code.
 function card(texts) {
   return [
@@ -547,14 +547,14 @@ test("an issue speaks the language it is for, in the singular too", () => {
     "Translation: Dutch needs 2 updates · Nederlands: 2 teksten bij te werken",
   ]);
   const { body } = render({ language: "it", items: [item("a", { state: "missing", translation: undefined })] }, LINKS);
-  assert.ok(body.startsWith("<!-- translation-bot: it -->\n\n**English:** Hello! 1 Italian text of Autodarts"));
-  assert.ok(body.includes("1 Italian text of Autodarts for Home Assistant is missing. If you speak Italian"));
+  assert.ok(body.startsWith("<!-- translation-bot: it -->\n\n**English:** Hello! 1 Italian text of HomeDarts"));
+  assert.ok(body.includes("1 Italian text of HomeDarts for Autodarts is missing. If you speak Italian"));
   assert.ok(body.includes("Italian: missing"));
   assert.ok(!body.includes("dashboard cards"));
   assert.ok(render({ language: "nl", items: [item("a", { source: "cards" })] }, LINKS).body.includes("Spreek je Nederlands?"));
   const german = render({ language: "de", items: [item("a"), item("b")] }, LINKS).body;
   assert.ok(german.includes("kannst du helfen"));
-  assert.ok(german.includes("2 German texts of Autodarts for Home Assistant are older than the English original. If"));
+  assert.ok(german.includes("2 German texts of HomeDarts for Autodarts are older than the English original. If"));
   assert.ok(render({ language: "es", items: [item("a")] }, LINKS).body.includes("puedes ayudar"));
 });
 
@@ -605,7 +605,7 @@ function fakeGitHub(issues = [], { labels = LABELS } = {}) {
 }
 
 const request = (fetch) =>
-  client({ token: "token", repository: "Dennis-Otto/ha-autodarts", api: "https://api.github.com", fetch });
+  client({ token: "token", repository: "Dennis-Otto/homedarts-for-autodarts", api: "https://api.github.com", fetch });
 const botIssue = (number, language, fields = {}) => ({
   number,
   title: `Old title ${language}`,
@@ -621,7 +621,7 @@ test("requests to GitHub carry the token and the API version, and a refusal stop
   await request(github.fetch)("GET", "/issues?page=1");
   assert.deepEqual(github.requests[0], {
     method: "POST",
-    url: "https://api.github.com/repos/Dennis-Otto/ha-autodarts/issues",
+    url: "https://api.github.com/repos/Dennis-Otto/homedarts-for-autodarts/issues",
     body: { title: "T" },
     headers: {
       accept: "application/vnd.github+json",
@@ -655,7 +655,7 @@ test("the bot finds its own open issues on every page, by the language in their 
     ]
   );
   assert.deepEqual(
-    github.requests.map((sent) => sent.url.split("/repos/Dennis-Otto/ha-autodarts")[1]),
+    github.requests.map((sent) => sent.url.split("/repos/Dennis-Otto/homedarts-for-autodarts")[1]),
     [
       "/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100&page=1",
       "/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100&page=2",
@@ -685,7 +685,7 @@ test("the bot opens, updates, keeps and closes one issue per language", async ()
     "Portuguese: 1 update, opened #102",
   ]);
   const writes = github.requests.filter((sent) => sent.method !== "GET");
-  const path = (sent) => `${sent.method} ${sent.url.split("/repos/Dennis-Otto/ha-autodarts")[1]}`;
+  const path = (sent) => `${sent.method} ${sent.url.split("/repos/Dennis-Otto/homedarts-for-autodarts")[1]}`;
   assert.deepEqual(writes.map(path), [
     "POST /issues",
     "PATCH /issues/7",
@@ -705,7 +705,7 @@ test("labels that GitHub dropped from a new issue are added afterwards", async (
   await sync(request(github.fetch), [{ language: "fr", items: [item("a")] }], LINKS, (line) => log.push(line));
   const writes = github.requests.filter((sent) => sent.method !== "GET");
   assert.deepEqual(
-    writes.map((sent) => [sent.method, sent.url.split("/ha-autodarts")[1], sent.body.labels]),
+    writes.map((sent) => [sent.method, sent.url.split("/homedarts-for-autodarts")[1], sent.body.labels]),
     [
       ["POST", "/issues", LABELS],
       ["POST", "/issues/101/labels", ["help wanted", "good first issue"]],
@@ -723,7 +723,7 @@ test("without --sync the bot prints its issues; with it, it needs a token and wr
   await main([], {}, { cwd: repository.dir, log: (line) => log.push(line) });
   assert.equal(log.length, 2);
   assert.ok(log[0].startsWith("# Translation: German needs 1 update · Deutsch: 1 Text zu aktualisieren\n\n<!-- translation-bot: de -->"));
-  assert.ok(links(log[0]).some((link) => link.startsWith("https://github.com/Dennis-Otto/ha-autodarts/edit/main/")));
+  assert.ok(links(log[0]).some((link) => link.startsWith("https://github.com/Dennis-Otto/homedarts-for-autodarts/edit/main/")));
   assert.ok(log[1].startsWith("# Translation: French needs 3 updates"));
   await assert.rejects(main(["--sync"], {}, { cwd: repository.dir }), /--sync needs GITHUB_TOKEN/);
   const github = fakeGitHub();
@@ -742,7 +742,7 @@ test("without --sync the bot prints its issues; with it, it needs a token and wr
   // Without the variables of a workflow, the API of github.com.
   const plain = fakeGitHub();
   await main(["--sync"], { GITHUB_TOKEN: "token" }, { cwd: repository.dir, fetch: plain.fetch, log() {} });
-  assert.ok(plain.requests[0].url.startsWith("https://api.github.com/repos/Dennis-Otto/ha-autodarts/issues?"));
+  assert.ok(plain.requests[0].url.startsWith("https://api.github.com/repos/Dennis-Otto/homedarts-for-autodarts/issues?"));
 });
 
 test("the script runs on its own in the repository it is called in", () => {

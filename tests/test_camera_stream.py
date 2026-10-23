@@ -7,8 +7,8 @@ import aiohttp
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.autodarts.camera import AutodartsCamera
-from custom_components.autodarts.errors import AutodartsConnectionError
+from custom_components.homedarts.camera import AutodartsCamera
+from custom_components.homedarts.errors import AutodartsConnectionError
 
 from .local_helpers import BASE, entity_id, setup_local, setup_v2
 
@@ -102,7 +102,7 @@ async def test_live_viewers_per_camera_are_capped(hass, aioclient_mock):
         patch.object(
             coordinator.client, "open_camera_stream", AsyncMock(return_value=stream)
         ) as opened,
-        patch("custom_components.autodarts.camera.async_aiohttp_proxy_stream", relay),
+        patch("custom_components.homedarts.camera.async_aiohttp_proxy_stream", relay),
         patch(SNAPSHOTS, return_value="snapshots") as snapshots,
     ):
         viewers = [

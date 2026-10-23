@@ -1,5 +1,6 @@
 # The words of this project that the spelling check of the Lint workflow should
 # know: names, terms and words of its trade, one per line.
+AWTRIX
 Antippen
 Ausbullen
 Awwad
@@ -8,6 +9,7 @@ Dartabend
 Dartautomaten
 Dartraum
 Dartscheibe
+Dartscheiben
 Dartwoche
 ESPHome
 Entitäts
@@ -34,6 +36,7 @@ Primärfarbe
 Primärfarben
 Präsenzmelder
 Quevinsta
+Scolia
 Scorekarte
 Screenreadern
 Siegdart
@@ -53,8 +56,10 @@ Trainingsentitäten
 Trefferbild
 Trefferbilder
 Trefferbildern
+Trefferbilds
 Trefferhäufigkeit
 Trkal
+Ulanzi
 Verliererrunde
 Verliererseite
 Verzerrungskorrektur
@@ -92,6 +97,7 @@ generationsspezifischen
 gescrollt
 hace
 heeft
+homedarts
 honderd
 honderdveertig
 joue

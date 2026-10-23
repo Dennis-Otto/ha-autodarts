@@ -1,12 +1,12 @@
 ---
-description: "Facts, the story, pictures and videos of the Autodarts integration for Home Assistant, free to use for YouTubers, streamers and bloggers."
+description: "Facts, the story, pictures and videos of HomeDarts for Autodarts, the integration for Autodarts boards, free to use for YouTubers, streamers and bloggers."
 ---
 
 # Creator kit
 
 [← Documentation](README.md) · [Deutsch](creator-kit.de.md)
 
-For YouTubers, streamers, bloggers and everyone who wants to show the Autodarts integration for Home Assistant. Everything on this page is free to use in videos, articles and posts about the integration; no need to ask.
+For YouTubers, streamers, bloggers and everyone who wants to show HomeDarts for Autodarts, the Home Assistant integration for Autodarts boards and any dartboard. Everything on this page is free to use in videos, articles and posts about the integration; no need to ask.
 
 <img src="images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, Sam scores 85, and Alex checks out 121 for the game shot" width="760">
 
@@ -23,14 +23,15 @@ Make your Autodarts board part of your smart home: a scoreboard on any tablet, a
 A short description:
 
 ```text
-Autodarts for Home Assistant is a free, open-source integration that connects an Autodarts board to Home Assistant in real time, locally and without an account. It brings a scoreboard for the tablet at the board, X01, Cricket, party and training games, a bot, tournaments, player statistics with heatmaps, and events for your own automations, such as lights that flash on a 180.
+HomeDarts for Autodarts is a free, open-source integration that connects an Autodarts board to Home Assistant in real time, locally and without an account. It brings a scoreboard for the tablet at the board, X01, Cricket, party and training games, a bot, tournaments, player statistics with heatmaps, and events for your own automations, such as lights that flash on a 180.
 ```
 
 ## Facts
 
 | Topic | Fact |
 | --- | --- |
-| Name | Autodarts for Home Assistant (`ha-autodarts`) |
+| Name | HomeDarts for Autodarts, HomeDarts for short (`homedarts-for-autodarts`) |
+| Former name | Autodarts, up to version 1.18; Autodarts asked for a name of its own ([From Autodarts to HomeDarts](new-name.md)) |
 | Price | Free, open source under the MIT license |
 | Connection | Local and in real time with the Board Manager on the board PC; no Autodarts account, no cloud |
 | Games | X01 from 101 to 1001, six Cricket games, nine party games and eight training games |
@@ -41,7 +42,7 @@ Autodarts for Home Assistant is a free, open-source integration that connects an
 | Languages | English, German, Dutch, French and Spanish |
 | Quality | 100 % test coverage, tested against both Board Manager generations in Docker; every rule of the Home Assistant quality scale up to Platinum (self-assessed) |
 | Requirements | Home Assistant 2026.8 or newer with HACS; the tested setups are under [supported devices](README.md#supported-devices) |
-| Online matches | Events straight from the Autodarts cloud follow once Autodarts grants access; until then an experimental bridge through Tools for Autodarts brings them in |
+| Online matches | An experimental bridge through Tools for Autodarts brings busts, won legs and the darts of your opponents in as events |
 
 ## The story
 
@@ -51,17 +52,17 @@ I play on an Autodarts board myself. I wanted it in Home Assistant, looked for a
 
 ## Try it without a board
 
-The quickest way is the [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html): the cards play a 501 against the bot, a Cricket game and a tournament right in the browser, on a phone too and in all five languages, with nothing to install. Share its link; `?lang=de`, `nl`, `fr` or `es` at its end opens it in that language.
+The quickest way is the [live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html): the cards play a 501 against the bot, a Cricket game and a tournament right in the browser, on a phone too and in all five languages, with nothing to install. Share its link; `?lang=de`, `nl`, `fr` or `es` at its end opens it in that language.
 
 For the whole of Home Assistant, start the demo with a simulated board and made-up players: it shows every card, the scoreboard and a training history. You need Docker and Git; on Windows, run it in Git Bash.
 
 ```sh
-git clone https://github.com/Dennis-Otto/ha-autodarts.git
-cd ha-autodarts
+git clone https://github.com/Dennis-Otto/homedarts-for-autodarts.git
+cd homedarts-for-autodarts
 bash tests/e2e/demo.sh
 ```
 
-Open <http://127.0.0.1:18124/autodarts-demo/board>; no login is needed from your own computer. `DEMO_LANGUAGE=de bash tests/e2e/demo.sh` starts it in German. The script prints the command that stops it. More in the [development guide](development.md#demo-instance-and-browser-test).
+Open <http://127.0.0.1:18124/homedarts-demo/board>; no login is needed from your own computer. `DEMO_LANGUAGE=de bash tests/e2e/demo.sh` starts it in German. The script prints the command that stops it. More in the [development guide](development.md#demo-instance-and-browser-test).
 
 ## Videos and animations
 
@@ -79,12 +80,12 @@ Recorded in the demo with a simulated board. MP4 works in video editors, on Redd
 
 ## Pictures
 
-Every screenshot of the documentation is in [`docs/images/en`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/en) and [`docs/images/de`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/de), all taken in the demo. A few that show the integration at a glance:
+Every screenshot of the documentation is in [`docs/images/en`](https://github.com/Dennis-Otto/homedarts-for-autodarts/tree/main/docs/images/en) and [`docs/images/de`](https://github.com/Dennis-Otto/homedarts-for-autodarts/tree/main/docs/images/de), all taken in the demo. A few that show the integration at a glance:
 
 | On the scoreboard | In Home Assistant |
 | --- | --- |
 | <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="100%"> | <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="100%"> |
-| <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="100%"> | <img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fifteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="100%"> |
+| <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="100%"> | <img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fifteen HomeDarts blueprints, from the board problem alert to the weekly report, and their file names" width="100%"> |
 
 ## Stream your games
 
@@ -97,8 +98,9 @@ Playing on stream? The scoreboard is an overlay for OBS Studio, Streamlabs and e
 
 ## How to name it
 
-- Call it **Autodarts for Home Assistant** or **ha-autodarts** and link <https://github.com/Dennis-Otto/ha-autodarts>.
-- Say that it is an **unofficial community project**, not affiliated with Autodarts. Autodarts and Winmau names and logos belong to their owners; please don't use them in a way that looks like an endorsement, for example in a thumbnail.
+- Call it **HomeDarts for Autodarts**, or **HomeDarts** for short, and link <https://github.com/Dennis-Otto/homedarts-for-autodarts>. Up to version 1.18 it was called Autodarts; please don't use that name for it any more.
+- Say that it is an **unofficial community project**, not affiliated with Autodarts. Autodarts and Winmau names and logos belong to their owners; please don't use them in a way that looks like an endorsement, for example in a thumbnail. The project carries no logo of Autodarts; its own icon, [a house with a dartboard](branding/icon.svg), is free to show.
+- In hashtags and search words, *HomeDarts* names the project and *Autodarts* the boards it works with, for example `#HomeDarts #Autodarts #HomeAssistant`.
 - Autodarts no longer supports the local interface of the Board Manager officially from version 2 on. The integration still works with it; the [supported devices](README.md#supported-devices) say what is tested.
 
 ## Launch posts
@@ -134,25 +136,25 @@ Before posting:
 In the category *Share your Projects!* of the [Home Assistant community forum](https://community.home-assistant.io/). The animation in the first line shows itself in the post.
 
 ```text title="Title"
-Autodarts for Home Assistant: your dartboard in your smart home, with a scoreboard, a bot and a light show on every 180, local and free
+HomeDarts for Autodarts: your dartboard in your smart home, with a scoreboard, a bot and a light show on every 180, local and free
 ```
 
 ```markdown title="Post"
-![A 301 match on the live card and the scoreboard of Autodarts for Home Assistant](https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/media/hero-en.gif)
+![A 301 match on the live card and the scoreboard of HomeDarts for Autodarts](https://raw.githubusercontent.com/Dennis-Otto/homedarts-for-autodarts/main/docs/media/hero-en.gif)
 
-I play on an Autodarts board, and I wanted the whole game in Home Assistant, not just the last score. I couldn't find a complete solution, so I built one in my spare time: **Autodarts for Home Assistant**, free and open source under the MIT license.
+I play on an Autodarts board, and I wanted the whole game in Home Assistant, not just the last score. I couldn't find a complete solution, so I built one in my spare time: **HomeDarts for Autodarts**, free and open source under the MIT license.
 
 - **Local and in real time.** It talks to the Board Manager on the board PC in your network: no Autodarts account, no cloud, nothing leaves your home.
 - **A dart machine at home.** X01, six Cricket games, nine party and eight training games, a bot from level 20 to 120 and tournaments, on a full-screen scoreboard for a tablet or TV, with a caller.
 - **Every dart for your automations.** Events for every dart, visit, bust, leg and match, seven dashboard cards and fifteen blueprints, from a light show on a 180 to a weekly report. Statistics with heatmaps stay in your Home Assistant.
 
-**Try it first:** the [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) plays the cards in your browser, with nothing to install. No Autodarts board? It also counts darts entered on a keypad.
+**Try it first:** the [live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html) plays the cards in your browser, with nothing to install. No Autodarts board? It also counts darts entered on a keypad.
 
-**Install it:** Home Assistant 2026.8 or newer with HACS, then [open the repository in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration). Using another Autodarts integration, darts-caller or an MQTT bridge? [Coming from another tool](https://dennis-otto.github.io/ha-autodarts/coming-from.html) shows what takes its place and what can stay.
+**Install it:** Home Assistant 2026.8 or newer with HACS, then [open the repository in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration). Using another Autodarts integration, darts-caller or an MQTT bridge? [Coming from another tool](https://dennis-otto.github.io/homedarts-for-autodarts/coming-from.html) shows what takes its place and what can stay.
 
-[Documentation](https://dennis-otto.github.io/ha-autodarts/) in English and German · [GitHub](https://github.com/Dennis-Otto/ha-autodarts) · An unofficial community project, not affiliated with Autodarts.
+[Documentation](https://dennis-otto.github.io/homedarts-for-autodarts/) in English and German · [GitHub](https://github.com/Dennis-Otto/homedarts-for-autodarts) · An unofficial community project, not affiliated with Autodarts.
 
-Feedback from real boards decides what comes next. And if it runs at yours, [show your board](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell)!
+Feedback from real boards decides what comes next. And if it runs at yours, [show your board](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/new?category=show-and-tell)!
 ```
 
 ### r/homeassistant
@@ -164,7 +166,7 @@ I made my Autodarts dartboard part of Home Assistant: a scoreboard on any tablet
 ```
 
 ```markdown title="Post"
-I play darts on an Autodarts board, whose cameras score every dart, and I wanted the whole game in Home Assistant. So I built an integration for it: free, open source and local.
+I play darts on an Autodarts board, whose cameras score every dart, and I wanted the whole game in Home Assistant. So I built an integration for it, HomeDarts for Autodarts: free, open source and local.
 
 - **Local push, no cloud.** It connects to the Board Manager on the board PC in your network; no Autodarts account needed.
 - **Your own dart machine.** X01, Cricket, party and training games, a bot and tournaments, with a full-screen scoreboard and a caller for a tablet or TV at the board.
@@ -172,12 +174,12 @@ I play darts on an Autodarts board, whose cameras score every dart, and I wanted
 
 Statistics with heatmaps of where your darts really land stay in your Home Assistant.
 
-- [Live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html): the cards play a match in your browser, nothing to install
-- [Open it in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration) (Home Assistant 2026.8 or newer)
-- [Coming from another Autodarts integration, darts-caller or an MQTT bridge](https://dennis-otto.github.io/ha-autodarts/coming-from.html)
-- [Documentation](https://dennis-otto.github.io/ha-autodarts/) · [GitHub](https://github.com/Dennis-Otto/ha-autodarts)
+- [Live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html): the cards play a match in your browser, nothing to install
+- [Open it in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration) (Home Assistant 2026.8 or newer)
+- [Coming from another Autodarts integration, darts-caller or an MQTT bridge](https://dennis-otto.github.io/homedarts-for-autodarts/coming-from.html)
+- [Documentation](https://dennis-otto.github.io/homedarts-for-autodarts/) · [GitHub](https://github.com/Dennis-Otto/homedarts-for-autodarts)
 
-No Autodarts board? It also counts darts entered on a keypad. It's an unofficial community project, not affiliated with Autodarts. I'd love feedback from real setups, and a photo of yours in [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell).
+No Autodarts board? It also counts darts entered on a keypad. It's an unofficial community project, not affiliated with Autodarts. I'd love feedback from real setups, and a photo of yours in [Show and tell](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/new?category=show-and-tell).
 ```
 
 ### r/Darts
@@ -189,7 +191,7 @@ I built a free scoreboard, bot and stats for Autodarts boards that run at home, 
 ```
 
 ```markdown title="Post"
-I play on an Autodarts board, and in my spare time I built a free, open-source add-on that turns it into a dart machine at home. It runs in Home Assistant, free smart home software for a Raspberry Pi or a mini PC, and talks to the board PC in your network, without an Autodarts account.
+I play on an Autodarts board, and in my spare time I built HomeDarts for Autodarts, a free, open-source add-on that turns it into a dart machine at home. It runs in Home Assistant, free smart home software for a Raspberry Pi or a mini PC, and talks to the board PC in your network, without an Autodarts account.
 
 - **Play:** X01 from 101 to 1001 with double or master out, six Cricket games, party games such as Shanghai and Killer, training games such as Bob's 27, a bot from level 20 to 120 and tournaments of three to 32 players.
 - **At the board:** a full-screen scoreboard for a tablet or TV with checkout routes, a caller and confetti on a 180.
@@ -197,11 +199,11 @@ I play on an Autodarts board, and in my spare time I built a free, open-source a
 
 And because it's Home Assistant: lights that flash on a 180, a photo of the board after a big checkout, a weekly report. No Autodarts board? It also scores darts entered on a keypad.
 
-- [Try it in your browser](https://dennis-otto.github.io/ha-autodarts/demo/index.html), nothing to install
-- [Install it with HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
-- [How it compares with Tools for Autodarts and darts-caller](https://dennis-otto.github.io/ha-autodarts/coming-from.html)
+- [Try it in your browser](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html), nothing to install
+- [Install it with HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration)
+- [How it compares with Tools for Autodarts and darts-caller](https://dennis-otto.github.io/homedarts-for-autodarts/coming-from.html)
 
-An unofficial community project, not affiliated with Autodarts. Feedback from players decides what comes next, and I'd love to [see your board](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell).
+An unofficial community project, not affiliated with Autodarts. Feedback from players decides what comes next, and I'd love to [see your board](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/new?category=show-and-tell).
 ```
 
 ### Autodarts Discord
@@ -209,16 +211,16 @@ An unofficial community project, not affiliated with Autodarts. Feedback from pl
 In the channel of the Autodarts Discord where members share their own projects, with the [video](media/hero-en.mp4) uploaded along with it. The angle brackets keep Discord from adding a preview to every link. The German message is on the [German page](creator-kit.de.md#autodarts-discord).
 
 ```markdown title="Message"
-**Autodarts for Home Assistant**: I built a free, open-source integration that brings the board into Home Assistant, locally and in real time, without an Autodarts account.
+**HomeDarts for Autodarts**: I built a free, open-source integration that brings the board into Home Assistant, locally and in real time, without an Autodarts account.
 
 - A full-screen scoreboard for a tablet or TV with a caller: X01, Cricket, party and training games, a bot and tournaments
 - An event for every dart, bust, leg and match: a light show on a 180, a photo after a checkout, games started by voice
 - Statistics with heatmaps of your real dart positions, kept at home
 
-Try the cards in your browser: <https://dennis-otto.github.io/ha-autodarts/demo/index.html>
-Open it in HACS: <https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration>
-Coming from another tool: <https://dennis-otto.github.io/ha-autodarts/coming-from.html>
-Show your board: <https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell>
+Try the cards in your browser: <https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html>
+Open it in HACS: <https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration>
+Coming from another tool: <https://dennis-otto.github.io/homedarts-for-autodarts/coming-from.html>
+Show your board: <https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/new?category=show-and-tell>
 
 An unofficial community project, not affiliated with Autodarts. Feedback is welcome, here or on GitHub!
 ```
@@ -228,13 +230,13 @@ An unofficial community project, not affiliated with Autodarts. Feedback is welc
 Two sentences and a link each, for the Discord servers, groups and discussions of [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) and of [darts-hub](https://github.com/lbormann/darts-hub) with darts-caller, whose users the integration works next to.
 
 ```text title="Tools for Autodarts"
-Using Tools for Autodarts and Home Assistant? Autodarts for Home Assistant turns the WLED feature of Tools into Home Assistant events for online matches, such as busts, won legs and the darts of your opponents, for lights, a caller or a notification (experimental): https://dennis-otto.github.io/ha-autodarts/online-matches.html
+Using Tools for Autodarts and Home Assistant? HomeDarts for Autodarts turns the WLED feature of Tools into Home Assistant events for online matches, such as busts, won legs and the darts of your opponents, for lights, a caller or a notification (experimental): https://dennis-otto.github.io/homedarts-for-autodarts/online-matches.html
 ```
 
 ```text title="darts-hub"
-Running darts-caller or darts-wled with darts-hub? Autodarts for Home Assistant can stay right next to them: it reads the board locally and brings every dart, bust and leg into Home Assistant for your own automations: https://dennis-otto.github.io/ha-autodarts/coming-from.html#darts-caller-and-darts-wled
+Running darts-caller or darts-wled with darts-hub? HomeDarts for Autodarts can stay right next to them: it reads the board locally and brings every dart, bust and leg into Home Assistant for your own automations: https://dennis-otto.github.io/homedarts-for-autodarts/coming-from.html#darts-caller-and-darts-wled
 ```
 
 ## Contact
 
-Questions and ideas go to [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), so every answer helps everyone; English and German are welcome. Made a video or an article? Share it in [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/show-and-tell), and it gets a link in the documentation.
+Questions and ideas go to [GitHub Discussions](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions), so every answer helps everyone; English and German are welcome. Made a video or an article? Share it in [Show and tell](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/categories/show-and-tell), and it gets a link in the documentation.

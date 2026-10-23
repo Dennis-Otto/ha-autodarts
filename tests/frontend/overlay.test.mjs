@@ -40,13 +40,13 @@ const BOARD = {
 };
 const setup = (states = {}, config = {}) => {
   const hass = makeHass({ states: { ...READY, ...BOARD, ...visit(), ...states } });
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 const stageOf = (card) => {
   const stage = $(card, ".stage");
   return stage && [stage.dataset.mode, stage.dataset.layout, card.style.getPropertyValue("--ad-key")];
 };
-const page = () => window.document.getElementById("autodarts-overlay");
+const page = () => window.document.getElementById("homedarts-overlay");
 
 // Browsers with popovers put the stage above everything on the page; happy-dom has none.
 function popovers(t) {
@@ -157,7 +157,7 @@ test("on the dashboard the overlay takes the window and hides Home Assistant, no
   assert.match(page().textContent, /body > \* \{ visibility: hidden !important; \}/);
   // A second overlay shares the page, which comes back once the last one has left.
   const other = setup(game(), { overlay: "transparent", overlay_layout: "corner" }).card;
-  assert.equal(window.document.querySelectorAll("#autodarts-overlay").length, 1);
+  assert.equal(window.document.querySelectorAll("#homedarts-overlay").length, 1);
   other.remove();
   assert.ok(page());
   // The card editor and the edit mode of the dashboard show the overlay inside the card.
@@ -171,7 +171,7 @@ test("on the dashboard the overlay takes the window and hides Home Assistant, no
   window.document.body.append(card);
   assert.deepEqual(taken(), [true, "manual", true, true]);
   // An overlay switched off becomes the scoreboard again.
-  card.setConfig({ type: "custom:autodarts-scoreboard-card" });
+  card.setConfig({ type: "custom:homedarts-scoreboard-card" });
   assert.equal($(card, ".stage"), null);
   assert.equal(page(), null);
 });

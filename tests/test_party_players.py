@@ -3,8 +3,8 @@
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import (
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.practice import (
     MAX_PLAYERS,
     PARTY_PLAYERS,
     PracticeGame,

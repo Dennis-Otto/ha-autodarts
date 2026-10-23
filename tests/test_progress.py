@@ -3,10 +3,10 @@
 import random
 from datetime import UTC, datetime, timedelta
 
-from custom_components.autodarts.achievements import ACHIEVEMENTS, CATALOGUE
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.profiles import Profile, Profiles
-from custom_components.autodarts.progress import (
+from custom_components.homedarts.achievements import ACHIEVEMENTS, CATALOGUE
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.profiles import Profile, Profiles
+from custom_components.homedarts.progress import (
     COUNTERS,
     TREND_WEEKS,
     WEEK_FIELDS,

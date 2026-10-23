@@ -84,7 +84,7 @@ export function makeHass({ language = "en", states = {}, cameras = [], device = 
   const entities = {};
   const all = {};
   const add = (key, id, value) => {
-    entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: key.split(".")[1] };
+    entities[id] = { entity_id: id, platform: "homedarts", device_id: DEVICE, translation_key: key.split(".")[1] };
     if (value !== undefined) all[id] = toState(id, value);
   };
   for (const [key, value] of Object.entries(states)) add(key, entityId(key), value);
@@ -120,8 +120,8 @@ export const withLanguage = (hass, language) => ({ ...hass, language, locale: { 
 // Home Assistant's app element lets the module register its cards.
 export async function loadCards() {
   if (!customElements.get("home-assistant")) customElements.define("home-assistant", class extends HTMLElement {});
-  const module = await import("../../custom_components/autodarts/frontend/autodarts-card.js");
-  await customElements.whenDefined("autodarts-card");
+  const module = await import("../../custom_components/homedarts/frontend/homedarts-card.js");
+  await customElements.whenDefined("homedarts-card");
   return module;
 }
 

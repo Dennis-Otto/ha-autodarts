@@ -5,13 +5,13 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.setup import async_setup_component
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.quality import (
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.quality import (
     QUALITY_DARTS,
     QUALITY_MINIMUM,
     DetectionQuality,
 )
-from custom_components.autodarts.repairs import CalibrationFlow
+from custom_components.homedarts.repairs import CalibrationFlow
 
 from .local_helpers import (
     BASE,

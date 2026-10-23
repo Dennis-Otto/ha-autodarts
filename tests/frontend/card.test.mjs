@@ -19,7 +19,7 @@ import {
   recentVisits,
   sectorAt,
   shortProcessor,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const hass = { locale: { language: "en" } };
 const dart = (number, multiplier, bed, extra = {}) => ({ number, multiplier, bed, ...extra });
@@ -96,7 +96,7 @@ test("segment names from older integrations are parsed", () => {
 });
 
 test("the board has 80 bed segments, both bulls and 20 numbers", () => {
-  for (const style of ["classic", "autodarts", "unknown"]) {
+  for (const style of ["classic", "homedarts", "unknown"]) {
     assert.equal(boardSvg(style).match(/<path /g).length, 80);
     assert.equal(boardSvg(style).match(/<circle /g).length >= 3, true);
     assert.equal(numbersSvg(style).match(/<text /g).length, 20);

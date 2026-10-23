@@ -1,12 +1,12 @@
 ---
-description: "Short answers about Autodarts in Home Assistant: account, devices, online play, privacy, several boards, screens, languages, updates and switching."
+description: "Short answers about HomeDarts for Autodarts: account, devices, online play, privacy, several boards, screens, languages, updates, the new name and switching."
 ---
 
 # Frequently asked questions
 
 [← Documentation](README.md) · [Deutsch](faq.de.md)
 
-Short answers, each with the page that has the details. Your question is missing? Ask it in [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions).
+Short answers, each with the page that has the details. Your question is missing? Ask it in [GitHub Discussions](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions).
 
 **Jump to:** [Before you start](#before-you-start) · [Playing](#playing) · [Screens and languages](#screens-and-languages) · [Privacy](#privacy) · [Updates and switching](#updates-and-switching)
 
@@ -22,17 +22,17 @@ Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Autodarts b
 
 ### Does it work with Autodarts Desktop, Autodarts X or Lens?
 
-The integration needs a Board Manager that Home Assistant reaches in your network. Board Manager 2 is tested up to 2.0.2, the classic Board Manager 1 works too, and a player reports that Autodarts Desktop 2.0.2 on Linux works. Autodarts Desktop on Windows and Autodarts X have not been tested yet. A [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) tells us how it goes with yours, whether it works or not. [Supported devices](README.md#supported-devices)
+The integration needs a Board Manager that Home Assistant reaches in your network. Board Manager 2 is tested up to 2.0.2, the classic Board Manager 1 works too, and a player reports that Autodarts Desktop 2.0.2 on Linux works. Autodarts Desktop on Windows and Autodarts X have not been tested yet. A [compatibility report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml) tells us how it goes with yours, whether it works or not. [Supported devices](README.md#supported-devices)
 
-Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. Once the [cloud link](online-matches.md#the-cloud-link) ships, a board without a Board Manager in your network, such as Lens, connects through the Autodarts cloud, with its match data and the moments of its online matches. [Play without Autodarts](without-autodarts.md)
+Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. A link through the Autodarts cloud won't come either: Autodarts issues no client IDs to third-party integrations ([decision 0025](decisions/0025-no-cloud-link.md)). [Play without Autodarts](without-autodarts.md)
 
 ### Does it cost anything?
 
-No. The integration is free and open source under the [MIT license](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), with nothing to pay for and no paid tier. [Sponsoring](https://github.com/sponsors/Dennis-Otto) helps the project and is entirely optional.
+No. The integration is free and open source under the [MIT license](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/LICENSE), with nothing to pay for and no paid tier. [Sponsoring](https://github.com/sponsors/Dennis-Otto) helps the project and is entirely optional.
 
 ### Is this an official Autodarts integration?
 
-No. This is an unofficial community integration, maintained by [@Dennis-Otto](https://github.com/Dennis-Otto) and not affiliated with Autodarts. It uses the local interface of the Board Manager, which the Autodarts team keeps open. [Credits and license](https://github.com/Dennis-Otto/ha-autodarts/blob/main/README.md#credits-and-license)
+No. HomeDarts for Autodarts is an unofficial community project, not affiliated with Autodarts, and maintained by [@Dennis-Otto](https://github.com/Dennis-Otto). It uses the local interface of the Board Manager, which the Autodarts team keeps open. Up to version 1.18 it was called Autodarts, until Autodarts asked for a name of its own. [From Autodarts to HomeDarts](new-name.md) · [Credits and license](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/README.md#credits-and-license)
 
 ## Playing
 
@@ -46,7 +46,7 @@ Yes, on play.autodarts.io as before. The integration sees the darts on your own 
 
 ### The board read a dart wrong. How do I correct it?
 
-Tap the dart on the scoreboard and choose where it landed, on the keys or on a picture of the board. In automations, `autodarts.correct_dart` does the same, and `autodarts.undo_visit` takes the last visit back. [Correct and enter darts](scoreboard.md#correct-and-enter-darts)
+Tap the dart on the scoreboard and choose where it landed, on the keys or on a picture of the board. In automations, `homedarts.correct_dart` does the same, and `homedarts.undo_visit` takes the last visit back. [Correct and enter darts](scoreboard.md#correct-and-enter-darts)
 
 ### Can I use several boards?
 
@@ -68,11 +68,11 @@ English, German, Dutch, French and Spanish, following the language of Home Assis
 
 ### What leaves my network?
 
-Nothing, in local mode. Only what you choose talks to the internet: the board search asks the public Autodarts discovery service once, the optional cloud link will use the Autodarts device login, and the online bridge only receives the calls of Tools for Autodarts. Board secrets are never stored, and diagnostics redact board IDs, addresses and player names. Some browsers speak the scoreboard's calls with online voices; an offline voice of the device keeps them at home. [Privacy](how-it-works.md#privacy) · [Security design](security.md)
+Nothing, in local mode. Only what you choose talks to the internet: the board search asks the public Autodarts discovery service once, and the online bridge only receives the calls of Tools for Autodarts. Board secrets are never stored, and diagnostics redact board IDs, addresses and player names. Some browsers speak the scoreboard's calls with online voices; an offline voice of the device keeps them at home. [Privacy](how-it-works.md#privacy) · [Security design](security.md)
 
 ### Where are my statistics kept?
 
-In Home Assistant's own storage, never in the cloud: the training sessions, the practice game, the personal bests, the player profiles with their matches, and the training calendar with a year of sessions and matches. Deleting the board deletes them too; [`autodarts.export`](entities.md#export-training-data-autodartsexport) saves a copy first. [Stored data](how-it-works.md#stored-data)
+In Home Assistant's own storage, never in the cloud: the training sessions, the practice game, the personal bests, the player profiles with their matches, and the training calendar with a year of sessions and matches. Deleting the board deletes them too; [`homedarts.export`](entities.md#export-training-data-homedartsexport) saves a copy first. [Stored data](how-it-works.md#stored-data)
 
 ## Updates and switching
 
@@ -80,14 +80,18 @@ In Home Assistant's own storage, never in the cloud: the training sessions, the 
 
 On the board PC, as Autodarts describes. Home Assistant tells you when an update is due: with Board Manager 2, the *Software* update entity shows the installed and the latest version, and a board on Board Manager 1 gets a repair notice for the step to Board Manager 2. The integration itself updates through HACS. [Update to Board Manager 2](installation.md#update-from-board-manager-1-to-board-manager-2) · [Health and connections](entities.md#health-and-connections)
 
+### The integration was called Autodarts. What changes for me?
+
+Since version 2.0 it is HomeDarts for Autodarts, with the domain `homedarts`. After the update, add **HomeDarts for Autodarts** and choose **Take over the boards of the integration Autodarts**: your boards keep their entities, history, statistics and dashboards. Automations and scripts that call the old actions, such as `autodarts.start_game`, need the new names, such as `homedarts.start_game`; a repair lists them. [From Autodarts to HomeDarts](new-name.md)
+
 ### I use the original HACSAutodarts. How do I switch?
 
-Replace it in HACS and keep its entry in **Devices & services**. Both use the `autodarts` domain; entries of its first version are migrated, and their password is deleted. [Update from the original integration](installation.md#update-from-the-original-integration)
+Install HomeDarts beside it: the original has the domain `autodarts`, HomeDarts the domain `homedarts`, so both run at the same time. Add your board to HomeDarts, move your automations, then delete the entry of HACSAutodarts and remove it in HACS. HomeDarts doesn't take over that entry. [Switch from the original integration](installation.md#switch-from-the-original-integration)
 
 ### I use another Autodarts tool. How do I switch?
 
-[Coming from another tool](coming-from.md) covers Autodarts Local, the other Home Assistant integrations, MQTT bridges, darts-caller and darts-wled, and Tools for Autodarts: what each one offers, the entities, events and blueprints that take its place, which ones can stay installed and how to remove the others.
+[Coming from another tool](coming-from.md) covers Autodarts Local, the other Home Assistant integrations, MQTT bridges, darts-caller and darts-wled, and Tools for Autodarts: what each one offers, the entities, events and blueprints that take its place, and how to switch while it stays installed. HomeDarts has a domain of its own, so none of them has to go first.
 
 ### Something doesn't work. Where do I get help?
 
-[Troubleshooting](troubleshooting.md) explains the messages, repairs and diagnostics. Ask questions in [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions) and report bugs as an [issue](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), with the diagnostics of your board; [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) explains where to ask what.
+[Troubleshooting](troubleshooting.md) explains the messages, repairs and diagnostics. Ask questions in [GitHub Discussions](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions) and report bugs as an [issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose), with the diagnostics of your board; [SUPPORT.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/SUPPORT.md) explains where to ask what.

@@ -39,7 +39,7 @@ const teamMatch = (remaining, attributes = {}) =>
   });
 
 test("the scoreboard shows two team tiles with the partner at the board", () => {
-  const { hass, card } = setup("autodarts-scoreboard-card", teamMatch([100, 301]));
+  const { hass, card } = setup("homedarts-scoreboard-card", teamMatch([100, 301]));
   const tiles = $$(card, ".main .player");
   assert.deepEqual(
     tiles.map((tile) => [tile.className, tile.querySelector(".name").textContent, tile.querySelector(".big").textContent]),
@@ -62,7 +62,7 @@ test("the scoreboard shows two team tiles with the partner at the board", () => 
 });
 
 test("the live card lists the teams and whose turn it is", () => {
-  const { card } = setup("autodarts-card", teamMatch([100, 301]));
+  const { card } = setup("homedarts-card", teamMatch([100, 301]));
   assert.equal(text(card, ".practice-meta"), "Kim to throw");
   assert.equal(text(card, ".practice-remaining"), "100");
   assert.deepEqual(
@@ -84,12 +84,12 @@ test("start scores of their own show on both cards", () => {
       { player: 2, name: "Sam", remaining: 301, start: 301, legs: 0, sets: 0 },
     ],
   });
-  const scoreboard = setup("autodarts-scoreboard-card", states).card;
+  const scoreboard = setup("homedarts-scoreboard-card", states).card;
   assert.deepEqual(
     $$(scoreboard, ".main .player .badge").map((badge) => badge.textContent),
     ["501", "301"]
   );
-  const live = setup("autodarts-card", states).card;
+  const live = setup("homedarts-card", states).card;
   assert.deepEqual(
     $$(live, ".player-score .badge").map((badge) => badge.textContent),
     ["501", "301"]
@@ -108,7 +108,7 @@ test("Tactics fills the chalkboard with the numbers down to 10, in German too", 
       { player: 2, name: "Sam", marks: [3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0], points: 0, mpr: 1.8 },
     ],
   });
-  const { card } = setup("autodarts-scoreboard-card", states, {}, { language: "de" });
+  const { card } = setup("homedarts-scoreboard-card", states, {}, { language: "de" });
   assert.equal(text(card, ".title"), "Tactics");
   assert.equal($$(card, ".main table.cricket.many tbody tr").length, 14);
   assert.deepEqual(
@@ -118,13 +118,13 @@ test("Tactics fills the chalkboard with the numbers down to 10, in German too", 
       ["target", "12"],
     ]
   );
-  const live = setup("autodarts-card", states).card;
+  const live = setup("homedarts-card", states).card;
   assert.equal(text(live, ".practice-title"), "Tactics");
   assert.deepEqual(
     $$(live, ".aim path").map((path) => path.getAttribute("d")),
     [bedPath("T12")]
   );
-  const cut = setup("autodarts-scoreboard-card", practice("unknown", { game: "cut_throat", scores: [] })).card;
+  const cut = setup("homedarts-scoreboard-card", practice("unknown", { game: "cut_throat", scores: [] })).card;
   assert.equal(text(cut, ".title"), "Cut-Throat Cricket");
   assert.equal(text(cut, ".meta"), "Fewest points win");
 });
@@ -148,7 +148,7 @@ test("a dart that counted nothing in Cricket is struck through on both cards", (
     }),
     "sensor.local_visit_score": { state: "74", attributes: { throws, recent_visits: [] } },
   };
-  const board = setup("autodarts-scoreboard-card", states).card;
+  const board = setup("homedarts-scoreboard-card", states).card;
   assert.deepEqual(
     $$(board, ".visit .dart:not(.empty)").map((dart) => [dart.className, dart.getAttribute("title")]),
     [
@@ -158,7 +158,7 @@ test("a dart that counted nothing in Cricket is struck through on both cards", (
   );
   assert.match($$(board, ".visit .dart")[1].getAttribute("aria-label"), /^S14 14 – Counted nothing – Correct dart 2$/);
   assert.equal($(board, ".main td.aim-score").getAttribute("title"), "Scores here: another player still has it open");
-  const live = setup("autodarts-card", states).card;
+  const live = setup("homedarts-card", states).card;
   assert.deepEqual(
     $$(live, ".slot").map((slot) => [slot.className, slot.getAttribute("title")]),
     [
@@ -168,10 +168,10 @@ test("a dart that counted nothing in Cricket is struck through on both cards", (
     ]
   );
   // Without corrections, the darts are no buttons and keep the hint.
-  const still = setup("autodarts-card", states, { corrections: false }).card;
+  const still = setup("homedarts-card", states, { corrections: false }).card;
   assert.equal($$(still, ".slot")[1].tagName, "DIV");
   assert.equal($$(still, ".slot")[1].getAttribute("title"), "Counted nothing");
-  const plain = setup("autodarts-scoreboard-card", states, { corrections: false }).card;
+  const plain = setup("homedarts-scoreboard-card", states, { corrections: false }).card;
   assert.equal($$(plain, ".visit .dart")[1].tagName, "DIV");
   assert.equal($$(plain, ".visit .dart")[1].getAttribute("title"), "Counted nothing");
 });
@@ -191,7 +191,7 @@ test("Golf shows the scorecard and outlines the hole", () => {
       ],
       ...attributes,
     });
-  const { hass, card } = setup("autodarts-scoreboard-card", golf({}));
+  const { hass, card } = setup("homedarts-scoreboard-card", golf({}));
   assert.equal(text(card, ".title"), "Golf");
   assert.equal(text(card, ".meta"), "Hole 4/9 · The last dart counts – pull your darts to stop");
   assert.deepEqual(
@@ -207,7 +207,7 @@ test("Golf shows the scorecard and outlines the hole", () => {
   );
   card.hass = update(hass, golf({ round: 10, target: "10", playoff: [1, 2] }));
   assert.equal(text(card, ".meta"), "Play-off · Hole 10 · The last dart counts – pull your darts to stop");
-  const live = setup("autodarts-card", golf({})).card;
+  const live = setup("homedarts-card", golf({})).card;
   assert.equal(text(live, ".practice-meta"), "Hole 4/9 · Alex to throw");
   assert.deepEqual(
     $$(live, ".aim path").map((path) => path.getAttribute("d")),
@@ -235,7 +235,7 @@ test("the 121 checkout shows the route and calls what the next attempt requires"
       ...attributes,
     });
   const { hass, card } = setup(
-    "autodarts-scoreboard-card",
+    "homedarts-scoreboard-card",
     { ...ladder("121", { remaining: 121, checkout: "T20 T11 D14" }), ...practice("unknown", { game: null }) },
     { caller: true }
   );
@@ -273,13 +273,13 @@ test("the scoreboard and the live card show the setup of a checkout training wit
     }),
     ...practice("unknown", { game: null }),
   };
-  const scoreboard = setup("autodarts-scoreboard-card", states).card;
+  const scoreboard = setup("homedarts-scoreboard-card", states).card;
   assert.equal(text(scoreboard, ".main .big"), "159");
   assert.equal(text(scoreboard, ".main .route"), "T20T19S10leaves 32");
   assert.equal(
     $(scoreboard, ".main .route .setup").getAttribute("title"),
     "No checkout with the darts left: set up the next visit"
   );
-  const live = setup("autodarts-card", states).card;
+  const live = setup("homedarts-card", states).card;
   assert.equal(text(live, ".practice-route"), "T20T19S10leaves 32");
 });

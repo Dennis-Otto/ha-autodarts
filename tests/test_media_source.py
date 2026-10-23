@@ -14,9 +14,9 @@ from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from PIL import Image
 
-from custom_components.autodarts import media_source as highlights
-from custom_components.autodarts.highlights import highlight_folder
-from custom_components.autodarts.media_source import (
+from custom_components.homedarts import media_source as highlights
+from custom_components.homedarts.highlights import highlight_folder
+from custom_components.homedarts.media_source import (
     Highlight,
     async_get_media_source,
     highlight,
@@ -37,7 +37,7 @@ PHOTOS = [
 def gallery(hass, tmp_path) -> Path:
     """A media folder with the highlight photos and some files that are none."""
     hass.config.media_dirs = {"other": str(tmp_path / "other"), "local": str(tmp_path)}
-    folder = tmp_path / "autodarts" / "highlights"
+    folder = tmp_path / "homedarts" / "highlights"
     folder.mkdir(parents=True)
     for name in PHOTOS:
         (folder / name).write_bytes(b"photo")
@@ -59,7 +59,7 @@ def gallery(hass, tmp_path) -> Path:
 
 
 def item(hass, identifier: str = "") -> MediaSourceItem:
-    return MediaSourceItem(hass, "autodarts", identifier, None)
+    return MediaSourceItem(hass, "homedarts", identifier, None)
 
 
 def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
@@ -85,7 +85,7 @@ def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
     alone = parsed("2026-09-26_21-05-33_60.webp")
     assert (alone.player, alone.score) == (None, 60)
     assert parsed("2026-09-26_Kim.jpg").score is None
-    # The second photo of a second with the same name, as autodarts.save_highlight
+    # The second photo of a second with the same name, as homedarts.save_highlight
     # names it, is a photo like the first.
     copy = parsed("2026-09-26_21-05-33_Alex_checkout-121 (2).jpg")
     assert (copy.player, copy.score, copy.checkout, copy.label) == (
@@ -130,10 +130,10 @@ def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
 
 async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
     source = await async_get_media_source(hass)
-    assert source.name == "Autodarts"
+    assert source.name == "HomeDarts"
     root = await source.async_browse_media(item(hass))
     assert (root.title, root.media_class, root.can_expand, root.can_play) == (
-        "Autodarts",
+        "HomeDarts",
         MediaClass.DIRECTORY,
         True,
         False,
@@ -145,7 +145,7 @@ async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
         ("2026-07", "July 2026"),
     ]
     # Thumbnails are small copies; the media browser embeds every one it shows.
-    cover = "/api/autodarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG"
+    cover = "/api/homedarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG"
     assert root.children[0].thumbnail == cover
 
     september = await source.async_browse_media(item(hass, "2026-09"))
@@ -169,7 +169,7 @@ async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
         False,
     )
     assert (
-        photo.thumbnail == "/api/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
+        photo.thumbnail == "/api/homedarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
     )
     july = await source.async_browse_media(item(hass, "2026-07"))
     assert [photo.title for photo in july.children] == ["kitchen · Jul 4"]
@@ -202,7 +202,7 @@ async def test_only_photos_of_the_folder_resolve(hass, gallery):
     )
     assert (
         photo.url
-        == "/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
+        == "/media/local/homedarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
     )
     assert photo.mime_type == "image/jpeg"
     assert photo.path == gallery / "2026-09-26_21-05-33_Alex_180.jpg"
@@ -217,7 +217,7 @@ async def test_only_photos_of_the_folder_resolve(hass, gallery):
     for identifier in (
         "../../secret.jpg",
         "..",
-        "autodarts/highlights/2026-08-30.jpeg",
+        "homedarts/highlights/2026-08-30.jpeg",
         "2026-09",
         "notes.txt",
         ".hidden.jpg",
@@ -253,10 +253,10 @@ async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gall
         ("2026-10", None),
         (
             "2026-09",
-            "/api/autodarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG",
+            "/api/homedarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG",
         ),
     ]
-    thumbnail = "/api/autodarts/highlights/2026-09-26_21-05-33_Alex_180"
+    thumbnail = "/api/homedarts/highlights/2026-09-26_21-05-33_Alex_180"
     september = await source.async_browse_media(item(hass, "2026-09"))
     assert [
         (child.identifier, child.title, child.media_class, child.thumbnail)
@@ -308,7 +308,7 @@ async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gall
         item(hass, "2026-09-26_21-05-33_Alex_180.mp4")
     )
     assert (
-        clip.url == "/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.mp4"
+        clip.url == "/media/local/homedarts/highlights/2026-09-26_21-05-33_Alex_180.mp4"
     )
     assert clip.mime_type == "video/mp4"
     with pytest.raises(Unresolvable):
@@ -318,7 +318,7 @@ async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gall
 async def test_without_a_folder_the_gallery_is_empty(hass, tmp_path):
     source = await async_get_media_source(hass)
     hass.config.media_dirs = {"media": str(tmp_path)}
-    assert highlight_folder(hass) == ("media", tmp_path / "autodarts" / "highlights")
+    assert highlight_folder(hass) == ("media", tmp_path / "homedarts" / "highlights")
     assert (await source.async_browse_media(item(hass))).children == []
     hass.config.media_dirs = {}
     assert highlight_folder(hass) is None
@@ -333,13 +333,13 @@ async def test_the_media_browser_finds_the_gallery_of_the_integration(
     await setup_local(hass, aioclient_mock, state=board())
     assert await async_setup_component(hass, "media_source", {})
     root = await media_source.async_browse_media(hass, "media-source://")
-    assert "Autodarts" in [child.title for child in root.children]
-    months = await media_source.async_browse_media(hass, "media-source://autodarts")
+    assert "HomeDarts" in [child.title for child in root.children]
+    months = await media_source.async_browse_media(hass, "media-source://homedarts")
     assert months.children[0].title == "September 2026"
     resolved = await media_source.async_resolve_media(
-        hass, "media-source://autodarts/2026-08-30.jpeg", None
+        hass, "media-source://homedarts/2026-08-30.jpeg", None
     )
-    assert resolved.url == "/media/local/autodarts/highlights/2026-08-30.jpeg"
+    assert resolved.url == "/media/local/homedarts/highlights/2026-08-30.jpeg"
 
 
 def picture(path: Path, size: tuple[int, int], orientation: int | None = None) -> None:
@@ -361,8 +361,8 @@ async def test_thumbnails_are_small_copies_for_logged_in_users(
     picture(gallery / "2026-09-27_Kim_140.png", (200, 100), orientation=6)
     root = await source.async_browse_media(item(hass))
     client = await hass_client()
-    alex = "/api/autodarts/highlights/2026-09-27_Alex_180.jpg"
-    kim = "/api/autodarts/highlights/2026-09-27_Kim_140.png"
+    alex = "/api/homedarts/highlights/2026-09-27_Alex_180.jpg"
+    kim = "/api/homedarts/highlights/2026-09-27_Kim_140.png"
 
     response = await client.get(alex)
     assert response.status == 200
@@ -391,14 +391,14 @@ async def test_thumbnails_are_small_copies_for_logged_in_users(
         patch.object(highlights, "KEPT_THUMBNAILS", 1),
         patch.object(highlights, "thumbnail", wraps=highlights.thumbnail) as made,
     ):
-        await client.get("/api/autodarts/highlights/2026-09-27_Sam_100.jpg")
+        await client.get("/api/homedarts/highlights/2026-09-27_Sam_100.jpg")
         await client.get(kim)
         await client.get(kim)
         assert made.call_count == 2
     # A huge picture is no snapshot of the board and gets no thumbnail.
     picture(gallery / "2026-09-27_Lea_60.jpg", (40, 40))
     with patch.object(highlights, "MAX_PIXELS", 1000):
-        response = await client.get("/api/autodarts/highlights/2026-09-27_Lea_60.jpg")
+        response = await client.get("/api/homedarts/highlights/2026-09-27_Lea_60.jpg")
     assert response.status == 404
 
     for name in (
@@ -409,10 +409,10 @@ async def test_thumbnails_are_small_copies_for_logged_in_users(
         # Not a picture, although it is named like one.
         "2026-08-30.jpeg",
     ):
-        response = await client.get(f"/api/autodarts/highlights/{name}")
+        response = await client.get(f"/api/homedarts/highlights/{name}")
         assert response.status == 404, name
     # Home Assistant refuses a way out of the folder before the integration does.
-    response = await client.get("/api/autodarts/highlights/..%2F..%2Fsecret.jpg")
+    response = await client.get("/api/homedarts/highlights/..%2F..%2Fsecret.jpg")
     assert response.status in (400, 404)
     anonymous = await hass_client_no_auth()
     response = await anonymous.get(root.children[0].thumbnail)

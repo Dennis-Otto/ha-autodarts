@@ -6,8 +6,8 @@ from unittest.mock import patch
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.autodarts.cricket import CRICKET_GAMES
-from custom_components.autodarts.journal import (
+from custom_components.homedarts.cricket import CRICKET_GAMES
+from custom_components.homedarts.journal import (
     GAME_NAMES,
     JournalEvent,
     TrainingJournal,
@@ -20,8 +20,8 @@ from custom_components.autodarts.journal import (
     session_entry,
     session_title,
 )
-from custom_components.autodarts.party import PARTY_GAMES
-from custom_components.autodarts.practice import PARTY_PLAYERS
+from custom_components.homedarts.party import PARTY_GAMES
+from custom_components.homedarts.practice import PARTY_PLAYERS
 
 NOW = datetime(2026, 9, 27, 20, 0, tzinfo=dt_util.UTC)
 
@@ -352,7 +352,7 @@ def test_the_journal_keeps_a_year_and_a_bounded_number_of_entries():
     assert len(journal.matches) == 1
     assert journal.sync([], [], NOW + timedelta(hours=1)) is True
     assert journal.matches == []
-    with patch("custom_components.autodarts.journal.JOURNAL_SIZE", 2):
+    with patch("custom_components.homedarts.journal.JOURNAL_SIZE", 2):
         journal.sync([session(-3, -2), session(-4, -3.5)], [], NOW)
     assert [entry["ended"] for entry in journal.sessions] == [at(-3.5), at(-2)]
 

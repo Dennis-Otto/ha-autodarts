@@ -6,7 +6,7 @@
 #
 # [[accepted]]
 # rule = "color-contrast"
-# card = "autodarts-players-card"
+# card = "homedarts-players-card"
 # target = ".badge-text"
 # reason = "Why it can't be fixed yet, and what would fix it."
 accepted = []

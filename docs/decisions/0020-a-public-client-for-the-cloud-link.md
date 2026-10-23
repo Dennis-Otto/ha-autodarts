@@ -4,7 +4,7 @@ description: "Why the cloud link waits for a public Autodarts client with the de
 
 # Prepare the cloud link for a public client with the device grant
 
-- Status: accepted
+- Status: replaced by [0025](0025-no-cloud-link.md)
 - Date: 2026-10-18
 
 ## Context
@@ -28,7 +28,7 @@ Option 4. The device grant needs neither a redirect URI nor a secret, works for 
 
 The request to Autodarts, in a message to lloydowen on the Autodarts Discord:
 
-> Hi! I maintain Autodarts for Home Assistant (<https://github.com/Dennis-Otto/ha-autodarts>), an open-source integration that connects Autodarts boards to Home Assistant, mostly through the local Board Manager API. For the optional cloud features (match data, online-match moments, and boards without a Board Manager on the network, such as Lens), I'd like a public client ID for the app "Autodarts for Home Assistant" with the device authorization grant enabled, without a redirect URI or client secret. Scopes: `openid profile email`, plus reading the user's boards and matches (`/bs/v0/boards`, `/gs/v0/matches/{id}` and its `state`). Tokens stay in the user's Home Assistant, are never logged, the rotating refresh token is stored before the next request, and the access token is renewed a minute before it expires. During a match the integration reads the board, the match and its state every 5 seconds, otherwise the board once a minute; I'd switch to the match websocket once you can confirm its topics for third parties. Thank you!
+> Hi! I maintain Autodarts for Home Assistant (<https://github.com/Dennis-Otto/homedarts-for-autodarts>), an open-source integration that connects Autodarts boards to Home Assistant, mostly through the local Board Manager API. For the optional cloud features (match data, online-match moments, and boards without a Board Manager on the network, such as Lens), I'd like a public client ID for the app "Autodarts for Home Assistant" with the device authorization grant enabled, without a redirect URI or client secret. Scopes: `openid profile email`, plus reading the user's boards and matches (`/bs/v0/boards`, `/gs/v0/matches/{id}` and its `state`). Tokens stay in the user's Home Assistant, are never logged, the rotating refresh token is stored before the next request, and the access token is renewed a minute before it expires. During a match the integration reads the board, the match and its state every 5 seconds, otherwise the board once a minute; I'd switch to the match websocket once you can confirm its topics for third parties. Thank you!
 
 How the integration handles the tokens:
 
@@ -55,7 +55,7 @@ Once Autodarts has issued the client:
 
 1. Set `CLOUD_CLIENT_ID` in `const.py` to the issued ID, which the cloud step of the setup then fills in, and `CLOUD_LINK_AVAILABLE` to `True`.
 2. Link a test account once against the real service and save a redacted state of a match as a test fixture, to confirm the fields above: `players` with `name` and `boardId`, `player`, `set`, `leg`, `round`, `turns`, `gameWinner`, `winner` and `variant`. Confirm in particular that `turns` holds the current visit first, as darts-caller reads it and `CloudMoments` assumes; the `darts_thrown` sensor (`sensor._get_darts_thrown`) instead sums all of `turns` as the history of the match, and only one reading can be right, so fix the other one to match the capture.
-3. Remove "once the cloud link ships" from the documentation, and describe the release in the changelog as a `feat`. Also update the texts that say the online moments need the bridge and Tools for Autodarts: the description of the `online_matches` input of the light show (`blueprints/automation/autodarts/light_show.yaml`), the online matches section of `docs/automations.md` and `docs/automations.de.md`, and the rows on online matches in `README.md` and `README.de.md`. Check whether Autodarts X has a Board Manager in the network; if not, name it next to Lens in the FAQ (English and German).
+3. Remove "once the cloud link ships" from the documentation, and describe the release in the changelog as a `feat`. Also update the texts that say the online moments need the bridge and Tools for Autodarts: the description of the `online_matches` input of the light show (`blueprints/automation/homedarts/light_show.yaml`), the online matches section of `docs/automations.md` and `docs/automations.de.md`, and the rows on online matches in `README.md` and `README.de.md`. Check whether Autodarts X has a Board Manager in the network; if not, name it next to Lens in the FAQ (English and German).
 4. Later, with the topics of the match websocket confirmed by Autodarts, replace the polling during a match with it.
 
 ## Consequences

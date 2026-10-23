@@ -275,18 +275,18 @@ HA = "http://127.0.0.1:8123"
     ("current", "url", "within"),
     [
         # A view of the app opens the next one as its links do.
-        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/scoreboard", True),
-        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-auto/live", True),
+        (f"{HA}/homedarts-auto/live", f"{HA}/homedarts-demo/scoreboard", True),
+        (f"{HA}/homedarts-auto/live", f"{HA}/homedarts-auto/live", True),
         # A page that shows nothing of Home Assistant yet loads it.
-        ("about:blank", f"{HA}/autodarts-auto/live", False),
-        ("http://127.0.0.1:8124/x", f"{HA}/autodarts-auto/live", False),
+        ("about:blank", f"{HA}/homedarts-auto/live", False),
+        ("http://127.0.0.1:8124/x", f"{HA}/homedarts-auto/live", False),
         # The app reads a query or a fragment only when it starts.
-        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/board?edit=1", False),
-        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/board#card", False),
+        (f"{HA}/homedarts-auto/live", f"{HA}/homedarts-demo/board?edit=1", False),
+        (f"{HA}/homedarts-auto/live", f"{HA}/homedarts-demo/board#card", False),
         # And keeps what they set, such as edit mode, in the views it opens after.
-        (f"{HA}/autodarts-demo/board?edit=1", f"{HA}/autodarts-demo/board", False),
-        (f"{HA}/autodarts-demo/board?edit=1", f"{HA}/autodarts-auto/live", False),
-        (f"{HA}/autodarts-demo/board#card", f"{HA}/autodarts-auto/live", False),
+        (f"{HA}/homedarts-demo/board?edit=1", f"{HA}/homedarts-demo/board", False),
+        (f"{HA}/homedarts-demo/board?edit=1", f"{HA}/homedarts-auto/live", False),
+        (f"{HA}/homedarts-demo/board#card", f"{HA}/homedarts-auto/live", False),
     ],
 )
 def test_show_opens_a_view_within_the_app_only_from_a_plain_one(current, url, within):
@@ -296,7 +296,7 @@ def test_show_opens_a_view_within_the_app_only_from_a_plain_one(current, url, wi
 NODE = shutil.which("node")
 TOURNAMENT = {
     "entity_id": "sensor.autodarts_board_tournament",
-    "platform": "autodarts",
+    "platform": "homedarts",
     "translation_key": "tournament",
 }
 
@@ -372,7 +372,7 @@ class Clocked:
     """A page with Playwright's clock, whose target shows once its clock has run for
     the given milliseconds, or never."""
 
-    url = f"{HA}/autodarts-demo/idle"
+    url = f"{HA}/homedarts-demo/idle"
     viewport_size = {"width": 800, "height": 480}
 
     def __init__(self, shows_after: int | None) -> None:
@@ -434,7 +434,7 @@ def test_run_until_fails_when_the_target_has_not_shown_in_the_time_it_is_given(
             page, page.target, 15000, "Idle mode", Card("Kim\n  101\nSam 0")
         )
     assert str(error.value) == (
-        f"{HA}/autodarts-demo/idle at 800x480 in en-US: Idle mode did not show within"
+        f"{HA}/homedarts-demo/idle at 800x480 in en-US: Idle mode did not show within"
         " 15000 ms on the clock of the page; the card showed 'Kim 101 Sam 0'"
     )
     assert page.ran == [1000] * steps

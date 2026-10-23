@@ -22,10 +22,10 @@ const setup = (states = {}, config = {}, options = {}) => {
     device: { primary_config_entry: ENTRY },
     ...options,
   });
-  return { hass, card: mount("autodarts-card", hass, config) };
+  return { hass, card: mount("homedarts-card", hass, config) };
 };
 const actions = (hass) =>
-  hass.calls.filter(([domain]) => domain === "autodarts").map(([, service, data]) => [service, data]);
+  hass.calls.filter(([domain]) => domain === "homedarts").map(([, service, data]) => [service, data]);
 const slots = (card) =>
   $$(card, ".slot").map((slot) => [slot.tagName.toLowerCase(), slot.className, Boolean(slot.querySelector(".cue.edit"))]);
 // A board laid out as a square of 460 pixels at (100, 50): a pixel is a millimetre.

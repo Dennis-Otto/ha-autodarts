@@ -8,18 +8,18 @@
 # https://squidfunk.github.io/mkdocs-material/
 INHERIT: .github/mkdocs-blueprint.yml
 # The name of the website, which ends the title of every page, and the German one
-# below. It says what the website is about: Autodarts in Home Assistant, which
-# people search for, and not the website of Autodarts itself.
-site_name: "Autodarts for Home Assistant"
-site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and fifteen blueprints, games started by voice. No cloud account needed."
-site_url: https://dennis-otto.github.io/ha-autodarts/
-repo_url: https://github.com/Dennis-Otto/ha-autodarts
-repo_name: Dennis-Otto/ha-autodarts
-# The footer of every page; the German one is with the languages below. The icon in
-# the header is the one of Autodarts, so the footer says whose website this is.
-copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto<br>An unofficial community integration, not affiliated with Autodarts."
+# below. It is the name of the integration, which names Autodarts, so that the
+# website is found with it, and it is not the website of Autodarts itself.
+site_name: "HomeDarts for Autodarts"
+site_description: "HomeDarts for Autodarts, the Home Assistant integration for Autodarts boards and any dartboard: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and fifteen blueprints, games started by voice. No cloud account needed."
+site_url: https://dennis-otto.github.io/homedarts-for-autodarts/
+repo_url: https://github.com/Dennis-Otto/homedarts-for-autodarts
+repo_name: Dennis-Otto/homedarts-for-autodarts
+# The footer of every page; the German one is with the languages below. It says
+# that the website is not one of Autodarts, whose boards it is about.
+copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto<br>HomeDarts for Autodarts is an unofficial community integration, not affiliated with Autodarts."
 
-# The brand of the website: the Autodarts icon in the header and as favicon
+# The brand of the website: the icon of the integration in the header and as favicon
 # (scripts/render_brand.py renders it from the icon), and the navy and teal of the
 # icon, the social preview and the cards in place of Material's indigo, with
 # docs/stylesheets/brand.css. The list of the palette replaces the one of
@@ -89,9 +89,9 @@ plugins:
       - locale: de
         name: Deutsch
         build: true
-        site_name: "Autodarts für Home Assistant"
-        copyright: "© 2026 Trkal und Mitwirkende von HACSAutodarts; 2026 Dennis Otto<br>Eine inoffizielle Integration der Community, nicht mit Autodarts verbunden."
-        site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und fünfzehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
+        site_name: "HomeDarts for Autodarts"
+        copyright: "© 2026 Trkal und Mitwirkende von HACSAutodarts; 2026 Dennis Otto<br>HomeDarts for Autodarts ist eine inoffizielle Integration der Community, nicht mit Autodarts verbunden."
+        site_description: "HomeDarts for Autodarts, die Home-Assistant-Integration für Autodarts-Boards und jede Dartscheibe: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und fünfzehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
         nav_translations:
           Home: Start
           Get started: Erste Schritte
@@ -126,6 +126,7 @@ nav:
       - granboard.md
       - faq.md
       - coming-from.md
+      - new-name.md
   - Guides:
       - games.md
       - scoreboard.md

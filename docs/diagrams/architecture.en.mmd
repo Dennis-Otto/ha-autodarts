@@ -1,21 +1,19 @@
 flowchart TB
   accTitle: Architecture
-  accDescr: The Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations; the Autodarts cloud optionally adds match data.
+  accDescr: The Board Manager on the board PC sends realtime events to HomeDarts in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations.
   subgraph PC["Board PC"]
     direction LR
     CAM["Cameras"] --> BM["Autodarts Board Manager<br/>port 3180"]
   end
   subgraph HA["Home Assistant"]
     direction TB
-    LC["Autodarts integration<br/>realtime and reconciliation"]
+    LC["HomeDarts<br/>realtime and reconciliation"]
     TS[("Training session<br/>stored locally")]
     ENT["Entities, board events,<br/>repairs and diagnostics"]
     UI["Dashboard cards<br/>and automations"]
     LC --> TS --> ENT
     LC --> ENT --> UI
   end
-  AD[("Autodarts cloud")]
   BM -- "realtime events (WebSocket)" --> LC
   LC -- "reads and actions (HTTP)" --> BM
   BM -. "mDNS announcement" .-> LC
-  AD -. "optional match data" .-> ENT

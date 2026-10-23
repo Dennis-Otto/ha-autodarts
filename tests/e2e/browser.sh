@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
-PROJECT_NAME="${E2E_PROJECT_NAME:-autodarts_browser}"
+PROJECT_NAME="${E2E_PROJECT_NAME:-homedarts_browser}"
 # Keep the image version equal to playwright in requirements-browser.in.
 PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0"
 

@@ -36,10 +36,10 @@ from pytest_homeassistant_custom_component.common import (
 )
 from yaml import safe_dump, safe_load
 
-from custom_components.autodarts.bot import Bot
-from custom_components.autodarts.highlights import photo_stem
-from custom_components.autodarts.local_coordinator import EVENT_TYPES
-from custom_components.autodarts.services import _game_key, async_setup_services
+from custom_components.homedarts.bot import Bot
+from custom_components.homedarts.highlights import photo_stem
+from custom_components.homedarts.local_coordinator import EVENT_TYPES
+from custom_components.homedarts.services import _game_key, async_setup_services
 
 from .local_helpers import (
     BASE,
@@ -68,12 +68,12 @@ pytestmark = pytest.mark.usefixtures("blueprint_folder")
 
 ROOT = Path(__file__).parents[1]
 PATHS = sorted(BLUEPRINTS.glob("*.yaml"))
-SOURCE = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/"
+SOURCE = "https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/blueprints/automation/homedarts/"
 IMPORT = re.compile(
     r"https://my\.home-assistant\.io/redirect/blueprint_import/\?blueprint_url=[^)\s\"']+"
 )
 # The guide's section of a blueprint, which the end of its description links to.
-GUIDE = "https://dennis-otto.github.io/ha-autodarts/automations.html#"
+GUIDE = "https://dennis-otto.github.io/homedarts-for-autodarts/automations.html#"
 GUIDE_LINK = re.compile(r"\n\n\[Settings and examples in the guide\]\((\S+)\)$")
 # Attributes a blueprint reads from a board event.
 READS = re.compile(r"(?:attributes|event)\.get\('(\w+)'|attributes\.(?!get\b)(\w+)")
@@ -140,7 +140,7 @@ async def saved(hass, name: str, inputs: dict, note: str = "") -> None:
             {
                 "id": name,
                 "description": note,
-                "use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs},
+                "use_blueprint": {"path": f"homedarts/{name}.yaml", "input": inputs},
             }
         ]
     }
@@ -204,7 +204,7 @@ def spoken(calls) -> list[str]:
 def voice_pack(hass, tmp_path, *files: str) -> list:
     """A voice pack of darts-caller in the media folder, the actions of the
     integration that find its sounds, and the sounds played on the speakers."""
-    pack = tmp_path / "media" / "autodarts" / "voices" / "russ-bray"
+    pack = tmp_path / "media" / "homedarts" / "voices" / "russ-bray"
     pack.mkdir(parents=True)
     for file in files:
         (pack / file).write_bytes(b"ID3")
@@ -215,7 +215,7 @@ def voice_pack(hass, tmp_path, *files: str) -> list:
 
 def played(calls) -> list[str]:
     """The files of the voice pack the speakers played."""
-    prefix = "media-source://media_source/local/autodarts/voices/russ-bray/"
+    prefix = "media-source://media_source/local/homedarts/voices/russ-bray/"
     assert all(call.data["media_content_type"] == "music" for call in calls)
     assert all(call.data["entity_id"] == ["media_player.dartroom"] for call in calls)
     return [call.data["media_content_id"].removeprefix(prefix) for call in calls]
@@ -237,7 +237,7 @@ def test_blueprint_metadata(path):
         load_yaml(path), expected_domain="automation", schema=BLUEPRINT_SCHEMA
     )
     metadata = blueprint.metadata
-    assert metadata["name"].startswith("Autodarts: ")
+    assert metadata["name"].startswith("HomeDarts: ")
     assert metadata["source_url"] == SOURCE + path.name
     # The blueprints need the same Home Assistant as the integration.
     hacs = json.loads((ROOT / "hacs.json").read_text())
@@ -308,15 +308,15 @@ def test_the_documentation_lists_every_setting(document):
 
 
 def saves(hass) -> list:
-    """The photos the blueprint has autodarts.save_highlight save, which answers
+    """The photos the blueprint has homedarts.save_highlight save, which answers
     as for a photo it saved."""
     return async_mock_service(
         hass,
-        "autodarts",
+        "homedarts",
         "save_highlight",
         response={
-            "photo": "/media/autodarts/highlights/2026-09-26_21-05-33_180.jpg",
-            "photo_url": "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.jpg",
+            "photo": "/media/homedarts/highlights/2026-09-26_21-05-33_180.jpg",
+            "photo_url": "/media/local/homedarts/highlights/2026-09-26_21-05-33_180.jpg",
         },
     )
 
@@ -1212,7 +1212,7 @@ async def test_practice_caller_names_the_bot_like_the_scoreboard(hass):
 def translated(language: str) -> dict[str, str]:
     """The messages of the integration in a language, by their keys."""
     path = (
-        ROOT / "custom_components" / "autodarts" / "translations" / f"{language}.json"
+        ROOT / "custom_components" / "homedarts" / "translations" / f"{language}.json"
     )
     exceptions = json.loads(path.read_text(encoding="utf-8"))["exceptions"]
     return {key: entry["message"] for key, entry in exceptions.items()}
@@ -1846,15 +1846,15 @@ async def test_training_report_skips_days_without_darts(hass, freezer):
     reports = async_mock_service(hass, "test", "report")
     await hass.config.async_set_time_zone("Europe/Berlin")
     freezer.move_to("2026-09-26 20:59:00+02:00")
-    config_entry = MockConfigEntry(domain="autodarts")
+    config_entry = MockConfigEntry(domain="homedarts")
     config_entry.add_to_hass(hass)
     device = dr.async_get(hass).async_get_or_create(
-        config_entry_id=config_entry.entry_id, identifiers={("autodarts", "board-1")}
+        config_entry_id=config_entry.entry_id, identifiers={("homedarts", "board-1")}
     )
     for key in ("training_darts", "darts_today"):
         er.async_get(hass).async_get_or_create(
             "sensor",
-            "autodarts",
+            "homedarts",
             f"board-1_{key}",
             config_entry=config_entry,
             device_id=device.id,
@@ -2162,12 +2162,12 @@ CLIPPED = {
 
 async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
     """A camera with a video stream records the moment as an MP4 beside the
-    photo, where the gallery plays it; autodarts.save_highlight records it in
+    photo, where the gallery plays it; homedarts.save_highlight records it in
     the background and answers with its file and address at once."""
     photos = async_mock_service(hass, "test", "photo")
     saved = []
-    clip = "/media/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
-    url = "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+    clip = "/media/homedarts/highlights/2026-09-26_21-05-33_180.mp4"
+    url = "/media/local/homedarts/highlights/2026-09-26_21-05-33_180.mp4"
 
     async def save(call):
         saved.append(call)
@@ -2182,7 +2182,7 @@ async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
         )
 
     hass.services.async_register(
-        "autodarts", "save_highlight", save, supports_response=SupportsResponse.OPTIONAL
+        "homedarts", "save_highlight", save, supports_response=SupportsResponse.OPTIONAL
     )
     hass.states.async_set(EVENTS, "unknown")
     await automate_all(
@@ -2278,8 +2278,8 @@ async def test_highlight_photo_hands_the_saved_file_to_the_actions(
         (sent[camera]["photo"], sent[camera]["photo_url"]) for camera in "1234"
     ] == [
         (
-            str(media.resolve() / "autodarts" / "highlights" / file),
-            f"/media/local/autodarts/highlights/{quote(file)}",
+            str(media.resolve() / "homedarts" / "highlights" / file),
+            f"/media/local/homedarts/highlights/{quote(file)}",
         ),
         (str(media.resolve() / "darts" / file), f"/media/local/darts/{quote(file)}"),
         # Outside the media folder, Home Assistant has no address for the file.
@@ -2303,7 +2303,7 @@ async def test_a_photo_that_was_not_saved_gets_no_file_and_no_address(
     failing, unplugged, disabled = await setup_cameras(hass, aioclient_mock, 0, 1)
     aioclient_mock.get(f"{BASE}/api/img/cams/0", status=500, text="error")
     # The board has one camera less: its entity stays, unavailable.
-    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    coordinator = hass.config_entries.async_entries("homedarts")[0].runtime_data.local
     with patch.object(
         coordinator.client, "get_config", return_value={"camera_count": 1}
     ):
@@ -2328,7 +2328,7 @@ async def test_a_photo_that_was_not_saved_gets_no_file_and_no_address(
     assert {(call.data["photo"], call.data["photo_url"]) for call in photos} == {
         ("", "")
     }
-    assert not (media / "autodarts").exists()
+    assert not (media / "homedarts").exists()
     # The log says why each photo is missing.
     for camera, reason in (
         (failing, "gave no picture"),
@@ -2516,7 +2516,7 @@ async def test_light_show_restores_the_lights_and_pauses_the_detection(hass, fre
     fire(hass, "visit_thrown", score=180, darts=3)
     await until_waiting(hass, 8)
     automation = hass.states.async_all("automation")[0].entity_id
-    scene = automation.replace("automation.", "autodarts_light_show_")
+    scene = automation.replace("automation.", "homedarts_light_show_")
     assert [call.data for call in snapshot] == [
         {"scene_id": scene, "snapshot_entities": ["light.wled", "light.dartroom"]}
     ]
@@ -3413,13 +3413,13 @@ def _voice_examples(document: str, action: str) -> list[dict]:
 async def test_the_voice_example_starts_every_game(hass, document, language):
     """Every game, spoken as the practice game select names it, starts that game;
     the names become the players, and Assist says what the action answers."""
-    (example,) = _voice_examples(document, "autodarts.start_game")
+    (example,) = _voice_examples(document, "homedarts.start_game")
     start, answer = example["actions"]
     assert start["response_variable"] == "result"
     assert answer == {"set_conversation_response": "{{ result.message }}"}
     translation = json.loads(
         (
-            ROOT / "custom_components/autodarts/translations" / f"{language}.json"
+            ROOT / "custom_components/homedarts/translations" / f"{language}.json"
         ).read_text(encoding="utf-8")
     )
     games = translation["entity"]["select"]["practice_game"]["state"]
@@ -3454,7 +3454,7 @@ async def test_the_voice_example_starts_every_game(hass, document, language):
 async def test_the_voice_example_enters_a_visit(hass, document, language, message):
     """The example's sentence enters the visit for the player it names, and Assist
     says what the action answers."""
-    (example,) = _voice_examples(document, "autodarts.enter_visit")
+    (example,) = _voice_examples(document, "homedarts.enter_visit")
     enter, answer = example["actions"]
     assert enter["response_variable"] == "result"
     assert answer == {"set_conversation_response": "{{ result.message }}"}
@@ -3463,7 +3463,7 @@ async def test_the_voice_example_enters_a_visit(hass, document, language, messag
     await setup_manual(hass)
     hass.config.language = language
     await hass.services.async_call(
-        "autodarts",
+        "homedarts",
         "start_game",
         {"game": "501", "players": ["Alex", "Sam"]},
         blocking=True,
@@ -3474,6 +3474,6 @@ async def test_the_voice_example_enters_a_visit(hass, document, language, messag
         for key, value in enter["data"].items()
     }
     result = await hass.services.async_call(
-        "autodarts", "enter_visit", data, blocking=True, return_response=True
+        "homedarts", "enter_visit", data, blocking=True, return_response=True
     )
     assert result == {"entered": True, "message": message}

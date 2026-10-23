@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.autodarts.games import (
+from custom_components.homedarts.games import (
     ActionRefused,
     BoardGames,
     _throw_positions,
@@ -20,7 +20,7 @@ from custom_components.autodarts.games import (
 from .local_helpers import BULL, S20, T20, board
 
 NOW = datetime(2026, 10, 1, 20, 0, tzinfo=UTC)
-GAMES = Path(__file__).parents[1] / "custom_components" / "autodarts" / "games.py"
+GAMES = Path(__file__).parents[1] / "custom_components" / "homedarts" / "games.py"
 
 
 class Reports:

@@ -270,11 +270,11 @@ def test_one_worker_runs_its_shard_on_the_demo_of_a_run_without_workers(tmp_path
     result, calls = browser_sh(tmp_path, BROWSER_SHARD="2/4")
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert browsers(calls) == ["autodarts_browser_default BROWSER_SHARD=2/4"]
+    assert browsers(calls) == ["homedarts_browser_default BROWSER_SHARD=2/4"]
     # Its lines go out as they are, and the demo keeps its project.
     assert "\nran: " in result.stdout
     assert any(
-        "--project-name autodarts_browser " in call and " up " in call for call in calls
+        "--project-name homedarts_browser " in call and " up " in call for call in calls
     )
 
 
@@ -284,12 +284,12 @@ def test_workers_split_the_shard_of_their_machine(tmp_path):
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert sorted(browsers(calls)) == [
-        "autodarts_browser_1_default BROWSER_SHARD=3/4",
-        "autodarts_browser_2_default BROWSER_SHARD=4/4",
+        "homedarts_browser_1_default BROWSER_SHARD=3/4",
+        "homedarts_browser_2_default BROWSER_SHARD=4/4",
     ]
     # Each worker has its demo, its artifacts and its lines.
     for worker, shard in ((1, "3/4"), (2, "4/4")):
-        project = f"--project-name autodarts_browser_{worker} "
+        project = f"--project-name homedarts_browser_{worker} "
         assert any(project in call and " up " in call for call in calls)
         assert any(project in call and " down " in call for call in calls)
         assert f"[{shard}] ran: " in result.stdout
@@ -326,7 +326,7 @@ def test_a_failed_worker_fails_the_run_and_keeps_its_logs_alone(tmp_path):
     assert "::error" not in result.stdout
     logs = [call for call in calls if " logs " in call]
     assert logs == [
-        "compose --project-name autodarts_browser_2 --file compose.yaml logs "
+        "compose --project-name homedarts_browser_2 --file compose.yaml logs "
         "--no-color --tail 200"
     ]
 

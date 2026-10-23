@@ -30,16 +30,16 @@ DOCS = ROOT / "docs"
 FRONT_MATTER = re.compile(r"\A---\n(.*?)^---$", re.MULTILINE | re.DOTALL)
 DESCRIPTION = range(50, 161)
 MOVED = "moved"
-CARD = ROOT / "custom_components" / "autodarts" / "frontend" / "autodarts-card.js"
+CARD = ROOT / "custom_components" / "homedarts" / "frontend" / "homedarts-card.js"
 # The repository's own addresses, which HACS needs instead of relative links.
 OWN = re.compile(
-    r"^https://(?:github\.com/Dennis-Otto/ha-autodarts/(?:blob|tree)/main"
-    r"|raw\.githubusercontent\.com/Dennis-Otto/ha-autodarts/main)/"
+    r"^https://(?:github\.com/Dennis-Otto/homedarts-for-autodarts/(?:blob|tree)/main"
+    r"|raw\.githubusercontent\.com/Dennis-Otto/homedarts-for-autodarts/main)/"
 )
 # The documentation website (mkdocs.yml): docs/<page>.md is <page>.html, and its
 # German page docs/<page>.de.md is de/<page>.html, or the English page where no
 # German one exists; index.md is the start page.
-WEBSITE = "https://dennis-otto.github.io/ha-autodarts/"
+WEBSITE = "https://dennis-otto.github.io/homedarts-for-autodarts/"
 WEBSITE_PAGE = re.compile(r"^(?:(de)/)?([^#?]*)")
 # A line of a page of the website that includes a file of the repository, or a
 # section of one, with pymdownx.snippets, such as --8<-- "CHANGELOG.md".
@@ -91,15 +91,15 @@ NUMBER = r"(\d+|" + "|".join(NUMBERS) + r")"
 # a compound such as "twenty-one" or "einundzwanzig" is no count of its own.
 START = r"(?<![\w-])"
 # What the text counts, as it says it in English and German: "thirteen blueprints",
-# "sieben Dashboard-Karten", "the fourteen `autodarts.*` actions" and "die
-# vierzehn Aktionen `autodarts.*`". A count of some of them, such as "two voice
+# "sieben Dashboard-Karten", "the fourteen `homedarts.*` actions" and "die
+# vierzehn Aktionen `homedarts.*`". A count of some of them, such as "two voice
 # blueprints", names no total and is left alone.
 COUNTED = {
     kind: re.compile(pattern, re.IGNORECASE)
     for kind, pattern in {
         "blueprints": rf"{START}{NUMBER}\s+(?:Autodarts[\s-]+)?Blueprints\b",
         "cards": rf"{START}{NUMBER}\s+(?:Dashboard[\s-]+)?(?:cards|Karten)\b",
-        "actions": rf"{START}{NUMBER}\s+(?:`autodarts\.\*`\s+actions|Aktionen\s+`autodarts\.\*`)",
+        "actions": rf"{START}{NUMBER}\s+(?:`homedarts\.\*`\s+actions|Aktionen\s+`homedarts\.\*`)",
     }.items()
 }
 # Code blocks, also the indented ones of tabs and admonitions, count nothing.
@@ -390,18 +390,19 @@ def test_the_repository_has_the_topics_that_github_shows():
     topics += [t for t in extra["repository"]["topics"] if t not in topics]
     assert len(topics) == len(set(topics)) <= 20, topics
     assert all(re.fullmatch(r"[a-z0-9][a-z0-9-]{0,49}", topic) for topic in topics)
-    assert {"autodarts", "home-assistant", "wled", "darts-scoreboard"} <= set(topics)
+    # Found by both names: the product it works with and its own.
+    assert {"autodarts", "homedarts", "home-assistant", "wled"} <= set(topics)
 
 
 def counts_in_the_code() -> dict[str, int]:
     """How many blueprints, dashboard cards and actions the integration brings."""
-    blueprints = ROOT / "blueprints" / "automation" / "autodarts"
+    blueprints = ROOT / "blueprints" / "automation" / "homedarts"
     cards = re.search(
         r"^const CARDS = \[$(.*?)^\];$",
         CARD.read_text("utf-8"),
         re.MULTILINE | re.DOTALL,
     )
-    assert cards, "autodarts-card.js has no list CARDS for the card picker"
+    assert cards, "homedarts-card.js has no list CARDS for the card picker"
     services = (CARD.parent.parent / "services.yaml").read_text("utf-8")
     return {
         "blueprints": len(list(blueprints.glob("*.yaml"))),
@@ -465,9 +466,9 @@ def test_the_counts_in_the_prose_match_the_code():
         ("Sechs Dashboard-Karten und ein automatisches Dashboard", "cards", 6),
         ("It brings seven dashboard\n    cards to the picker.", "cards", 7),
         ("Some day there are 21 Autodarts\nblueprints.", "blueprints", 21),
-        ("the thirteen `autodarts.*` actions, which need a login", "actions", 13),
+        ("the thirteen `homedarts.*` actions, which need a login", "actions", 13),
         (
-            "die dreizehn Aktionen `autodarts.*`, die eine Anmeldung brauchen",
+            "die dreizehn Aktionen `homedarts.*`, die eine Anmeldung brauchen",
             "actions",
             13,
         ),
@@ -485,7 +486,7 @@ def test_a_wrong_count_is_found(sentence, kind, number):
 
 def test_a_wrong_count_names_its_line():
     text = (
-        "# Cards\n\n```yaml\ntype: custom:autodarts-card\n```\n\nSeven dashboard cards."
+        "# Cards\n\n```yaml\ntype: custom:homedarts-card\n```\n\nSeven dashboard cards."
     )
     assert wrong_counts(text, {"cards": 8}) == [
         "line 7: 'Seven dashboard cards', but there are 8 cards"
@@ -512,7 +513,7 @@ COMPARE = re.compile(
     r"<!-- --8<-- \[start:compare\] -->\n(.*?)<!-- --8<-- \[end:compare\] -->",
     re.DOTALL,
 )
-BLOB = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/"
+BLOB = "https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/"
 RELATIVE_LINK = re.compile(r"\]\((?![a-z]+:)([^)#][^)]*)\)")
 # A page of the documentation, written as a relative link of docs/ or as a link to
 # GitHub, with its anchor.

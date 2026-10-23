@@ -6,8 +6,8 @@ from unittest.mock import Mock
 import aiohttp
 import pytest
 
-from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import (
+from custom_components.homedarts.errors import AutodartsConnectionError
+from custom_components.homedarts.local_api import (
     AutodartsEndpointMissing,
     AutodartsProtocolError,
 )

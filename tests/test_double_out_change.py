@@ -2,7 +2,7 @@
 
 import json
 
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import PLAYER_1, dart, match, playing, throw
 

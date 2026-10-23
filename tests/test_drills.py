@@ -5,8 +5,8 @@ import random
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.drills import (
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.drills import (
     BOBS_START,
     BOGEY_NUMBERS,
     CHECKOUT_SCORES,
@@ -16,7 +16,7 @@ from custom_components.autodarts.drills import (
     CheckoutDrill,
     TargetDrill,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import dart
 

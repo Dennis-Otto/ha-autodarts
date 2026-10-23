@@ -7,7 +7,7 @@ import {
   doubleColor,
   doublesHtml,
   doublesView,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const doubles = {
   state: "D16",
@@ -80,7 +80,7 @@ test("colours run from red to green and the list starts with the best double", (
 });
 
 test("the training view shows the doubles card once the sensor exists", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "homedarts" });
   const config = dashboardStrategy({
     locale: { language: "en" },
     entities: Object.fromEntries(
@@ -93,5 +93,5 @@ test("the training view shows the doubles card once the sensor exists", () => {
     states: {},
   });
   const training = config.views.find((view) => view.path === "training");
-  assert.equal(training.sections[1].cards[0].type, "custom:autodarts-doubles-card");
+  assert.equal(training.sections[1].cards[0].type, "custom:homedarts-doubles-card");
 });

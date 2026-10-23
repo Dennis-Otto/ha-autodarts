@@ -48,7 +48,7 @@ REREAD = 0.05
 SETTLE = 0.1
 # The integration whose version the demo reports, and the module of Home Assistant
 # that reads it from the manifest.
-DOMAIN = "autodarts"
+DOMAIN = "homedarts"
 LOADER = "homeassistant.loader"
 
 

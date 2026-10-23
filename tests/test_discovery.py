@@ -17,7 +17,7 @@ from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DISCOVERY_URL
+from custom_components.homedarts.const import DISCOVERY_URL
 
 from .local_helpers import (
     BASE,
@@ -67,13 +67,13 @@ async def start(hass, source=SOURCE_USER, entry=None):
     context = {"source": source}
     if entry:
         context["entry_id"] = entry.entry_id
-    return await hass.config_entries.flow.async_init("autodarts", context=context)
+    return await hass.config_entries.flow.async_init("homedarts", context=context)
 
 
 def moved(hass, entry) -> ir.IssueEntry | None:
     """The repair that offers the entry a new address."""
     return ir.async_get(hass).async_get_issue(
-        "autodarts", f"board_moved_{entry.entry_id}"
+        "homedarts", f"board_moved_{entry.entry_id}"
     )
 
 
@@ -82,7 +82,7 @@ async def confirm_repair(hass, hass_client, issue_id: str) -> dict:
     assert await async_setup_component(hass, "repairs", {})
     client = await hass_client()
     response = await client.post(
-        "/api/repairs/issues/fix", json={"handler": "autodarts", "issue_id": issue_id}
+        "/api/repairs/issues/fix", json={"handler": "homedarts", "issue_id": issue_id}
     )
     flow = await response.json()
     response = await client.post(f"/api/repairs/issues/fix/{flow['flow_id']}", json={})
@@ -92,7 +92,7 @@ async def confirm_repair(hass, hass_client, issue_id: str) -> dict:
 async def test_announced_board_is_added_with_one_click(hass, aioclient_mock):
     mock_board_v2(aioclient_mock)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "zeroconf_confirm"
@@ -116,7 +116,7 @@ async def test_announced_address_property_is_preferred(hass, aioclient_mock):
         ["fe80::1", "192.0.2.99", "192.0.2.10"],
     )
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
     assert result["description_placeholders"]["host"] == "192.0.2.10"
 
@@ -137,7 +137,7 @@ async def test_announced_address_must_be_the_senders(
     properties = {"cams": "3"} if advertised is None else {"ip": advertised}
     info = zeroconf("fe80::1", properties, addresses)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
     # IPv4 of the sender first; no other host is ever contacted.
     assert result["description_placeholders"]["host"] == "192.0.2.10"
@@ -148,7 +148,7 @@ async def test_announced_ipv6_board_is_reached_over_ipv6(hass, aioclient_mock):
     mock_board_v2(aioclient_mock, base="http://[2001:db8::10]:3180")
     info = zeroconf("2001:db8::10", {"ip": "2001:db8::10"})
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
     assert result["description_placeholders"]["host"] == "2001:db8::10"
 
@@ -156,7 +156,7 @@ async def test_announced_ipv6_board_is_reached_over_ipv6(hass, aioclient_mock):
 async def test_announcement_without_usable_address_is_ignored(hass, aioclient_mock):
     info = zeroconf("127.0.0.1", {"ip": "127.0.0.1"}, ["127.0.0.1", "fe80::1"])
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "cannot_connect_local"
@@ -178,9 +178,9 @@ async def test_announced_plain_http_port_is_used(
     mock_board_v2(aioclient_mock, base=f"http://192.0.2.10:{expected}")
     info = zeroconf(properties=properties, port=port)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
         await hass.async_block_till_done()
     assert result["data"]["port"] == expected
@@ -193,7 +193,7 @@ async def test_announced_known_board_moves_once_the_user_confirms(
     aioclient_mock.get(BASE + "/api/state", status=503)
     mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="board-1",
         title="Autodarts (192.0.2.10)",
@@ -205,7 +205,7 @@ async def test_announced_known_board_moves_once_the_user_confirms(
     await hass.async_block_till_done()
     assert not entry.runtime_data.local.last_update_success
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
     )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "already_configured"
@@ -240,11 +240,11 @@ async def test_board_that_still_answers_is_never_moved(hass, aioclient_mock):
     mock_board(aioclient_mock)
     mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
-        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+        domain="homedarts", version=2, unique_id="board-1", data=local_entry_data()
     )
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
     )
     assert result["reason"] == "already_configured"
     assert entry.data["host"] == "192.0.2.10"
@@ -254,11 +254,11 @@ async def test_board_that_still_answers_is_never_moved(hass, aioclient_mock):
 async def test_ignored_board_is_offered_no_address(hass, aioclient_mock):
     mock_board_v2(aioclient_mock)
     entry = MockConfigEntry(
-        domain="autodarts", unique_id="board-1", source=SOURCE_IGNORE, data={}
+        domain="homedarts", unique_id="board-1", source=SOURCE_IGNORE, data={}
     )
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["reason"] == "already_configured"
     assert moved(hass, entry) is None
@@ -267,11 +267,11 @@ async def test_ignored_board_is_offered_no_address(hass, aioclient_mock):
 async def test_known_board_at_its_address_is_identified_once(hass, aioclient_mock):
     mock_board_v2(aioclient_mock)
     entry = MockConfigEntry(
-        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+        domain="homedarts", version=2, unique_id="board-1", data=local_entry_data()
     )
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["reason"] == "already_configured"
     paths = [call[1].path for call in aioclient_mock.mock_calls]
@@ -283,22 +283,22 @@ async def test_known_board_without_address_is_offered_the_announced_one(
 ):
     mock_board_v2(aioclient_mock)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="board-1",
         title="Autodarts (Living room)",
-        data={"board_id": "board-1", "local_only": False},
+        data={"board_id": "board-1"},
     )
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["reason"] == "already_configured"
     assert "host" not in entry.data
     issue = moved(hass, entry)
     assert issue.translation_placeholders == {"old": "", "new": BASE}
     # The integration runs, as it does for the entries it has.
-    assert await async_setup_component(hass, "autodarts", {})
+    assert await async_setup_component(hass, "homedarts", {})
     with patch.object(hass.config_entries, "async_schedule_reload") as reload:
         result = await confirm_repair(hass, hass_client, issue.issue_id)
     assert result["type"] == "create_entry"
@@ -311,7 +311,7 @@ async def test_known_board_without_address_is_offered_the_announced_one(
 async def test_announced_board_that_does_not_answer_is_ignored(hass, aioclient_mock):
     aioclient_mock.get(BASE + "/api/state", status=503)
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "cannot_connect_local"
@@ -320,7 +320,7 @@ async def test_announced_board_that_does_not_answer_is_ignored(hass, aioclient_m
 async def test_announced_board_without_board_id_asks_for_setup(hass, aioclient_mock):
     mock_board(aioclient_mock, config={"auth": {}, "cam": {}, "motion": {}})
     result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        "homedarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
     )
     assert result["reason"] == "board_not_configured"
 
@@ -349,7 +349,7 @@ async def test_search_lists_new_boards_and_connects_locally(hass, aioclient_mock
         "name": "Living room",
     }
     device = dr.async_get(hass).async_get_device_by_identifier(
-        ("autodarts", "board-1"), result["result"].entry_id
+        ("homedarts", "board-1"), result["result"].entry_id
     )
     assert device.name == "Living room"
 
@@ -366,7 +366,7 @@ async def test_search_lists_a_board_without_a_name_by_its_address(hass, aioclien
     )
     options = result["data_schema"].schema["board_id"].container
     assert options["board-2"] == "Autodarts · 192.0.2.40"
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"board_id": "board-2"}
         )
@@ -377,7 +377,7 @@ async def test_search_lists_a_board_without_a_name_by_its_address(hass, aioclien
 async def test_search_without_new_boards_falls_back_to_address(hass, aioclient_mock):
     aioclient_mock.get(DISCOVERY_URL, json=LISTED)
     MockConfigEntry(
-        domain="autodarts", unique_id="board-1", data=local_entry_data()
+        domain="homedarts", unique_id="board-1", data=local_entry_data()
     ).add_to_hass(hass)
     result = await start(hass)
     result = await hass.config_entries.flow.async_configure(
@@ -403,7 +403,7 @@ async def test_unavailable_search_falls_back_to_address(hass, aioclient_mock):
     assert result["step_id"] == "local"
     assert result["errors"] == {"base": "discovery_failed"}
     mock_board(aioclient_mock)
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": "192.0.2.10", "port": 3180}
         )
@@ -418,7 +418,7 @@ async def test_reconfigure_by_search_updates_the_address(hass, aioclient_mock):
     aioclient_mock.get(DISCOVERY_URL, json=listed)
     mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
-        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+        domain="homedarts", version=2, unique_id="board-1", data=local_entry_data()
     )
     entry.add_to_hass(hass)
     result = await start(hass, SOURCE_RECONFIGURE, entry)
@@ -467,7 +467,7 @@ async def test_known_board_entered_at_a_new_address_moves_there(
     """The user says where the board is now; the entry follows."""
     mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="board-1",
         title=title,
@@ -494,7 +494,7 @@ async def test_reconfigure_to_a_new_address_renames_an_address_title(
 ):
     mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         unique_id="board-1",
         title="Autodarts (192.0.2.10)",

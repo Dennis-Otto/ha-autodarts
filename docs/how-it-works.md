@@ -10,13 +10,10 @@ description: "How the integration talks to the Board Manager, updates its entiti
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/architecture-dark.png">
-  <img src="images/en/architecture-light.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations; the Autodarts cloud optionally adds match data." width="560">
+  <img src="images/en/architecture-light.png" alt="Architecture: the Board Manager on the board PC sends realtime events to HomeDarts in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations." width="560">
 </picture>
 
-A board is one config entry with up to two independent connections:
-
-- **Local** (recommended): directly to the Board Manager in your network. It needs no login and provides controls, realtime events and training.
-- **Cloud** (optional): match data from Autodarts. If it fails, local control keeps working, and the other way round.
+A board is one config entry with one connection: directly to the Board Manager in your network. It needs no login and provides controls, realtime events and training. There is no link to the Autodarts cloud, since Autodarts issues no client IDs to third-party integrations ([decision 0025](decisions/0025-no-cloud-link.md)).
 
 ## Data updates
 
@@ -29,7 +26,6 @@ A board is one config entry with up to two independent connections:
 | Board Manager 2 | One combined read of `/api/system` per interval | As above |
 | Board PC details, Board Manager 2 | HTTP read of `/api/host`; only the system, processor and software versions are kept | At start, every hour and after a Board Manager update |
 | Board Manager 1 settings and version | HTTP read | Every 30 seconds, and after every action |
-| Cloud match data | Autodarts API | Every 5 seconds during a match, otherwise every minute |
 
 Each message and each read updates only the entities that show what changed. A hand at the board, which comes and goes several times per visit, updates the motion sensors alone, not the more than a hundred entities of a board with its games and statistics.
 
@@ -74,7 +70,6 @@ A board that reports version 2 but has no `/api/system` counts as Board Manager 
 ## Address changes
 
 - **Board Manager 2** announces itself in the network (mDNS). When it announces a new address and the board no longer answers with its board ID at its configured one, a repair notice offers the new address. The entry moves and the integration reloads only once you confirm, after the board has identified itself at the new address again: any device in the network can announce a board ID. Only the addresses the announcement was sent from are used, and a board that still answers at its configured address is never moved.
-- **Entries linked to the Autodarts cloud** use the address the cloud reports when the configured one does not answer at the start. If the board has been away for five minutes at runtime and answers with its board ID at an address the cloud reports, a repair notice offers to switch to it. The cloud addresses are checked at most every 30 minutes.
 - **Otherwise**, open the integration and choose **Reconfigure**, then search for the board or enter its address. The integration never contacts the Autodarts discovery service on its own.
 
 ## Training session
@@ -200,14 +195,14 @@ The weekly report counts what the board detects, like the darts of the day, and 
 - **Journal.** The training calendar keeps every finished session and every match of several players for 365 days, at most 3,000 of each, in its own store in `.storage`. It is saved when a session or match ends and deleted together with the integration. At the first start it takes over the sessions and matches the integration already stored. A match has up to eight players, as party games do; at every start, the journal also takes over the last matches of the player profiles that it lacks, such as the party matches of more than four players that versions up to 1.12.2 left out.
 - **First dart.** A match starts with its first dart, the bull-off included; the practice game keeps that moment with the match. A new match, also of the same game, starts over, so an abandoned match never stretches the next one.
 - **Titles** follow Home Assistant's language: German, Dutch, French and Spanish have their own words and the decimal comma, for example *Training · 312 Darts · Ø 54,2*; other languages read as in English. The bot reads *Bot*, and a team match names both teams, for example *501 · Alex & Kim 1:0 Sam & Lea*. The calendar knows every Cricket and party game by its name.
-- **Exports** are written by the action `autodarts.export` only, which administrators and automations run, at most 20 in an hour. By default they go to `autodarts/exports` in the media folder; a folder of your own must be one where Home Assistant allows writing: `www`, a media folder or a folder listed in `allowlist_external_dirs`. The folder is resolved before writing, so neither `..` nor a symbolic link can lead elsewhere, and hidden folders such as `.storage` and names with control characters are refused. Every export gets a new name with a random part and never replaces a file. A CSV of matches has the columns of eight players, `player_1_name` to `player_8_points`; new columns only ever follow the others. In CSV, a text that starts like a spreadsheet formula (`=`, `+`, `-`, `@`) gets a leading apostrophe, so a player name cannot run as a formula.
-- **Downloads.** Administrators can download the exports written since Home Assistant started from `/api/autodarts/export/<name>`; the players card uses this address with a signed link that expires after a minute. Exports in `www` are also served at `/local/`, without a login.
+- **Exports** are written by the action `homedarts.export` only, which administrators and automations run, at most 20 in an hour. By default they go to `homedarts/exports` in the media folder; a folder of your own must be one where Home Assistant allows writing: `www`, a media folder or a folder listed in `allowlist_external_dirs`. The folder is resolved before writing, so neither `..` nor a symbolic link can lead elsewhere, and hidden folders such as `.storage` and names with control characters are refused. Every export gets a new name with a random part and never replaces a file. A CSV of matches has the columns of eight players, `player_1_name` to `player_8_points`; new columns only ever follow the others. In CSV, a text that starts like a spreadsheet formula (`=`, `+`, `-`, `@`) gets a leading apostrophe, so a player name cannot run as a formula.
+- **Downloads.** Administrators can download the exports written since Home Assistant started from `/api/homedarts/export/<name>`; the players card uses this address with a signed link that expires after a minute. Exports in `www` are also served at `/local/`, without a login.
 
 ## Highlight gallery
 
-The media source *Autodarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves with [`autodarts.save_highlight`](entities.md#save-a-highlight-photo-autodartssave_highlight), and the [clips](automations.md#highlight-clips) it records with `camera.record`:
+The media source *HomeDarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves with [`homedarts.save_highlight`](entities.md#save-a-highlight-photo-homedartssave_highlight), and the [clips](automations.md#highlight-clips) it records with `camera.record`:
 
-- **Folder:** `autodarts/highlights` in the media folder of Home Assistant. That is the media folder `local`: `/media` on Home Assistant OS and in a container, otherwise the `media` folder in the configuration folder. If you set `media_dirs` without `local`, the first of them.
+- **Folder:** `homedarts/highlights` in the media folder of Home Assistant. That is the media folder `local`: `/media` on Home Assistant OS and in a container, otherwise the `media` folder in the configuration folder. If you set `media_dirs` without `local`, the first of them.
 - **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, a checkout reads `checkout-121`, and a second photo of the same second with the same name ends in a space and `(2)`. A clip has the name of its photo with `.mp4`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) and clips (`.mp4`) show by their file name and the time they were saved.
 - **Order:** the months newest first, each with its newest photo as the cover; the photos and clips of a month newest first, a clip before its photo.
 - **Clips:** the gallery shows a clip with the thumbnail of the photo of its name, or without one, and the browser plays it as an MP4.
@@ -233,7 +228,7 @@ The Board Manager reports where each dart landed, relative to the outer edge of 
 - **Doubles training and Bob's 27:** the double of the round. **Checkout training:** the route, as in X01. **Bull-off:** the bullseye.
 - **Around the Clock, Cricket and the party games:** no aim, because any bed of a number counts there.
 
-Positions are stored to a tenth of a millimeter with the training. They say where darts land and nothing else, and they never leave Home Assistant; diagnostics only count them. The cards read them on demand with the WebSocket command `autodarts/positions` (`device_id`, optional `player` and `aim`), because thousands of positions are too many for entity attributes. A visit is logged when it is booked, as you pull the darts; until then, the training card draws the darts of the current visit from the visit sensor.
+Positions are stored to a tenth of a millimeter with the training. They say where darts land and nothing else, and they never leave Home Assistant; diagnostics only count them. The cards read them on demand with the WebSocket command `homedarts/positions` (`device_id`, optional `player` and `aim`), because thousands of positions are too many for entity attributes. A visit is logged when it is booked, as you pull the darts; until then, the training card draws the darts of the current visit from the visit sensor.
 
 ### Grouping
 
@@ -261,7 +256,7 @@ The aim map shows where a player scores the most points per dart with their own 
 4. **Best aim.** Home Assistant searches the point of a 2 mm grid with the most points per dart: 144 draws rank the points of a 10 mm grid, and the 2 mm grid within 4 mm of its best four points and of the best center of a treble or the bullseye is checked with all 1,000 draws. The best aim always beats every treble and the bullseye; ties go to the point nearest to the middle. After each visit, Home Assistant works out the model of the player again, in some 10 to 25 milliseconds for 1,000 to 5,000 darts on a desktop PC and several times as long on a Raspberry Pi, and searches its best aim only when the model changed, in some 20 to 40 milliseconds. Both run in an executor thread beside the event loop, so the board, the sensors and the automations never wait for them; until they are done, the profile keeps the previous best aim. The model of the session is worked out only when the aim map asks for it. Where several spots score almost the same, as with a wide spread, the best aim is one of them.
 5. **The map.** The training card computes the points per dart of every point of the 2 mm grid, some 22,700 points of 1,000 draws each, in a Web Worker of the browser, so the page stays smooth; its numbers are those of Home Assistant to the last digit. Where the browser allows no worker of the card, as with a strict content security policy, the card computes them itself. The colors run from 60 % of the most points per dart to the most.
 
-The player profile names the bed of the best aim as `best_aim`, such as `T19` or `S16`, and its points per dart, to a tenth, as `expected_ppd`; both are empty without a model. The WebSocket command `autodarts/positions` adds the model as `aim` when asked with `aim: true`: `darts` at a treble, the `needed` 30, `offset_x`, `offset_y`, `sd_x`, `sd_y` and `correlation`, and the `best` aim with its `bed`, `x` and `y` in millimeters, `expected` points per dart and the points per dart of the treble 20, the treble 19 and the bull as `compared`.
+The player profile names the bed of the best aim as `best_aim`, such as `T19` or `S16`, and its points per dart, to a tenth, as `expected_ppd`; both are empty without a model. The WebSocket command `homedarts/positions` adds the model as `aim` when asked with `aim: true`: `darts` at a treble, the `needed` 30, `offset_x`, `offset_y`, `sd_x`, `sd_y` and `correlation`, and the `best` aim with its `bed`, `x` and `y` in millimeters, `expected` points per dart and the points per dart of the treble 20, the treble 19 and the bull as `compared`.
 
 ## Camera health
 
@@ -273,10 +268,9 @@ The camera entities relay the live stream of Board Manager 2 to at most two view
 
 - **Local mode** talks only to the Board Manager in your network. The integration sends nothing to the internet.
 - **Search for boards** asks `discover.autodarts.com`, the public Autodarts discovery service, once when you use it. The service sees your public IP address and returns the boards registered from it.
-- **The optional cloud link** uses the Autodarts device login. Home Assistant stores OAuth tokens, never your password.
 - **The optional online bridge** only receives: the browser extension Tools for Autodarts calls Home Assistant with the moments of an online match, by default only from your home network. It sends nothing anywhere. [Online matches](online-matches.md).
 - **Board secrets** are dropped as soon as they are read and are never stored, logged or shown: the board API key, TLS keys, camera device paths and similar configuration.
-- **Diagnostics** redact the board ID, host, client ID, tokens and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
+- **Diagnostics** redact the board ID, host and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
 - **Exports** contain player names. The action writes them only on request; files in `www` are served at `/local/` without a login, see [exports](#training-calendar-and-exports).
 - **Highlight photos** stay in your media folder; the gallery reads nothing else.
 - **Persons:** a player linked to a person keeps only the entity ID of the person; the card reads the picture and whether the person is home from Home Assistant.
@@ -288,11 +282,21 @@ Everything the integration keeps lives in Home Assistant's `.storage` folder, ne
 
 | Store | Contents |
 | --- | --- |
-| `autodarts.<entry>.training` | The training session with its settings, the last 20 sessions and the last 10 visits; the practice game with its rules, teams, start scores, player names and the last 10 legs; the personal bests, the training streak and the darts of the day; the player profiles with their statistics, personal bests, doubles and linked persons, the last 20 matches and the head-to-head records; every player's progress with weekly sums, achievements and the positions of their last 1000 darts; the doubles analysis; the tournament with its results |
-| `autodarts.<entry>.report` | The running week and the last weekly report |
-| `autodarts.<entry>.journal` | The sessions and matches of the training calendar, 365 days, at most 3,000 of each |
+| `homedarts.<entry>.training` | The training session with its settings, the last 20 sessions and the last 10 visits; the practice game with its rules, teams, start scores, player names and the last 10 legs; the personal bests, the training streak and the darts of the day; the player profiles with their statistics, personal bests, doubles and linked persons, the last 20 matches and the head-to-head records; every player's progress with weekly sums, achievements and the positions of their last 1000 darts; the doubles analysis; the tournament with its results |
+| `homedarts.<entry>.report` | The running week and the last weekly report |
+| `homedarts.<entry>.journal` | The sessions and matches of the training calendar, 365 days, at most 3,000 of each |
 
 Highlight photos and exports are files you create on purpose. They stay in the media folder and the export folder when the integration is deleted.
+
+### Taken over from the former name
+
+Up to version 1.18 the integration was called Autodarts, with the domain `autodarts` and stores such as `autodarts.<entry>.training`. When HomeDarts [takes over a board](new-name.md) set up under that name, everything happens inside Home Assistant, without a login, a token or a connection to the internet:
+
+- **Stores.** The three stores of the old entry, with the training, the games, the reports and the calendar, are loaded and saved as the stores of the new entry, `homedarts.<entry>.…`; the old entry is removed afterwards.
+- **Registries.** The entities and the device of the board move to the new entry in Home Assistant's registries, with their IDs, names, areas and customizations, so history and statistics stay with them.
+- **Media.** The highlights, exports and voice packs move from the folder `autodarts` of the media folder to `homedarts`; a file that is there already stays.
+- **Dashboards.** The cards and the strategy in the dashboards that Home Assistant keeps get their new types, and the board style `autodarts` becomes `flat`; dashboards in YAML, automations and scripts stay as they are, and a repair lists those that still use the old name.
+- **Old files.** With the last board, the takeover deletes the folder of the integration under its former name, `autodarts` in `custom_components`, recognized by its manifest. Other integrations with the domain `autodarts` and their boards stay untouched.
 
 ## Security
 

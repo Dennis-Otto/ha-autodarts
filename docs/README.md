@@ -1,8 +1,8 @@
-# Autodarts for Home Assistant: documentation
+# HomeDarts for Autodarts: documentation
 
-[← Project page](https://github.com/Dennis-Otto/ha-autodarts) · [Deutsche Dokumentation](README.de.md)
+[← Project page](https://github.com/Dennis-Otto/homedarts-for-autodarts) · [Deutsche Dokumentation](README.de.md)
 
-Everything about the Autodarts integration: how to set it up, play and train with it, put a scoreboard next to the board, follow your statistics and let your home join in. The [website of the documentation](https://dennis-otto.github.io/ha-autodarts/) has the same pages, with a search and a switch to German.
+Everything about HomeDarts for Autodarts, the Home Assistant integration for Autodarts boards and any other dartboard: how to set it up, play and train with it, put a scoreboard next to the board, follow your statistics and let your home join in. The [website of the documentation](https://dennis-otto.github.io/homedarts-for-autodarts/) has the same pages, with a search and a switch to German. HomeDarts for Autodarts is an unofficial community project, not affiliated with Autodarts.
 
 <img src="images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, Sam scores 85, and Alex checks out 121 for the game shot" width="100%">
 
@@ -11,11 +11,12 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 ## Get started
 
 - [From zero to the scoreboard](getting-started.md): for Autodarts players without Home Assistant: set up Home Assistant and HACS, install the integration, add the board and play the first game on the scoreboard
-- [Installation and setup](installation.md): requirements, HACS and manual installation, the ways to add a board, the optional cloud link, reconfiguration, updating and removal
+- [Installation and setup](installation.md): requirements, HACS and manual installation, the ways to add a board, reconfiguration, updating and removal
 - [Play without Autodarts](without-autodarts.md): any dartboard with every game, the training and the statistics: set it up, enter the darts on a keypad, and what is different
 - [Granboard over Bluetooth](granboard.md): the darts of a Granboard over Home Assistant's Bluetooth and ESPHome proxies, for every game: set it up, play, the connection and how to check every bed *(experimental)*
 - [Frequently asked questions](faq.md): short answers about the account, devices, online play, privacy, several boards, screens, languages, updates and switching
-- [Coming from another tool](coming-from.md): how this integration compares with Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts, and how to switch from them
+- [Coming from another tool](coming-from.md): how HomeDarts compares with Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts, and how to switch from them
+- [From Autodarts to HomeDarts](new-name.md): why the integration has a new name since version 2.0, and how HomeDarts takes over your boards with their entities, statistics and dashboards
 
 ## Guides
 
@@ -36,7 +37,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 
 ## Project
 
-- [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md): what every version brought
+- [Changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md): what every version brought
 - [Roadmap](roadmap.md): released versions and what comes next
 - [Development](development.md): tests, Docker end-to-end test, demo instance, accessibility check, screenshots, the screenshot bot, the visual check and CI
 - [Releases](releases.md): how versions and release notes are produced
@@ -108,7 +109,7 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 | --- | --- | --- |
 | Board Manager 2: Autodarts 2 without a screen (headless) | 2.x | 2.0.0 and 2.0.2 |
 | Board Manager 1 (classic app) | 1.x | 1.0.7 |
-| Autodarts Desktop on Linux | Works, as reported by a player | 2.0.2 on Ubuntu 24.04 ([report](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
+| Autodarts Desktop on Linux | Works, as reported by a player | 2.0.2 on Ubuntu 24.04 ([report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/105)) |
 | Autodarts Desktop on Windows and other systems | Not tested yet | – |
 | Winmau Autodarts devices such as Autodarts X | Not tested yet | – |
 | Cameras | Any number supported by the Board Manager | 3 |
@@ -116,16 +117,16 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 
 Any board hardware that runs the Autodarts Board Manager works, because the integration talks to the Board Manager, not to the cameras. Rows reported by a player were tested by a player on their own board, not by the project.
 
-Since September 2026, the Autodarts documentation describes the Board Manager as the browser interface of Autodarts 0.x that is not supported from version 2 on. The local interface on port 3180 that the integration uses still answers on Autodarts 2.0.2. If an update changes it, the integration shows a repair notice instead of failing silently (see [troubleshooting](troubleshooting.md#repairs)). If your setup is not in the table, a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, even when everything works.
+Since September 2026, the Autodarts documentation describes the Board Manager as the browser interface of Autodarts 0.x that is not supported from version 2 on. The local interface on port 3180 that the integration uses still answers on Autodarts 2.0.2. If an update changes it, the integration shows a repair notice instead of failing silently (see [troubleshooting](troubleshooting.md#repairs)). If your setup is not in the table, a [compatibility report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml) helps, even when everything works.
 
 ## Languages
 
 The integration speaks English, German, Dutch, French and Spanish: setup, options, entities and their states, actions, messages and repairs, the cards with their editors and the caller of the scoreboard. It follows the language of Home Assistant; a regional variant such as `de-CH` or `es-419` counts as its language. Other languages see English.
 
 - Home Assistant names the entities in the language of the server (**Settings → System → General**); states and cards follow the language of your user profile.
-- The caller speaks the card's language with a voice of your browser or tablet for that language, or with a [voice pack](scoreboard.md#voice-packs) of recorded calls; `autodarts.generate_voice_pack` records one in the language you choose.
+- The caller speaks the card's language with a voice of your browser or tablet for that language, or with a [voice pack](scoreboard.md#voice-packs) of recorded calls; `homedarts.generate_voice_pack` records one in the language you choose.
 - The documentation is in English and German, the settings of the blueprints in English because Home Assistant does not translate blueprints. Their calls still speak all five languages: the integration gives the events the words of the callers and of the weekly report in the language of Home Assistant ([calls in the language of Home Assistant](automations.md#calls-in-the-language-of-home-assistant)). The voice blueprints understand sentences in all five languages. Assist answers in the language of Home Assistant, and in the language of the question for *Ask Assist about your darts*.
 
-Texts that are missing in a language, or older than their English original, are listed in that language's [translation issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations), which a bot keeps up to date. It explains how to fix them right on GitHub, without programming. Each language has two small files of its own, `translations/<language>.json` for the integration and `frontend/text/<language>.js` for the cards, both in `custom_components/autodarts/`. To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
+Texts that are missing in a language, or older than their English original, are listed in that language's [translation issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations), which a bot keeps up to date. It explains how to fix them right on GitHub, without programming. Each language has two small files of its own, `translations/<language>.json` for the integration and `frontend/text/<language>.js` for the cards, both in `custom_components/homedarts/`. To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#translations).
 
 <!-- --8<-- [end:devices-and-languages] -->

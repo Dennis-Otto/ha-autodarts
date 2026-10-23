@@ -33,7 +33,7 @@ const PROFILES = {
 };
 const setup = (states, config = {}, options = {}) => {
   const hass = makeHass({ states, ...options });
-  return { hass, card: mount("autodarts-doubles-card", hass, config) };
+  return { hass, card: mount("homedarts-doubles-card", hass, config) };
 };
 const list = (card) =>
   $$(card, ".double").map((item) => [

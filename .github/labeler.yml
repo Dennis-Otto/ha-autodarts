@@ -3,15 +3,13 @@
 "area: setup":
   - changed-files:
       - any-glob-to-any-file:
-          - custom_components/autodarts/config_flow.py
-          - custom_components/autodarts/discovery.py
-          - custom_components/autodarts/api.py
-          - custom_components/autodarts/local_api.py
-          - custom_components/autodarts/coordinator.py
-          - custom_components/autodarts/local_coordinator.py
-          - custom_components/autodarts/repairs.py
-          - custom_components/autodarts/diagnostics.py
-          - custom_components/autodarts/manifest.json
+          - custom_components/homedarts/config_flow.py
+          - custom_components/homedarts/discovery.py
+          - custom_components/homedarts/local_api.py
+          - custom_components/homedarts/local_coordinator.py
+          - custom_components/homedarts/repairs.py
+          - custom_components/homedarts/diagnostics.py
+          - custom_components/homedarts/manifest.json
           - tests/test_config_flow*.py
           - tests/test_discovery.py
           - tests/test_local_*.py
@@ -20,40 +18,40 @@
 "area: entities":
   - changed-files:
       - any-glob-to-any-file:
-          - custom_components/autodarts/entity.py
-          - custom_components/autodarts/binary_sensor.py
-          - custom_components/autodarts/button.py
-          - custom_components/autodarts/calendar.py
-          - custom_components/autodarts/camera*.py
-          - custom_components/autodarts/event.py
-          - custom_components/autodarts/number.py
-          - custom_components/autodarts/select.py
-          - custom_components/autodarts/sensor.py
-          - custom_components/autodarts/switch.py
-          - custom_components/autodarts/text.py
-          - custom_components/autodarts/time.py
-          - custom_components/autodarts/update.py
-          - custom_components/autodarts/services.*
-          - custom_components/autodarts/icons.json
+          - custom_components/homedarts/entity.py
+          - custom_components/homedarts/binary_sensor.py
+          - custom_components/homedarts/button.py
+          - custom_components/homedarts/calendar.py
+          - custom_components/homedarts/camera*.py
+          - custom_components/homedarts/event.py
+          - custom_components/homedarts/number.py
+          - custom_components/homedarts/select.py
+          - custom_components/homedarts/sensor.py
+          - custom_components/homedarts/switch.py
+          - custom_components/homedarts/text.py
+          - custom_components/homedarts/time.py
+          - custom_components/homedarts/update.py
+          - custom_components/homedarts/services.*
+          - custom_components/homedarts/icons.json
           - tests/test_camera_*.py
 "area: games":
   - changed-files:
       - any-glob-to-any-file:
-          - custom_components/autodarts/board.py
-          - custom_components/autodarts/bot.py
-          - custom_components/autodarts/checkout.py
-          - custom_components/autodarts/cricket.py
-          - custom_components/autodarts/doubles.py
-          - custom_components/autodarts/drills.py
-          - custom_components/autodarts/games.py
-          - custom_components/autodarts/games_coordinator.py
-          - custom_components/autodarts/manual.py
-          - custom_components/autodarts/manual_coordinator.py
-          - custom_components/autodarts/modes.py
-          - custom_components/autodarts/party.py
-          - custom_components/autodarts/practice.py
-          - custom_components/autodarts/scoring.py
-          - custom_components/autodarts/tournament.py
+          - custom_components/homedarts/board.py
+          - custom_components/homedarts/bot.py
+          - custom_components/homedarts/checkout.py
+          - custom_components/homedarts/cricket.py
+          - custom_components/homedarts/doubles.py
+          - custom_components/homedarts/drills.py
+          - custom_components/homedarts/games.py
+          - custom_components/homedarts/games_coordinator.py
+          - custom_components/homedarts/manual.py
+          - custom_components/homedarts/manual_coordinator.py
+          - custom_components/homedarts/modes.py
+          - custom_components/homedarts/party.py
+          - custom_components/homedarts/practice.py
+          - custom_components/homedarts/scoring.py
+          - custom_components/homedarts/tournament.py
           - tests/test_board.py
           - tests/test_bot*.py
           - tests/test_checkout.py
@@ -68,24 +66,24 @@
 "area: statistics":
   - changed-files:
       - any-glob-to-any-file:
-          - custom_components/autodarts/achievements.py
-          - custom_components/autodarts/export.py
-          - custom_components/autodarts/journal.py
-          - custom_components/autodarts/profiles.py
-          - custom_components/autodarts/progress.py
-          - custom_components/autodarts/quality.py
-          - custom_components/autodarts/records.py
-          - custom_components/autodarts/report.py
-          - custom_components/autodarts/summary.py
-          - custom_components/autodarts/training.py
+          - custom_components/homedarts/achievements.py
+          - custom_components/homedarts/export.py
+          - custom_components/homedarts/journal.py
+          - custom_components/homedarts/profiles.py
+          - custom_components/homedarts/progress.py
+          - custom_components/homedarts/quality.py
+          - custom_components/homedarts/records.py
+          - custom_components/homedarts/report.py
+          - custom_components/homedarts/summary.py
+          - custom_components/homedarts/training.py
           - tests/test_journal.py
           - tests/test_match_summary*.py
           - tests/test_persons.py
 "area: cards":
   - changed-files:
       - any-glob-to-any-file:
-          - custom_components/autodarts/frontend/**
-          - custom_components/autodarts/card.py
+          - custom_components/homedarts/frontend/**
+          - custom_components/homedarts/card.py
           - tests/frontend/**
           - tests/test_card.py
 "area: blueprints":
@@ -93,4 +91,4 @@
       - any-glob-to-any-file: ["blueprints/**", "tests/test_blueprint*.py"]
 "area: online":
   - changed-files:
-      - any-glob-to-any-file: ["custom_components/autodarts/online.py", "tests/test_online.py"]
+      - any-glob-to-any-file: ["custom_components/homedarts/online.py", "tests/test_online.py"]

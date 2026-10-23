@@ -12,7 +12,7 @@ import {
   topHits,
   visitBucket,
   visitsFromHistory,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 test("hit names map to the beds of the board", () => {
   assert.deepEqual(hitBeds("T20"), ["T20"]);
@@ -159,7 +159,7 @@ test("entities are found per device and cameras grouped by number", () => {
     entity_id,
     translation_key,
     device_id,
-    platform: "autodarts",
+    platform: "homedarts",
   });
   const hass = {
     entities: {
@@ -196,7 +196,7 @@ test("entities are found per device and cameras grouped by number", () => {
 });
 
 test("heat ratios run from the least to the most hit bed", async () => {
-  const { heatRatio } = await import("../../custom_components/autodarts/frontend/autodarts-card.js");
+  const { heatRatio } = await import("../../custom_components/homedarts/frontend/homedarts-card.js");
   assert.equal(heatRatio(1, 5), 0);
   assert.equal(heatRatio(3, 5), 0.5);
   assert.equal(heatRatio(5, 5), 1);

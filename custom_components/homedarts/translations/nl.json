@@ -1,0 +1,1752 @@
+{
+  "title": "HomeDarts for Autodarts",
+  "config": {
+    "step": {
+      "user": {
+        "title": "HomeDarts instellen",
+        "description": "Zoek in je netwerk naar Autodarts-borden, voer een bordadres in of stel een dartbord zonder Autodarts in.",
+        "menu_options": {
+          "takeover": "De borden van de integratie Autodarts overnemen",
+          "discover": "Borden zoeken in dit netwerk",
+          "local": "Bordadres invoeren",
+          "manual": "Dartbord zonder Autodarts: elke dart zelf invoeren",
+          "granboard": "Granboard via Bluetooth (experimenteel)"
+        }
+      },
+      "reconfigure": {
+        "title": "HomeDarts opnieuw configureren",
+        "description": "Zoek het bord opnieuw of wijzig het lokale adres. Je bestaande bord en entiteiten blijven behouden.",
+        "menu_options": {
+          "discover": "Borden zoeken in dit netwerk",
+          "local": "Bordadres invoeren"
+        }
+      },
+      "reconfigure_manual": {
+        "title": "Een Autodarts-bord verbinden",
+        "description": "Heeft je dartbord Autodarts gekregen? Verbind het bord: het dartbord houdt zijn spellen, statistieken, entiteiten en dashboards en krijgt de detectie, de camera's en de bediening van het bord.",
+        "menu_options": {
+          "discover": "Borden zoeken in dit netwerk",
+          "local": "Bordadres invoeren"
+        }
+      },
+      "local": {
+        "title": "Lokaal bord verbinden",
+        "description": "Voer het IP-adres of de hostnaam van Board Manager in, zonder http:// of poort. Het bord moet al in Board Manager zijn ingesteld.",
+        "data": {
+          "host": "IP-adres of hostnaam van het bord",
+          "port": "Poort"
+        },
+        "data_description": {
+          "host": "IP-adres of hostnaam van de pc waarop Autodarts Board Manager draait, bijvoorbeeld 192.168.1.50. Zonder http:// en zonder poort.",
+          "port": "API-poort van Board Manager, meestal 3180."
+        }
+      },
+      "manual": {
+        "title": "Dartbord zonder Autodarts",
+        "description": "Voor een dartbord zonder automatische telling: je voert elke dart in op het toetsenblok van de kaarten, en de spellen, de trainingssessies en alle statistieken werken zoals met Autodarts.",
+        "data": {
+          "name": "Naam"
+        },
+        "data_description": {
+          "name": "Geeft het bord, zijn apparaat en zijn entiteiten een naam, bijvoorbeeld Dartbord of Garage."
+        }
+      },
+      "granboard": {
+        "title": "Granboard via Bluetooth",
+        "description": "Kies het Granboard dat Bluetooth van Home Assistant ziet. Zijn darts tellen zoals op een dartbord zonder Autodarts.",
+        "data": {
+          "address": "Granboard"
+        },
+        "data_description": {
+          "address": "Zet het bord aan: Home Assistant vindt het via een Bluetooth-adapter of een ESPHome Bluetooth-proxy binnen bereik."
+        }
+      },
+      "granboard_confirm": {
+        "title": "Granboard via Bluetooth (experimenteel)",
+        "description": "Home Assistant ontvangt de darts van het Granboard op {address} en speelt er de spellen, de training en de statistieken mee, zoals op een dartbord zonder Autodarts. De knop van het bord geeft de beurt door aan de volgende speler, en het toetsenblok van de kaarten corrigeert nog steeds een dart. De ondersteuning van het Granboard is experimenteel: meld een vak dat verkeerd telt.",
+        "data": {
+          "name": "Naam"
+        },
+        "data_description": {
+          "name": "Geeft het bord, zijn apparaat en zijn entiteiten een naam, bijvoorbeeld Granboard of Garage."
+        }
+      },
+      "discover": {
+        "title": "Kies je bord",
+        "description": "Autodarts heeft deze borden voor je netwerk gevonden. De zoekopdracht gebruikt dezelfde dienst als de Board Manager-app en ziet je openbare IP-adres. Het bord wordt daarna lokaal verbonden, zonder Autodarts-aanmelding.",
+        "data": {
+          "board_id": "Bord"
+        },
+        "data_description": {
+          "board_id": "Borden die al zijn ingesteld, staan niet in de lijst."
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Autodarts-bord gevonden",
+        "description": "Het Autodarts-bord op {host} toevoegen? Board Manager {version}, {cameras} camera's. Het werkt lokaal, zonder Autodarts-aanmelding."
+      },
+      "takeover": {
+        "title": "Overnemen van Autodarts",
+        "description": "HomeDarts for Autodarts is de nieuwe naam van de integratie Autodarts. Deze borden zijn nog onder de oude naam ingesteld:\n\n{boards}\n\nBij het overnemen blijft alles behouden: de instellingen, de entiteiten met hun ID's, geschiedenis en statistieken, de training, de spellen en de rapporten, de hoogtepunten, exports en stempakketten, en de kaarten in je dashboards. Daarna worden de oude integratie en haar bestanden verwijderd. Automatiseringen en scripts die haar acties aanroepen, zoals `autodarts.start_game`, hebben de nieuwe naam nodig, `homedarts.start_game`: een reparatie somt ze op. Start Home Assistant daarna opnieuw."
+      }
+    },
+    "error": {
+      "invalid_host": "Voer alleen een IP-adres of hostnaam in.",
+      "cannot_connect_local": "De lokale Board Manager is niet bereikbaar of geeft een ongeldig antwoord.",
+      "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
+      "no_boards_found": "Er zijn automatisch geen nieuwe borden gevonden. Voer in plaats daarvan het bordadres in.",
+      "discovery_failed": "Het zoeken naar borden is momenteel niet beschikbaar. Voer in plaats daarvan het bordadres in.",
+      "board_access_denied": "Het bord weigert de toegang (HTTP 401 of 403). Board Manager vereist geen aanmelding; controleer proxy's en firewalls tussen Home Assistant en het bord."
+    },
+    "abort": {
+      "already_configured": "Dit Autodarts-bord is al geconfigureerd.",
+      "wrong_board": "Dit adres hoort bij een ander bord.",
+      "reconfigure_successful": "De configuratie is bijgewerkt.",
+      "cannot_connect_local": "Het bord dat zich in je netwerk heeft gemeld, reageert niet. Controleer of Board Manager draait.",
+      "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
+      "already_in_progress": "Dit bord wordt al ingesteld.",
+      "address_updated": "Dit Autodarts-bord is al ingesteld. Het adres is bijgewerkt en de integratie wordt opnieuw geladen.",
+      "board_connected": "Het Autodarts-bord is verbonden. Het dartbord houdt zijn spellen, statistieken en dashboards, en de integratie herlaadt.",
+      "no_granboards": "Bluetooth van Home Assistant ziet geen Granboard dat nog niet is ingesteld. Zet het bord aan, houd het binnen bereik van een Bluetooth-adapter of een ESPHome Bluetooth-proxy en probeer het opnieuw.",
+      "nothing_to_take_over": "Er is geen bord van de integratie Autodarts meer om over te nemen."
+    },
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "Het bord is ingesteld. Voor een kant-en-klaar dashboard met scorebord, training en statistieken open je **Instellingen → Dashboards → Dashboard toevoegen** en kies je **HomeDarts**."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "HomeDarts-opties",
+        "description": "**Onlinewedstrijden (experimenteel):** de integratie ziet de darts op je bord, maar niet het spel van een onlinewedstrijd op play.autodarts.io. De browserextensie Tools for Autodarts kan momenten daaruit, zoals een bust, een game shot of een 180, naar Home Assistant sturen. Ze komen binnen als bordgebeurtenissen waarvan het type begint met `online_`.",
+        "data": {
+          "online_bridge": "Onlinewedstrijden ontvangen van Tools for Autodarts",
+          "online_bridge_remote": "Aanroepen van buiten je thuisnetwerk accepteren",
+          "online_bridge_new_address": "Nieuw geheim adres maken"
+        },
+        "data_description": {
+          "online_bridge": "Opent een geheim webhookadres voor de browserextensie. De volgende stap toont het.",
+          "online_bridge_remote": "Alleen voor een https-adres via Home Assistant Cloud of je eigen domein. Uit: alleen apparaten in je thuisnetwerk kunnen het adres aanroepen.",
+          "online_bridge_new_address": "Het huidige adres werkt dan niet meer. Voer het nieuwe adres in bij Tools for Autodarts."
+        }
+      },
+      "online_bridge": {
+        "title": "Adres voor Tools for Autodarts",
+        "description": "Nadat je op Verzenden hebt geklikt, accepteert Home Assistant momenten van onlinewedstrijden op dit geheime adres:\n\n`{url}`\n\nZet in Tools for Autodarts **WLED** aan, kies **Import CSV** en plak de regels hieronder. Elke regel maakt een effect van het type URL dat het adres aanroept met `?event=` en de bijbehorende trigger. Importeer alleen de regels die je nodig hebt: Tools for Autodarts speelt één effect per trigger af en kiest er willekeurig een als meerdere effecten dezelfde trigger hebben.\n\n```\n{effects}\n```\n\nDe sensor *Laatste gebeurtenis onlinebrug* toont het laatst binnengekomen moment. Houd het adres voor jezelf: wie het kent, kan momenten van een spel naar je Home Assistant sturen."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "board_event": {
+        "name": "Laatste gebeurtenis"
+      },
+      "last_throw": {
+        "name": "Laatste dart"
+      },
+      "num_throws": {
+        "name": "Darts in de beurt"
+      },
+      "local_status": {
+        "name": "Detectiestatus",
+        "state": {
+          "offline": "Offline",
+          "starting": "Wordt gestart",
+          "stopping": "Wordt gestopt",
+          "stopped": "Gestopt",
+          "throw": "Klaar om te gooien",
+          "takeout": "Darts verwijderen",
+          "takeout_in_progress": "Darts worden verwijderd",
+          "calibrating": "Bezig met kalibreren",
+          "error": "Fout",
+          "manual": "Handmatige invoer"
+        }
+      },
+      "last_throw_score": {
+        "name": "Score laatste dart"
+      },
+      "local_visit_score": {
+        "name": "Gedetecteerde score van de beurt"
+      },
+      "detection_fps": {
+        "name": "Framerate detectie"
+      },
+      "camera_fps": {
+        "name": "Framerate camera {number}"
+      },
+      "training_darts": {
+        "name": "Training darts"
+      },
+      "training_triples": {
+        "name": "Training triples"
+      },
+      "training_bulls": {
+        "name": "Training bulltreffers"
+      },
+      "training_scores_180": {
+        "name": "Training 180's"
+      },
+      "training_points": {
+        "name": "Training punten"
+      },
+      "training_doubles": {
+        "name": "Training dubbels"
+      },
+      "training_misses": {
+        "name": "Training missers"
+      },
+      "training_visits": {
+        "name": "Training beurten"
+      },
+      "training_scores_100": {
+        "name": "Training 100+ beurten"
+      },
+      "training_scores_140": {
+        "name": "Training 140+ beurten"
+      },
+      "training_average": {
+        "name": "Training 3-dart-gemiddelde"
+      },
+      "training_highest_visit": {
+        "name": "Training hoogste beurt"
+      },
+      "training_started": {
+        "name": "Starttijd trainingssessie"
+      },
+      "cpu_usage": {
+        "name": "CPU-gebruik"
+      },
+      "memory_usage": {
+        "name": "Geheugengebruik"
+      },
+      "training_last_session": {
+        "name": "Gemiddelde laatste sessie"
+      },
+      "host_os": {
+        "name": "Besturingssysteem"
+      },
+      "host_processor": {
+        "name": "Processor"
+      },
+      "vision_version": {
+        "name": "Versie detectiesoftware"
+      },
+      "practice_remaining": {
+        "name": "Oefenspel resterende score"
+      },
+      "practice_checkout": {
+        "name": "Oefenspel uitgooiroute"
+      },
+      "practice_target": {
+        "name": "Oefenspel doel"
+      },
+      "practice_first_9_average": {
+        "name": "Oefenspel First 9-gemiddelde"
+      },
+      "practice_checkout_rate": {
+        "name": "Oefenspel uitgooipercentage"
+      },
+      "practice_doubles_rate": {
+        "name": "Oefenspel dubbelpercentage"
+      },
+      "practice_legs_played": {
+        "name": "Oefenspel gespeelde legs"
+      },
+      "correction_rate": {
+        "name": "Correctiepercentage detectie"
+      },
+      "personal_best": {
+        "name": "Laatste persoonlijk record"
+      },
+      "darts_today": {
+        "name": "Darts vandaag"
+      },
+      "training_streak": {
+        "name": "Trainingsreeks"
+      },
+      "player_profiles": {
+        "name": "Spelersprofielen"
+      },
+      "last_match": {
+        "name": "Laatste wedstrijd"
+      },
+      "favourite_double": {
+        "name": "Favoriete dubbel"
+      },
+      "online_bridge_last_event": {
+        "name": "Laatste gebeurtenis onlinebrug"
+      },
+      "weekly_report": {
+        "name": "Weekrapport"
+      },
+      "achievements": {
+        "name": "Prestaties"
+      },
+      "tournament": {
+        "name": "Toernooi",
+        "state": {
+          "no_tournament": "Geen toernooi",
+          "round_1": "Ronde 1",
+          "round_2": "Ronde 2",
+          "round_3": "Ronde 3",
+          "round_4": "Ronde 4",
+          "round_5": "Ronde 5",
+          "round_6": "Ronde 6",
+          "round_7": "Ronde 7",
+          "round_of_32": "Zestiende finale",
+          "round_of_16": "Achtste finale",
+          "quarter_final": "Kwartfinale",
+          "semi_final": "Halve finale",
+          "third_place": "Troostfinale",
+          "final": "Finale",
+          "winners_round_1": "Winnaarsronde 1",
+          "winners_round_2": "Winnaarsronde 2",
+          "winners_round_3": "Winnaarsronde 3",
+          "winners_round_4": "Winnaarsronde 4",
+          "winners_final": "Winnaarsfinale",
+          "losers_round_1": "Verliezersronde 1",
+          "losers_round_2": "Verliezersronde 2",
+          "losers_round_3": "Verliezersronde 3",
+          "losers_round_4": "Verliezersronde 4",
+          "losers_round_5": "Verliezersronde 5",
+          "losers_round_6": "Verliezersronde 6",
+          "losers_round_7": "Verliezersronde 7",
+          "losers_final": "Verliezersfinale",
+          "grand_final": "Grote finale",
+          "grand_final_reset": "Beslissende finale",
+          "finished": "Afgelopen"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Status",
+            "state": {
+              "playing": "Wedstrijd bezig",
+              "waiting": "Wacht op de volgende wedstrijd",
+              "finished": "Afgelopen"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Iedereen tegen iedereen",
+              "knockout": "Knock-out",
+              "double_knockout": "Dubbele knock-out",
+              "groups_knockout": "Groepen en knock-out"
+            }
+          }
+        }
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Detectie starten"
+      },
+      "stop": {
+        "name": "Detectie stoppen"
+      },
+      "reset": {
+        "name": "Detectie resetten"
+      },
+      "restart": {
+        "name": "Board Manager herstarten"
+      },
+      "calibrate": {
+        "name": "Automatische kalibratie starten"
+      },
+      "connect": {
+        "name": "Cloudverbinding maken"
+      },
+      "disconnect": {
+        "name": "Cloudverbinding verbreken"
+      },
+      "start_streams": {
+        "name": "Camerastreams starten"
+      },
+      "stop_streams": {
+        "name": "Camerastreams stoppen"
+      },
+      "calibrate_camera": {
+        "name": "Camera {number} kalibreren"
+      },
+      "reset_training": {
+        "name": "Nieuwe trainingssessie"
+      },
+      "practice_new_leg": {
+        "name": "Oefenspel nieuwe leg"
+      },
+      "practice_new_match": {
+        "name": "Oefenspel nieuwe wedstrijd"
+      },
+      "tournament_start": {
+        "name": "Toernooi starten"
+      },
+      "tournament_next_match": {
+        "name": "Volgende toernooiwedstrijd"
+      },
+      "tournament_stop": {
+        "name": "Toernooi stoppen"
+      }
+    },
+    "switch": {
+      "detection": {
+        "name": "Detectie"
+      },
+      "upstream": {
+        "name": "Cloudverbinding"
+      },
+      "auto_calibrate_on_start": {
+        "name": "Kalibreren bij starten"
+      },
+      "auto_calibrate": {
+        "name": "Automatisch herkalibreren"
+      },
+      "auto_distortion": {
+        "name": "Vervormingscorrectie"
+      },
+      "free_stuck_takeout": {
+        "name": "Vastgelopen verwijderen van darts oplossen"
+      },
+      "training_session": {
+        "name": "Trainingssessie"
+      },
+      "training_auto_start": {
+        "name": "Sessies automatisch starten"
+      },
+      "practice_double_out": {
+        "name": "Oefenspel double out"
+      },
+      "practice_double_in": {
+        "name": "Oefenspel double in"
+      },
+      "practice_bull_off": {
+        "name": "Oefenspel bullen"
+      },
+      "practice_bull_off_distance": {
+        "name": "Oefenspel bullen op gemeten afstand"
+      },
+      "practice_personal_routes": {
+        "name": "Oefenspel persoonlijke uitgooiroutes"
+      },
+      "practice_teams": {
+        "name": "Oefenspel teams"
+      },
+      "achievements_enabled": {
+        "name": "Prestaties vrijspelen"
+      },
+      "tournament_third_place": {
+        "name": "Toernooi troostfinale"
+      },
+      "tournament_random_draw": {
+        "name": "Toernooi willekeurige loting"
+      },
+      "practice_manual_entry": {
+        "name": "Oefenspel handmatige invoer"
+      },
+      "practice_three_in_a_bed": {
+        "name": "Oefenspel Wild Mouse three in a bed"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "name": "Oefenspel Bermuda halveren zonder treffer"
+      }
+    },
+    "select": {
+      "standby_minutes": {
+        "name": "Camerastand-by",
+        "state": {
+          "5": "5 minuten",
+          "10": "10 minuten",
+          "15": "15 minuten",
+          "30": "30 minuten",
+          "60": "60 minuten"
+        }
+      },
+      "practice_game": {
+        "name": "Oefenspel",
+        "state": {
+          "off": "Uit",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "around_the_clock": "Around the Clock",
+          "doubles": "Dubbeltraining",
+          "checkout": "Uitgooitraining",
+          "bobs_27": "Bob's 27",
+          "cricket": "Cricket",
+          "101": "101",
+          "901": "901",
+          "1001": "1001",
+          "shanghai": "Shanghai",
+          "halve_it": "Halve-It",
+          "killer": "Killer",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse",
+          "random_cricket": "Random Cricket",
+          "hidden_cricket": "Hidden Cricket",
+          "golf": "Golf",
+          "baseball": "Baseball",
+          "count_up": "Count-Up",
+          "bermuda": "Bermuda",
+          "round_the_world": "Round the World",
+          "gotcha": "Gotcha",
+          "checkout_121": "121 checkout",
+          "catch_40": "Catch 40",
+          "jdc_challenge": "JDC Challenge",
+          "singles": "Singletraining"
+        }
+      },
+      "practice_in_mode": {
+        "name": "Oefenspel in-modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Oefenspel out-modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Oefenspel bull-modus",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
+      "weekly_report_day": {
+        "name": "Dag van het weekrapport",
+        "state": {
+          "monday": "Maandag",
+          "tuesday": "Dinsdag",
+          "wednesday": "Woensdag",
+          "thursday": "Donderdag",
+          "friday": "Vrijdag",
+          "saturday": "Zaterdag",
+          "sunday": "Zondag"
+        }
+      },
+      "practice_golf_holes": {
+        "name": "Oefenspel Golf-holes"
+      },
+      "practice_round_the_world_order": {
+        "name": "Oefenspel Round the World-volgorde",
+        "state": {
+          "ascending": "1 tot 20, bull",
+          "descending": "20 tot 1, bull",
+          "random": "Willekeurig, bull"
+        }
+      },
+      "tournament_format": {
+        "name": "Toernooiformat",
+        "state": {
+          "round_robin": "Iedereen tegen iedereen",
+          "knockout": "Knock-out",
+          "double_knockout": "Dubbele knock-out",
+          "groups_knockout": "Groepen en knock-out"
+        }
+      },
+      "tournament_game": {
+        "name": "Toernooispel",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse",
+          "random_cricket": "Random Cricket",
+          "hidden_cricket": "Hidden Cricket"
+        }
+      }
+    },
+    "number": {
+      "training_idle_timeout": {
+        "name": "Time-out sessie bij inactiviteit"
+      },
+      "practice_players": {
+        "name": "Oefenspel aantal spelers"
+      },
+      "practice_legs": {
+        "name": "Oefenspel legs per set"
+      },
+      "practice_sets": {
+        "name": "Oefenspel sets om te winnen"
+      },
+      "training_daily_goal": {
+        "name": "Dagdoel"
+      },
+      "practice_start": {
+        "name": "Oefenspel startscore speler {number}"
+      },
+      "practice_max_rounds": {
+        "name": "Oefenspel maximaal aantal rondes"
+      },
+      "practice_count_up_rounds": {
+        "name": "Oefenspel Count-Up-rondes"
+      },
+      "practice_gotcha_target": {
+        "name": "Oefenspel Gotcha-doelscore"
+      },
+      "tournament_groups": {
+        "name": "Toernooigroepen"
+      },
+      "tournament_advance": {
+        "name": "Toernooi door per groep"
+      },
+      "tournament_pause": {
+        "name": "Toernooipauze"
+      },
+      "tournament_summary": {
+        "name": "Toernooi weergaveduur samenvatting"
+      },
+      "practice_bot_level": {
+        "name": "Oefenspel botniveau"
+      },
+      "practice_bot_delay": {
+        "name": "Oefenspel botpauze"
+      }
+    },
+    "binary_sensor": {
+      "local_connected": {
+        "name": "Lokale verbinding"
+      },
+      "granboard_connected": {
+        "name": "Granboard-verbinding"
+      },
+      "hand_detected": {
+        "name": "Hand gedetecteerd"
+      },
+      "image_stable": {
+        "name": "Beeld stabiel"
+      },
+      "takeout_partial": {
+        "name": "Darts gedeeltelijk verwijderd"
+      },
+      "takeout_full": {
+        "name": "Darts volledig verwijderd"
+      },
+      "cameras_active": {
+        "name": "Camera's actief"
+      },
+      "calibrating": {
+        "name": "Kalibratie bezig"
+      },
+      "realtime_connected": {
+        "name": "Realtimeverbinding"
+      },
+      "camera_problem": {
+        "name": "Cameraprobleem"
+      },
+      "individual_camera_problem": {
+        "name": "Probleem camera {number}"
+      },
+      "cloud_link": {
+        "name": "Cloudverbinding"
+      }
+    },
+    "camera": {
+      "board_camera": {
+        "name": "Camera {number}"
+      }
+    },
+    "event": {
+      "board_events": {
+        "name": "Gebeurtenissen",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "dart_detected": "Dart gedetecteerd",
+              "dart_corrected": "Dart gecorrigeerd",
+              "takeout_started": "Verwijderen van de darts gestart",
+              "takeout_finished": "Verwijderen van de darts voltooid",
+              "status_changed": "Status gewijzigd",
+              "visit_thrown": "Beurt gegooid",
+              "visit_completed": "Beurt afgerond",
+              "session_started": "Sessie gestart",
+              "session_ended": "Sessie beëindigd",
+              "bust": "Bust",
+              "leg_won": "Leg gewonnen",
+              "match_won": "Wedstrijd gewonnen",
+              "turn_changed": "Spelerswissel",
+              "drill_finished": "Trainingsspel afgerond",
+              "checkout_attempt": "Uitgooipoging",
+              "personal_best": "Persoonlijk record",
+              "daily_goal_reached": "Dagdoel bereikt",
+              "bull_off_won": "Bullen gewonnen",
+              "tournament_started": "Toernooi gestart",
+              "tournament_match_finished": "Toernooiwedstrijd afgerond",
+              "tournament_finished": "Toernooi afgerond",
+              "online_game_on": "Online: game on",
+              "online_visit": "Online: beurt",
+              "online_dart": "Online: dart",
+              "online_busted": "Online: bust",
+              "online_game_shot": "Online: game shot",
+              "online_match_shot": "Online: match shot",
+              "online_bull_off": "Online: bullen begint",
+              "online_tournament_ready": "Online: toernooiwedstrijd klaar",
+              "online_match_left": "Online: wedstrijd verlaten",
+              "weekly_report": "Weekrapport",
+              "achievement_unlocked": "Prestatie ontgrendeld",
+              "visit_undone": "Beurt ongedaan gemaakt"
+            }
+          },
+          "achievement": {
+            "name": "Prestatie",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "100+ beurten",
+              "ton_forty": "140+ beurten",
+              "high_finish": "High finish",
+              "short_leg": "Korte leg",
+              "nine_darter": "Negendarter",
+              "legs_won": "Gewonnen legs",
+              "matches_won": "Gewonnen wedstrijden",
+              "hat_trick": "Hattrick",
+              "all_doubles": "Alle dubbels",
+              "cricket_nine": "Negen marks",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Reeks",
+              "darts_thrown": "Gegooide darts"
+            }
+          }
+        }
+      }
+    },
+    "update": {
+      "board_software": {
+        "name": "Software"
+      }
+    },
+    "text": {
+      "practice_player": {
+        "name": "Oefenspel speler {number}"
+      },
+      "tournament_players": {
+        "name": "Toernooispelers",
+        "state_attributes": {
+          "players": {
+            "name": "Spelers"
+          }
+        }
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "name": "Trainingsagenda"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "name": "Tijd van het weekrapport"
+      }
+    }
+  },
+  "exceptions": {
+    "action_failed": {
+      "message": "Het bord heeft de actie niet geaccepteerd. Controleer de verbinding met Board Manager en probeer het opnieuw."
+    },
+    "board_unavailable": {
+      "message": "Board Manager reageert niet."
+    },
+    "wrong_board": {
+      "message": "Het ingestelde adres hoort bij een ander bord."
+    },
+    "no_local_address": {
+      "message": "Voer het lokale adres van Board Manager in: open het menu van dit configuratie-item en kies Opnieuw configureren."
+    },
+    "no_board": {
+      "message": "Er is geen Autodarts-bord met een lokale verbinding geladen."
+    },
+    "several_boards": {
+      "message": "Er zijn meerdere Autodarts-borden ingesteld. Kies het bord."
+    },
+    "duplicate_player": {
+      "message": "{name} staat meer dan eens in de spelerslijst. Elke speler heeft een eigen naam nodig."
+    },
+    "invalid_player_name": {
+      "message": "Een spelersnaam mag geen accolades, procentteken, hekje (#) of stuurtekens bevatten."
+    },
+    "name_too_long": {
+      "message": "‘{name}’ is te lang voor een spelersnaam, die hoogstens {limit} tekens heeft."
+    },
+    "killer_players": {
+      "message": "Killer heeft minstens twee spelers nodig."
+    },
+    "unknown_player": {
+      "message": "Er is geen spelersprofiel met de naam {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} speelt mee in het toernooi. Stop het toernooi voordat je de speler verwijdert."
+    },
+    "board_access_denied": {
+      "message": "Board Manager weigert de toegang. Normaal is er geen aanmelding nodig; controleer proxy's en firewalls tussen Home Assistant en het bord."
+    },
+    "unsupported_response": {
+      "message": "Board Manager antwoordt in een formaat dat deze versie van de integratie niet begrijpt."
+    },
+    "storage_newer": {
+      "message": "De opgeslagen training van dit bord komt van een nieuwere versie van de integratie. Installeer die versie opnieuw of zet een back-up terug; de opgeslagen gegevens blijven ongewijzigd."
+    },
+    "storage_unreadable": {
+      "message": "De opgeslagen training van dit bord kan nu niet worden gelezen. Home Assistant probeert het opnieuw; de opgeslagen gegevens blijven ongewijzigd."
+    },
+    "storage_invalid": {
+      "message": "De opgeslagen training van dit bord kan niet worden hersteld. Meld dit als fout; de opgeslagen gegevens blijven ongewijzigd."
+    },
+    "not_supported": {
+      "message": "Dit bord ondersteunt deze actie niet."
+    },
+    "export_folder": {
+      "message": "De exportmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
+    },
+    "export_failed": {
+      "message": "De export kon niet worden weggeschreven: {error}"
+    },
+    "highlight_camera_missing": {
+      "message": "De camera {camera} bestaat niet of is uitgeschakeld. De camera's van een Autodarts-bord zijn uitgeschakeld tot je ze inschakelt op de pagina van het bord."
+    },
+    "highlight_camera_unavailable": {
+      "message": "De camera {camera} is niet beschikbaar."
+    },
+    "highlight_no_picture": {
+      "message": "De camera {camera} gaf geen beeld."
+    },
+    "highlight_folder": {
+      "message": "De highlightmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
+    },
+    "highlight_failed": {
+      "message": "De highlightfoto kon niet worden opgeslagen: {error}"
+    },
+    "voice_pack_no_score": {
+      "message": "Geen score"
+    },
+    "voice_pack_bust": {
+      "message": "Geen score"
+    },
+    "voice_pack_leg": {
+      "message": "Game shot, en de leg!"
+    },
+    "voice_pack_match": {
+      "message": "Game shot, en de wedstrijd!"
+    },
+    "voice_pack_require": {
+      "message": "Je hebt nog nodig"
+    },
+    "voice_pack_require_score": {
+      "message": "Je hebt nog {remaining} nodig"
+    },
+    "voice_pack_target": {
+      "message": "Doel"
+    },
+    "voice_pack_any_double": {
+      "message": "Willekeurige dubbel"
+    },
+    "voice_pack_name": {
+      "message": "Het stempakket {pack} heeft geen geldige mapnaam: tot 64 letters, cijfers, spaties, punten, streepjes en underscores, die met een letter of een cijfer beginnen en eindigen."
+    },
+    "voice_pack_engine_missing": {
+      "message": "De tekst-naar-spraakengine {engine} bestaat niet."
+    },
+    "voice_pack_busy": {
+      "message": "Er wordt al een stempakket gemaakt. Probeer het opnieuw als het klaar is."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant heeft geen mediamap voor de stempakketten."
+    },
+    "voice_pack_engine": {
+      "message": "De engine {engine} kan {language} niet spreken met deze opties: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant staat niet toe dat er in de map van de stempakketten wordt geschreven, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "Het stempakket {pack} bestaat al en is niet door deze actie gemaakt, bijvoorbeeld een pakket van darts-caller. Het blijft zoals het is; kies een andere naam."
+    },
+    "voice_pack_failed": {
+      "message": "Het stempakket {pack} kon niet worden gemaakt: {error}"
+    },
+    "unknown_person": {
+      "message": "Er is geen persoon {person} in Home Assistant."
+    },
+    "team_players": {
+      "message": "Teams hebben vier spelers nodig: spelers 1 en 3 tegen spelers 2 en 4."
+    },
+    "team_game": {
+      "message": "Teams spelen alleen X01 en de Cricket-spellen."
+    },
+    "invalid_start_score": {
+      "message": "Een startscore is 0 (voor de startscore van het spel) of ligt tussen 2 en 1001."
+    },
+    "tournament_players": {
+      "message": "Deze toernooivorm heeft {min} tot {max} spelers nodig, niet {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} spelers passen niet in {groups} groepen: elke groep heeft drie tot acht spelers nodig, meer dan de {advance} die doorgaan."
+    },
+    "no_tournament": {
+      "message": "Er wordt geen toernooi gespeeld."
+    },
+    "tournament_running": {
+      "message": "Er wordt al een toernooi gespeeld. Stop het voordat je een nieuw toernooi start."
+    },
+    "tournament_finished": {
+      "message": "Het toernooi is afgelopen. Stop het of start een nieuw toernooi."
+    },
+    "tournament_match_running": {
+      "message": "De toernooiwedstrijd {first} tegen {second} is nog bezig. Speel die eerst uit of stop het toernooi."
+    },
+    "tournament_no_match": {
+      "message": "Er is nog geen toernooiwedstrijd klaar voor dit bord. Die begint zodra een ander bord een uitslag heeft."
+    },
+    "board_in_tournament": {
+      "message": "{board} speelt al in een toernooi. Stop dat toernooi eerst."
+    },
+    "tournament_boards": {
+      "message": "Een toernooi speelt op hoogstens {max} borden tegelijk."
+    },
+    "unknown_board": {
+      "message": "{board} is geen bord van HomeDarts."
+    },
+    "no_dart": {
+      "message": "De huidige beurt heeft geen dart {dart}."
+    },
+    "bot_dart": {
+      "message": "De darts van de bot kun je niet corrigeren."
+    },
+    "manual_entry_off": {
+      "message": "Handmatige invoer staat uit. Zet eerst Oefenspel handmatige invoer aan."
+    },
+    "bot_turn": {
+      "message": "De bot staat aan het bord. Wacht op zijn beurt of beëindig die met Volgende speler."
+    },
+    "visit_full": {
+      "message": "De beurt heeft al drie darts. Geef de beurt door met Volgende speler."
+    },
+    "visit_not_x01": {
+      "message": "De score van een beurt kun je invoeren zolang er een X01-leg loopt; voer in andere spellen en bij de bull-off de darts in."
+    },
+    "visit_impossible": {
+      "message": "Geen beurt scoort {score} vanaf {remaining} met deze regels en darts. Controleer de score."
+    },
+    "checkout_impossible": {
+      "message": "Geen beurt gooit {remaining} uit met deze regels en darts."
+    },
+    "visit_at_double": {
+      "message": "De darts op een dubbel zijn hoogstens de {darts} darts van de beurt, en minstens één bij een uitgooi."
+    },
+    "visit_on_board": {
+      "message": "Het bord heeft darts van deze beurt. Corrigeer ze, of haal ze eruit voordat je de score van de beurt invoert."
+    },
+    "empty_visit": {
+      "message": "De beurt heeft geen darts om te beëindigen. In X01, de Cricket-spellen en de partyspellen geef je een beurt zonder darts door, maar niet in trainingsspellen, bij het bullen of terwijl bij Killer de nummers worden gekozen."
+    },
+    "undo_unavailable": {
+      "message": "Er is geen beurt om ongedaan te maken. Ongedaan maken neemt de laatste afgeronde beurt terug zolang er geen dart in het bord zit en het spel en de trainingssessie sindsdien niet zijn veranderd."
+    },
+    "invalid_bot_level": {
+      "message": "Het botniveau is 0 (geen bot) of een 3-dart-gemiddelde van 20 tot 120."
+    },
+    "bot_seat": {
+      "message": "Met de bot spelen maximaal drie spelers: de bot neemt de vierde plaats in."
+    },
+    "too_many_players": {
+      "message": "Dit spel neemt maximaal {count} spelers; partyspellen tot acht."
+    },
+    "invalid_segment": {
+      "message": "{segment} is geen vak van het bord. Voer S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS in."
+    },
+    "no_bed": {
+      "message": "Noem het vak met segment, of waar de dart zit met x en y."
+    },
+    "invalid_position": {
+      "message": "Geef de positie met zowel x als y, elk van -{limit} tot {limit}: 1 is de buitenrand van de dubbelring en y wijst naar de 20."
+    },
+    "bed_position": {
+      "message": "De opgegeven positie ligt in {found}, niet in {segment}."
+    },
+    "too_many_start_scores": {
+      "message": "De startscores bevatten {scores} waarden, maar er spelen maar {players} spelers. Geef hoogstens één startscore per speler op, in gooivolgorde."
+    },
+    "team_start_scores": {
+      "message": "Teams spelen vanaf de startscores van speler 1 en 2, één per team. Geef hoogstens twee startscores op."
+    },
+    "unwinnable_start": {
+      "message": "Een startscore van 3 is met double- of master-in en double- of master-out niet uit te gooien, tenzij beide master zijn: de enige darts die openen, D1 en T1, laten 1 over of eindigen op een triple. Kies een andere startscore, of andere in- en out-modi."
+    },
+    "export_limit": {
+      "message": "In het afgelopen uur zijn {count} exports geschreven, meer schrijft de integratie niet. Probeer het later opnieuw."
+    },
+    "unknown_game": {
+      "message": "Geen spel heet ‘{game}’. Noem een van de oefenspellen, zoals 501, Cricket of Around the Clock."
+    },
+    "voice_game_on": {
+      "message": "Game on: {game} met {players}."
+    },
+    "voice_game_on_alone": {
+      "message": "Game on: {game}."
+    },
+    "voice_and": {
+      "message": "en"
+    },
+    "voice_bot": {
+      "message": "de bot"
+    },
+    "not_their_turn": {
+      "message": "{name} is aan de beurt, niet {player}."
+    },
+    "visit_no_score": {
+      "message": "Geef de score van de beurt, of checkout voor een beurt die uitgooit wat er over is."
+    },
+    "checkout_score": {
+      "message": "Een checkout gooit wat er over is, {remaining}, niet {score}."
+    },
+    "voice_visit": {
+      "message": "{score} voor {name}, nog {left}."
+    },
+    "voice_bust": {
+      "message": "Geen score: {name} blijft op {left}."
+    },
+    "voice_leg": {
+      "message": "Game shot, en de leg, {name}!"
+    },
+    "voice_match": {
+      "message": "Game shot, en de wedstrijd, {name}!"
+    },
+    "voice_game_shot": {
+      "message": "Game shot!"
+    },
+    "voice_next": {
+      "message": "{name} is aan de beurt."
+    },
+    "voice_next_left": {
+      "message": "{name}, je hebt nog {left} nodig."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, nog {left}."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}: geen score!"
+    },
+    "voice_undone": {
+      "message": "Teruggenomen: {score} van {name}."
+    },
+    "voice_player": {
+      "message": "Speler {number}"
+    },
+    "voice_bed_single": {
+      "message": "Enkel {number}"
+    },
+    "voice_bed_double": {
+      "message": "Dubbel {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Mis"
+    },
+    "caller_require": {
+      "message": "{name}, je hebt nog {remaining} nodig"
+    },
+    "caller_setup": {
+      "message": "{name}, laat {leave} over"
+    },
+    "caller_setup_alone": {
+      "message": "Laat {leave} over"
+    },
+    "caller_limit_leg": {
+      "message": "Rondelimiet, en de leg, {name}!"
+    },
+    "caller_limit_leg_alone": {
+      "message": "Rondelimiet, en de leg!"
+    },
+    "caller_limit_match": {
+      "message": "Rondelimiet, en de wedstrijd, {name}!"
+    },
+    "caller_limit_match_alone": {
+      "message": "Rondelimiet, en de wedstrijd!"
+    },
+    "caller_bull_off_turn": {
+      "message": "{name}, gooi op de bull"
+    },
+    "caller_bull_off": {
+      "message": "{name} begint. Game on!"
+    },
+    "caller_bot": {
+      "message": "Bot"
+    },
+    "caller_maximum": {
+      "message": "Honderdtachtig!"
+    },
+    "caller_treble": {
+      "message": "Triple {number}"
+    },
+    "report_title": {
+      "message": "Je dartweek"
+    },
+    "report_darts": {
+      "message": "{darts} darts."
+    },
+    "report_darts_time": {
+      "message": "{darts} darts in {time} aan het bord."
+    },
+    "report_darts_sessions": {
+      "message": "{darts} darts, {sessions}."
+    },
+    "report_darts_time_sessions": {
+      "message": "{darts} darts in {time} aan het bord, {sessions}."
+    },
+    "report_minute": {
+      "message": "1 minuut"
+    },
+    "report_minutes": {
+      "message": "{count} minuten"
+    },
+    "report_session": {
+      "message": "1 sessie"
+    },
+    "report_sessions": {
+      "message": "{count} sessies"
+    },
+    "report_average": {
+      "message": "3-dart-gemiddelde {average}."
+    },
+    "report_average_change": {
+      "message": "3-dart-gemiddelde {average} ({change} ten opzichte van de week ervoor)."
+    },
+    "report_best_visit": {
+      "message": "Beste beurt {score}."
+    },
+    "report_best_visit_180": {
+      "message": "Beste beurt {score}, {count} × 180."
+    },
+    "report_checkout_rate": {
+      "message": "Uitgooipercentage {rate} %."
+    },
+    "report_streak_day": {
+      "message": "1 dag op rij."
+    },
+    "report_streak_days": {
+      "message": "{count} dagen op rij."
+    },
+    "report_new_best": {
+      "message": "1 nieuw persoonlijk record."
+    },
+    "report_new_bests": {
+      "message": "{count} nieuwe persoonlijke records."
+    }
+  },
+  "issues": {
+    "wrong_board": {
+      "title": "Adres van Autodarts-bord verwijst naar een ander bord",
+      "description": "Het bord op {address} heeft een andere bord-ID dan het bord van dit configuratie-item en blijft daarom offline. Open HomeDarts for Autodarts, kies **Opnieuw configureren** en selecteer het juiste bord."
+    },
+    "board_manager_1": {
+      "title": "Stap met het bord over op de nieuwe Autodarts Board Manager",
+      "description": "Op dit bord draait nog de klassieke Board Manager-app. Autodarts vervangt die door de headless Board Manager 2 en schakelt de oude uit zodra de meeste spelers zijn overgestapt. Installeer Board Manager 2 op de bord-pc; de integratie schakelt automatisch over en blijft lokaal werken."
+    },
+    "calibration_recommended": {
+      "title": "Kalibreer het Autodarts-bord",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Nu kalibreren",
+            "description": "Het bord heeft {rate} % van de laatste darts gecorrigeerd. Een nieuwe kalibratie brengt dat meestal omlaag.\n\nHaal eerst alle darts uit het bord. De kalibratie duurt een paar seconden."
+          }
+        },
+        "abort": {
+          "calibration_failed": "Het bord heeft de kalibratie niet geaccepteerd. Probeer het opnieuw of kalibreer via de bordstatuskaart.",
+          "board_unavailable": "Het bord is niet geladen. Controleer de verbinding en probeer het opnieuw."
+        }
+      }
+    },
+    "board_access_denied": {
+      "title": "Autodarts-bord weigert de toegang",
+      "description": "Het bord op {address} antwoordt met HTTP 401 of 403. Board Manager zelf vereist geen aanmelding, dus iets tussen Home Assistant en het bord blokkeert de verzoeken, bijvoorbeeld een reverse proxy, een firewall of een aanmelding vóór poort 3180. Zorg dat Home Assistant het bord kan bereiken; de melding verdwijnt dan vanzelf."
+    },
+    "unsupported_response": {
+      "title": "Autodarts-bord antwoordt in een onbekend formaat",
+      "description": "Het bord antwoordt op {reads} in een formaat dat deze versie van de integratie niet begrijpt, bijvoorbeeld na een update van Board Manager. Waarden uit deze opvragingen worden niet bijgewerkt. Werk de Autodarts-integratie bij; blijft de melding staan, meld het probleem dan samen met de diagnostische gegevens."
+    },
+    "board_moved": {
+      "title": "Autodarts-bord gevonden op een nieuw adres",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Nieuw adres gebruiken",
+            "description": "Een bord met de bord-ID van deze vermelding antwoordt op {new}, terwijl het op het ingestelde adres niet meer reageert.\n\nHet bord daar verbinden? Bevestig alleen als het jouw bord is: elk apparaat in je netwerk kan zich met een bord-ID melden. De integratie wordt opnieuw geladen; entiteiten, training en instellingen blijven behouden."
+          }
+        },
+        "abort": {
+          "board_unavailable": "Het bord reageert niet meer op het nieuwe adres. Wacht op de volgende melding, of open de integratie en kies **Opnieuw configureren**."
+        }
+      }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint niet bijgewerkt: {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Blueprint vervangen",
+            "description": "Het bestand `{path}` komt met geen enkele versie van deze blueprint overeen die HomeDarts kent: je hebt het gewijzigd of uit een nieuwere stand van de repository geïmporteerd. Daarom heeft de update van de integratie het gelaten zoals het is, terwijl de integratie de versie van {name} meebrengt die erbij hoort.\n\nJe bestand door die versie vervangen? Je wijzigingen in het bestand gaan verloren; de automatiseringen die van de blueprint zijn gemaakt, behouden hun instellingen en worden opnieuw geladen. Negeer deze melding om je bestand te houden."
+          }
+        },
+        "abort": {
+          "not_shipped": "Deze versie van de integratie brengt deze blueprint niet meer mee, dus je bestand blijft zoals het is.",
+          "write_failed": "Home Assistant kon het bestand niet schrijven. Controleer of er in de blueprintmap van je configuratie geschreven kan worden en probeer het opnieuw."
+        }
+      }
+    },
+    "takeover_references": {
+      "title": "Sommige automatiseringen, scripts of dashboards gebruiken nog de oude naam",
+      "description": "HomeDarts for Autodarts heeft je borden overgenomen. Deze gebruiken nog acties of kaarten van de integratie onder haar oude naam, Autodarts, die niet meer bestaan:\n\n{items}\n\nVervang in hun acties `autodarts.` door `homedarts.`, bijvoorbeeld `homedarts.start_game`, en in de typen van de kaarten `custom:autodarts` door `custom:homedarts`. Negeer deze reparatie daarna."
+    },
+    "takeover_restart": {
+      "title": "Start Home Assistant opnieuw om de overstap naar HomeDarts af te ronden",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Home Assistant opnieuw starten",
+            "description": "HomeDarts for Autodarts heeft je borden overgenomen en de bestanden van de integratie onder haar oude naam verwijderd. Een herstart laadt haar uit. Home Assistant nu opnieuw starten?"
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "start_game": {
+      "name": "Spel starten",
+      "description": "Start een oefenspel op het bord: X01, Cricket, een partyspel of een trainingsspel, desgewenst met spelers en wedstrijdformat.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        },
+        "game": {
+          "name": "Spel",
+          "description": "X01 van 101 tot 1001 punten, een Cricket-spel, een partyspel of een trainingsspel. Ook een naam zoals de spellijst hem toont, in elke taal van de integratie, werkt, zoals ‘Around the Clock’."
+        },
+        "players": {
+          "name": "Spelers",
+          "description": "Namen van één tot vier spelers, in gooivolgorde. Zonder namen blijft het aantal spelers ongewijzigd."
+        },
+        "legs": {
+          "name": "Legs per set",
+          "description": "Aantal legs dat je nodig hebt om een set te winnen."
+        },
+        "sets": {
+          "name": "Sets om te winnen",
+          "description": "Aantal sets dat je nodig hebt om de wedstrijd te winnen."
+        },
+        "in_mode": {
+          "name": "In-modus",
+          "description": "Hoe X01-legs beginnen: met elke dart (straight), met een dubbel of de bullseye (double), of met een dubbel, een triple of de bullseye (master)."
+        },
+        "out_mode": {
+          "name": "Out-modus",
+          "description": "Hoe X01-legs eindigen: op elke dart (straight), op een dubbel of de bullseye (double), of op een dubbel, een triple of de bullseye (master)."
+        },
+        "bull_mode": {
+          "name": "Bull-modus",
+          "description": "Wat de bull in X01 telt: 25 voor de buitenste bull en 50 voor de bullseye (25/50), of 50 voor beide (50/50). Alleen de bullseye telt als dubbel."
+        },
+        "max_rounds": {
+          "name": "Maximaal aantal rondes",
+          "description": "Rondes waarna de laagste score een X01-leg wint, 1 tot 50; bij gelijkspel gaat het ronde voor ronde verder. 0 speelt zonder limiet."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Vervangen door de out-modus: aan is double, uit is straight. X01-legs eindigen op een dubbel of de bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Vervangen door de in-modus: aan is double, uit is straight. X01-legs beginnen met een dubbel of de bullseye."
+        },
+        "bull_off": {
+          "name": "Bullen",
+          "description": "De spelers gooien eerst op de bull; wie het dichtst bij zit, begint de wedstrijd."
+        },
+        "bull_off_distance": {
+          "name": "Bullen: gemeten afstand beslist",
+          "description": "Bij twee darts in hetzelfde bullvak beslist de door het bord gemeten afstand, in plaats van dat er opnieuw wordt gegooid."
+        },
+        "teams": {
+          "name": "Teams",
+          "description": "Vier spelers spelen X01 of een Cricket-spel als twee teams: spelers 1 en 3 tegen spelers 2 en 4."
+        },
+        "three_in_a_bed": {
+          "name": "Three in a bed",
+          "description": "Wild Mouse: drie darts van een beurt in hetzelfde vak sluiten een eigen doel, zoals de regels het willen. Uit laat het weg."
+        },
+        "start_scores": {
+          "name": "Startscores",
+          "description": "X01-startscores van de spelers in gooivolgorde, voor een handicap, bijvoorbeeld 501 en 301; ook de plaats van de bot na de spelers heeft er een. Bij 0 of een ontbrekende score geldt de startscore van het spel. Teams spelen vanaf de startscores van speler 1 en 2."
+        },
+        "holes": {
+          "name": "Golf-holes",
+          "description": "Aantal holes van een ronde Golf: 9 of 18."
+        },
+        "rounds": {
+          "name": "Count-Up-rondes",
+          "description": "Aantal rondes Count-Up, 1 tot 20."
+        },
+        "halve_on_miss": {
+          "name": "Bermuda halveren",
+          "description": "Bermuda: een beurt zonder treffer halveert de punten, zoals op play.autodarts.io. Uit houdt de punten."
+        },
+        "order": {
+          "name": "Round the World-volgorde",
+          "description": "De volgorde van de getallen in Round the World vóór de bull: 1 tot 20, 20 tot 1 of willekeurig."
+        },
+        "target_score": {
+          "name": "Gotcha-doelscore",
+          "description": "De score waartot Gotcha telt, 101 tot 1001; de out-modus bepaalt hoe het eindigt."
+        },
+        "bot_level": {
+          "name": "Botniveau",
+          "description": "Speel tegen de bot in X01 en de Cricket-spellen: het 3-dart-gemiddelde waarop hij speelt, 20 tot 120; bij 0 speel je zonder bot. De bot neemt de plaats na de spelers in."
+        }
+      }
+    },
+    "delete_player": {
+      "name": "Spelersprofiel verwijderen",
+      "description": "Wist de statistieken, persoonlijke records en onderlinge duels van een speler. De naam verdwijnt ook uit de persoonlijke records van het bord en uit de spelersnamen van het oefenspel; de wedstrijdgeschiedenis behoudt hem. Een speler van het lopende toernooi kun je pas verwijderen als het toernooi is gestopt. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Alleen nodig bij meer dan één bord."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "De spelersnaam; hoofdletters en kleine letters maken niet uit."
+        }
+      }
+    },
+    "export": {
+      "name": "Trainingsgegevens exporteren",
+      "description": "Schrijft trainingssessies, oefenwedstrijden of spelersprofielen als CSV- of JSON-bestand, standaard naar homedarts/exports in de mediamap, en geeft het pad en een downloadlink terug. Exports bevatten spelersnamen. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Alleen nodig bij meer dan één bord."
+        },
+        "format": {
+          "name": "Formaat",
+          "description": "CSV voor spreadsheets, of JSON. CSV met alles is een ZIP-bestand met één CSV-bestand per tabel."
+        },
+        "what": {
+          "name": "Inhoud",
+          "description": "Trainingssessies en oefenwedstrijden van de afgelopen 365 dagen, de spelersprofielen of alles."
+        },
+        "folder": {
+          "name": "Map",
+          "description": "Optioneel. Een map ten opzichte van de configuratiemap, of een absoluut pad, waarin Home Assistant mag schrijven: www, een mediamap of een map uit allowlist_external_dirs. Bestanden in www zijn zonder aanmelding bereikbaar via /local/. Zonder map: homedarts/exports in de mediamap."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Highlightfoto opslaan",
+      "description": "Slaat het beeld van een camera op als foto, genoemd naar het moment, de speler en wat de foto toont, standaard in de highlightgalerij, homedarts/highlights in de mediamap, en geeft het bestand en het adres terug. De actie mislukt en geeft niets terug als de camera uitgeschakeld of niet beschikbaar is, geen beeld geeft of de map niet is toegestaan. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "camera": {
+          "name": "Camera",
+          "description": "De camera die de foto maakt, bijvoorbeeld een camera van het bord. De camera's van een bord zijn uitgeschakeld tot je ze inschakelt."
+        },
+        "folder": {
+          "name": "Map",
+          "description": "Optioneel. Een map ten opzichte van de configuratiemap, of een absoluut pad, waarin Home Assistant mag schrijven: www, een mediamap of een map uit allowlist_external_dirs. Zonder map: de highlightgalerij, homedarts/highlights in de mediamap."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "Optioneel. De speler op de foto, voor de naam en de titel in de galerij."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Optioneel. Wat de foto toont, aan het eind van de naam, zoals 180 of checkout-121. De galerij toont een getal als de score."
+        },
+        "clip_camera": {
+          "name": "Clipcamera",
+          "description": "Optioneel. Een camera met een videostream die het moment ook als clip naast de foto opneemt, onder dezelfde naam met .mp4, waar de galerij hem afspeelt. De opname loopt op de achtergrond, dus het antwoord noemt de clip en het adres meteen; het bestand wordt geschreven als de opname klaar is. Een camera zonder stream, of een die al opneemt, laat de foto zonder clip."
+        },
+        "clip_lookback": {
+          "name": "Seconden ervoor",
+          "description": "Optioneel. Hoeveel van de clip vóór de foto ligt, uit wat de lopende stream van de camera bewaart. Standaard 5."
+        },
+        "clip_duration": {
+          "name": "Seconden erna",
+          "description": "Optioneel. Hoeveel van de clip na de foto komt. Standaard 8."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Geluid uit een stempakket",
+      "description": "Zoekt in een stempakket in homedarts/voices van de mediamap het geluid van wat de caller roept, voor een mediaspeler: de eerste van de sleutels die het pakket heeft, zoals 180, busted of yr_40, en daarvan een willekeurig bestand. Het antwoord is leeg als het pakket er geen van heeft, zodat de stem het in plaats daarvan uitspreekt. De caller-blueprints gebruiken het.",
+      "fields": {
+        "pack": {
+          "name": "Stempakket",
+          "description": "De map van het pakket in homedarts/voices van de mediamap, bijvoorbeeld russ-bray."
+        },
+        "keys": {
+          "name": "Sleutels",
+          "description": "De sleutels van het geluid; de eerste die het pakket heeft telt, bijvoorbeeld yr_40 en you_require. Het zijn de bestandsnamen van de stempakketten van darts-caller: 0 tot 180, busted, gameshot, matchshot, yr_2 tot yr_170, s1 tot t20, bull, bullseye, outside of de naam van een speler."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Stempakket maken",
+      "description": "Neemt een stempakket voor de caller op met een tekst-naar-spraakengine, zoals Piper voor een stem die thuis blijft: elke score van 0 tot 180, geen score, de game shot en de wedstrijd, wat een speler nog nodig heeft en elke dart, met de bestandsnamen van de stempakketten van darts-caller in homedarts/voices van de mediamap. Het duurt een paar minuten, één pakket tegelijk, en vervangt een pakket dat de actie eerder maakte, nooit een dat je daar zelf hebt neergezet. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "tts_entity": {
+          "name": "Tekst-naar-spraakengine",
+          "description": "De engine die spreekt, bijvoorbeeld Piper of Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Taal",
+          "description": "De taal van de stem, bijvoorbeeld nl-NL of en-GB. De teksten zijn in die taal, in het Engels voor een taal die de integratie niet spreekt."
+        },
+        "pack": {
+          "name": "Stempakket",
+          "description": "De naam van het pakket, een map in homedarts/voices van de mediamap, bijvoorbeeld piper-nl."
+        },
+        "voice": {
+          "name": "Stem",
+          "description": "Optioneel. Een stem van de engine, bijvoorbeeld nl_NL-mls-medium voor Piper. Zonder stem spreekt de engine met zijn eigen stem."
+        }
+      }
+    },
+    "link_player": {
+      "name": "Speler aan persoon koppelen",
+      "description": "Koppelt een speler aan een persoon in Home Assistant: de foto van de persoon verschijnt op het scorebord, de spelerskaart en het scherm Nieuw spel, dat bovendien de spelers die thuis zijn bovenaan zet. Een persoon kan maar aan één speler gekoppeld zijn; opnieuw koppelen verplaatst de koppeling. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Alleen nodig bij meer dan één bord."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De spelersnaam; hoofdletters en kleine letters maken niet uit. Een speler zonder profiel krijgt er een."
+        },
+        "person": {
+          "name": "Persoon",
+          "description": "De persoon in Home Assistant die deze speler is."
+        }
+      }
+    },
+    "unlink_player": {
+      "name": "Speler ontkoppelen",
+      "description": "Verwijdert de koppeling tussen een speler en een persoon. De statistieken van de speler blijven behouden. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Alleen nodig bij meer dan één bord."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De spelersnaam; hoofdletters en kleine letters maken niet uit."
+        }
+      }
+    },
+    "start_tournament": {
+      "name": "Toernooi starten",
+      "description": "Maakt de loting voor een toernooi met drie tot 32 spelers en start de eerste wedstrijd: iedereen tegen iedereen, knock-out, dubbele knock-out of groepen met een knock-out, met wedstrijden in X01 of Cricket. Een lopend toernooi moet eerst worden gestopt.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        },
+        "boards": {
+          "name": "Borden",
+          "description": "Meer borden die tegelijk wedstrijden van het toernooi spelen, via hun apparaat of item: elk bord speelt een eigen wedstrijd, en het bord van de actie houdt het toernooi bij. Tot acht borden."
+        },
+        "players": {
+          "name": "Spelers",
+          "description": "Namen van de spelers, in de volgorde van de loting: drie tot acht bij iedereen tegen iedereen, minstens zes bij groepen, tot 32 bij elke andere vorm. Zonder namen spelen de spelers uit Toernooispelers."
+        },
+        "start_scores": {
+          "name": "Startscores",
+          "description": "X01-startscores van de spelers in de volgorde van de namen, voor een handicap, bijvoorbeeld 501, 501 en 301. Bij 0 of een ontbrekende score geldt de startscore van het spel."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Iedereen tegen iedereen: elke speler speelt één keer tegen elke andere speler. Knock-out: de winnaars gaan door tot en met de finale. Dubbele knock-out: wie voor de tweede keer verliest, ligt eruit. Groepen en knock-out: in elke groep speelt iedereen tegen iedereen, en de besten van elke groep gaan door naar de knock-out."
+        },
+        "game": {
+          "name": "Spel",
+          "description": "X01 van 101 tot 1001 punten, Cricket, Cut-Throat Cricket of Tactics."
+        },
+        "legs": {
+          "name": "Legs per set",
+          "description": "Aantal legs dat je in elke wedstrijd nodig hebt om een set te winnen. Zonder waarde gelden de legs per set van het oefenspel."
+        },
+        "sets": {
+          "name": "Sets om te winnen",
+          "description": "Aantal sets dat je nodig hebt om een wedstrijd te winnen. Zonder waarde gelden de sets van het oefenspel."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "X01-legs eindigen op een dubbel of de bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "X01-legs beginnen met een dubbel of de bullseye."
+        },
+        "bull_off": {
+          "name": "Bullen",
+          "description": "Bij elke wedstrijd wordt eerst gebuld om te bepalen wie begint."
+        },
+        "bull_off_distance": {
+          "name": "Bullen: gemeten afstand beslist",
+          "description": "Bij twee darts in hetzelfde bullvak beslist de door het bord gemeten afstand, in plaats van dat er opnieuw wordt gegooid."
+        },
+        "third_place": {
+          "name": "Troostfinale",
+          "description": "Bij een knock-out met vier of meer spelers, ook na de groepen, spelen de verliezers van de halve finales om de derde plaats."
+        },
+        "groups": {
+          "name": "Groepen",
+          "description": "Groepen en knock-out: het aantal groepen, 2 tot 8, van elk drie tot acht spelers; 0 maakt groepen van ongeveer vier spelers. Zonder dit geldt Toernooigroepen."
+        },
+        "advance": {
+          "name": "Door per groep",
+          "description": "Groepen en knock-out: hoeveel spelers van elke groep doorgaan naar de knock-out, 1 tot 4 en minder dan de groep telt. Zonder dit geldt Toernooi door per groep."
+        },
+        "random_draw": {
+          "name": "Willekeurige loting",
+          "description": "Bepaalt de volgorde van de spelers door loting, in plaats van de volgorde van de namen aan te houden."
+        },
+        "seed": {
+          "name": "Startwaarde",
+          "description": "Een getal voor een willekeurige loting: hetzelfde getal levert dezelfde volgorde op."
+        },
+        "pause": {
+          "name": "Pauze",
+          "description": "Seconden tussen twee wedstrijden, na de samenvatting; bij 0 wordt gewacht op Volgende toernooiwedstrijd."
+        },
+        "summary": {
+          "name": "Samenvatting",
+          "description": "Seconden dat de samenvatting van een wedstrijd te zien is voordat de pauze begint."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Toernooi stoppen",
+      "description": "Beëindigt het toernooi. De lopende wedstrijd gaat verder als oefenwedstrijd.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Volgende toernooiwedstrijd",
+      "description": "Start de volgende wedstrijd van het toernooi zonder op het einde van de pauze te wachten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Dart corrigeren",
+      "description": "Zet een dart van de huidige beurt in een ander vak voor het oefenspel en de trainingssessie, alsof het bord hem daar had gedetecteerd. Het bord houdt zijn eigen detectie. De positie die het bord zag vervalt: met x en y zit de dart daar, anders heeft hij geen positie en blijft hij buiten de dartposities.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        },
+        "dart": {
+          "name": "Dart",
+          "description": "De dart van de huidige beurt: 1, 2 of 3."
+        },
+        "segment": {
+          "name": "Vak",
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS. Nodig zonder x en y; met x en y moet het het vak op die plek zijn."
+        },
+        "x": {
+          "name": "Positie x",
+          "description": "Waar de dart zit, van links naar rechts: 0 is het midden, 1 de buitenrand van de dubbelring. Samen met y geeft dit het vak."
+        },
+        "y": {
+          "name": "Positie y",
+          "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Dart invoeren",
+      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer. Met x en y wordt de dart op die plek opgeslagen. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        },
+        "segment": {
+          "name": "Vak",
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS. Nodig zonder x en y; met x en y moet het het vak op die plek zijn."
+        },
+        "x": {
+          "name": "Positie x",
+          "description": "Waar de dart zit, van links naar rechts: 0 is het midden, 1 de buitenrand van de dubbelring. Samen met y geeft dit het vak."
+        },
+        "y": {
+          "name": "Positie y",
+          "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De naam van de speler voor wie de dart is, zoals een spraakassistent hem hoort. De actie weigert de dart zolang een andere speler aan het bord staat."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Beurtscore invoeren",
+      "description": "Voert een X01-beurt in met zijn score, zoals 140, in plaats van drie darts, en geeft de beurt door. Darts die al met de hand in de beurt zijn ingevoerd, maken plaats. Vereist Oefenspel handmatige invoer; de vakken blijven onbekend, dus voor de statistieken telt alleen de score. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        },
+        "score": {
+          "name": "Score",
+          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit, of is een bust waar geen beurt het kan uitgooien; meer is een bust, net als 1 over laten bij double out. Nodig zonder checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "De beurt gooit uit wat de speler over heeft, in plaats van een score."
+        },
+        "darts": {
+          "name": "Darts",
+          "description": "De darts van de beurt, 1 tot 3; minder dan 3 alleen bij een uitgooi. Standaard: 3."
+        },
+        "darts_at_double": {
+          "name": "Darts op een dubbel",
+          "description": "Hoeveel ervan op een dubbel gegooid zijn, voor het uitgooipercentage. Standaard: 1 bij een uitgooi, anders 0."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De naam van de speler voor wie de beurt is, zoals een spraakassistent hem hoort. De actie weigert de beurt zolang een andere speler aan het bord staat."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Volgende speler",
+      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01, de Cricket-spellen en de partyspellen een beurt over; in partyspellen telt dat als drie missers. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Beurt ongedaan maken",
+      "description": "Neemt de laatste afgeronde beurt terug: het spel keert terug naar de stand van daarvoor, en de darts van die beurt worden weer de huidige beurt, zodat je ze kunt corrigeren en de beurt met Volgende speler kunt beëindigen. De beurten van de bot daarna worden ook ongedaan gemaakt. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    }
+  },
+  "selector": {
+    "game": {
+      "options": {
+        "301": "301",
+        "501": "501",
+        "701": "701",
+        "around_the_clock": "Around the Clock",
+        "doubles": "Dubbeltraining",
+        "checkout": "Uitgooitraining",
+        "bobs_27": "Bob's 27",
+        "cricket": "Cricket",
+        "101": "101",
+        "901": "901",
+        "1001": "1001",
+        "shanghai": "Shanghai",
+        "halve_it": "Halve-It",
+        "killer": "Killer",
+        "cut_throat": "Cut-Throat Cricket",
+        "tactics": "Tactics",
+        "wild_mouse": "Wild Mouse",
+        "random_cricket": "Random Cricket",
+        "hidden_cricket": "Hidden Cricket",
+        "golf": "Golf",
+        "baseball": "Baseball",
+        "count_up": "Count-Up",
+        "bermuda": "Bermuda",
+        "round_the_world": "Round the World",
+        "gotcha": "Gotcha",
+        "checkout_121": "121 checkout",
+        "catch_40": "Catch 40",
+        "jdc_challenge": "JDC Challenge",
+        "singles": "Singletraining"
+      }
+    },
+    "world_order": {
+      "options": {
+        "ascending": "1 tot 20, bull",
+        "descending": "20 tot 1, bull",
+        "random": "Willekeurig, bull"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
+      }
+    },
+    "export_format": {
+      "options": {
+        "csv": "CSV",
+        "json": "JSON"
+      }
+    },
+    "export_what": {
+      "options": {
+        "sessions": "Trainingssessies",
+        "matches": "Oefenwedstrijden",
+        "profiles": "Spelersprofielen",
+        "all": "Alles"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Iedereen tegen iedereen",
+        "knockout": "Knock-out",
+        "double_knockout": "Dubbele knock-out",
+        "groups_knockout": "Groepen en knock-out"
+      }
+    }
+  }
+}

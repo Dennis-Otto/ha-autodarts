@@ -8,24 +8,22 @@ description: "Spiel online auf play.autodarts.io und lass Home Assistant mitfeie
 
 Spiel online auf play.autodarts.io und lass Home Assistant mitfeiern: Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner kommen als Board-Ereignisse an, für die Lichtshow, einen Caller oder eine Benachrichtigung, wenn dein Turnier-Match bereit ist.
 
-**Auf dieser Seite:** [So funktioniert es](#so-funktioniert-es) · [Brücke einrichten](#brücke-einrichten) · [Trigger und Ereignisse](#trigger-und-ereignisse) · [Die Cloud-Verknüpfung](#die-cloud-verknüpfung) · [Sicherheit](#sicherheit) · [Grenzen](#grenzen)
+**Auf dieser Seite:** [So funktioniert es](#so-funktioniert-es) · [Brücke einrichten](#brücke-einrichten) · [Trigger und Ereignisse](#trigger-und-ereignisse) · [Sicherheit](#sicherheit) · [Grenzen](#grenzen)
 
 ## So funktioniert es
 
-Die Integration sieht die Darts auf deinem Board auch in einem Online-Match auf play.autodarts.io: `dart_detected`, `visit_thrown` und die Entnahme kommen wie gewohnt. Das Spiel selbst sieht sie nicht: Überwerfen, ein gewonnenes Leg oder Match und die Darts deiner Gegner passieren im Browser. Autodarts teilt sie über seine Cloud, die eine Integration von Dritten nur mit einer Client-ID von Autodarts erreicht: Die [Cloud-Verknüpfung](#die-cloud-verknüpfung) ist dafür bereit.
+Die Integration sieht die Darts auf deinem Board auch in einem Online-Match auf play.autodarts.io: `dart_detected`, `visit_thrown` und die Entnahme kommen wie gewohnt. Das Spiel selbst sieht sie nicht: Überwerfen, ein gewonnenes Leg oder Match und die Darts deiner Gegner passieren im Browser. <a id="die-cloud-verknüpfung"></a>Autodarts hält sie in seiner Cloud und vergibt keine Client-IDs an Integrationen von Dritten, deshalb gibt es keine Cloud-Verknüpfung ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 Die optionale **Online-Brücke** bringt diese Momente mit der Browser-Erweiterung [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) nach Home Assistant. Deren WLED-Funktion ruft für jeden Moment des Spiels eine Adresse deiner Wahl auf. Die Brücke bietet dafür eine geheime Adresse von Home Assistant an und macht aus jedem Aufruf ein [Board-Ereignis](entities.de.md#board-ereignisse), dessen Typ mit `online_` beginnt und dessen `source` `online` ist. Standardmäßig ist sie aus.
 
-Sobald Autodarts die Client-ID der Integration ausgegeben hat, bringt die **Cloud-Verknüpfung** dieselben Momente ohne Browser: Die Integration liest den Stand des Matches aus der Autodarts-Cloud und meldet das Neue als dieselben Board-Ereignisse, mit der `source` `cloud`. Die Brücke bleibt dann für alle, die ihr Autodarts-Konto nicht verknüpfen.
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/online-moments-dark.png">
-  <img src="images/de/online-moments-light.png" alt="Zwei Wege für die Momente eines Online-Matches: Ein Match auf play.autodarts.io erreicht Home Assistant auf einem von zwei Wegen. Mit der Cloud-Verknüpfung, sobald Autodarts ihren Client ausgibt, liest die Integration den Stand des Matches alle 5 Sekunden aus der Autodarts-Cloud und macht aus dem Neuen die Trigger von Tools for Autodarts. Mit der Online-Brücke ruft Tools for Autodarts im Browser einen geheimen Webhook von Home Assistant auf. Beides wird zu denselben Board-Ereignissen wie online_busted und online_game_shot, für die Lichtshow und deine Automationen. Solange die Brücke an ist, meldet sie allein die Momente." width="560">
+  <img src="images/de/online-moments-light.png" alt="Die Momente eines Online-Matches: Ein Match auf play.autodarts.io zählt der Browser. Für jeden seiner Momente ruft Tools for Autodarts im Browser einen geheimen Webhook von Home Assistant auf, und die Online-Brücke macht aus dem Trigger des Aufrufs ein Board-Ereignis wie online_busted und online_game_shot, für die Lichtshow und deine Automationen." width="560">
 </picture>
 
 ## Brücke einrichten
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, dort **Konfigurieren** (das Zahnrad) deines Boards, schalte **Online-Matches von Tools for Autodarts empfangen** ein und sende ab. Diese Optionen haben nur Einträge mit lokalem Board.
+1. Öffne **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts**, dort **Konfigurieren** (das Zahnrad) deines Boards, schalte **Online-Matches von Tools for Autodarts empfangen** ein und sende ab. Diese Optionen haben nur Einträge mit lokalem Board.
 2. Der nächste Schritt zeigt die geheime Adresse und fertige Zeilen für Tools for Autodarts. Kopiere die Zeilen und sende ab. Ab jetzt nimmt Home Assistant Aufrufe unter der Adresse an. Öffne die Optionen wieder, wann immer du die Adresse brauchst.
 3. Öffne im Browser am Board die Einstellungen von Tools for Autodarts, schalte **WLED** ein, wähle **Import CSV**, füge die Zeilen ein und speichere. Jede Zeile ist ein Effekt vom Typ **URL** für einen Trigger; lösche die, die du nicht brauchst.
 4. Prüfe, ob die Momente ankommen: Öffne die Adresse mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz, oder spiele ein Match. Der Sensor **Letztes Ereignis der Online-Brücke** auf der Geräteseite unter *Diagnose* zeigt, wann der letzte Moment ankam, und seinen Trigger.
@@ -74,27 +72,6 @@ actions:
       message: Dein Turniermatch ist bereit. Melde dich bei Autodarts bereit.
 mode: single
 ```
-
-## Die Cloud-Verknüpfung
-
-Die Cloud-Verknüpfung gibt es noch nicht: Sie wartet auf die Client-ID, die Autodarts der Integration ausgibt und die beantragt ist ([Roadmap](roadmap.de.md#als-nächstes), [Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch). Alles andere ist bereit, und sobald sie kommt, verknüpft die Einrichtung dein Autodarts-Konto mit einem kurzen Code, den du auf einem beliebigen Gerät eingibst. Während eines Matches liest die Integration den Stand des Matches alle 5 Sekunden und meldet, was seit dem letzten Lesen neu ist, als die Trigger oben. So funktionieren die Lichtshow und deine Automationen ohne die Browser-Erweiterung:
-
-| Im Match | Trigger | Board-Ereignis |
-| --- | --- | --- |
-| Eine neue Aufnahme eines Spielers an deinem Board | `gameon` | `online_game_on` |
-| Jeder Dart der Aufnahme | `t20`, `s25`, `bull`, `m17`, `miss` … | `online_dart` |
-| Der dritte Dart einer Aufnahme, die weder überwirft noch gewinnt | ihre Punkte, etwa `140` | `online_visit` |
-| Überworfen | `busted` | `online_busted` |
-| Ein gewonnenes Leg, mit dem Siegerdart | `gameshot+d16` | `online_game_shot` |
-| Ein gewonnenes Match, mit dem Siegerdart | `matchshot+bull` | `online_match_shot` |
-| Das Ausbullen beginnt | `bulloff` | `online_bull_off` |
-| Dein Board verlässt das Match | `idle` | `online_match_left` |
-
-- **Dieselben Ereignisse.** Jedes Ereignis hat die Details seines Triggers, `name` mit dem Spieler, so wie deine [Profile](entities.de.md#spielerprofile) den Namen schreiben, und `source` `cloud`. Eine Automation, die auf `online_busted` reagiert, funktioniert mit der Brücke und mit der Cloud-Verknüpfung gleichermaßen.
-- **Nur dein Board.** Momente von Spielern an einem anderen Board, deinen Gegnern in einem Online-Match, werden übersprungen, wie bei der Brücke, wenn Tools for Autodarts deine Board-ID kennt. Der Bot und Spieler ohne eigenes Board werfen an deinem.
-- **Die Brücke zuerst.** Solange die Brücke an ist, meldet sie allein die Momente: Sie ist sofort da, und beide zusammen würden jeden Moment doppelt melden. Schalte sie aus, damit die Cloud-Verknüpfung übernimmt.
-- **Ohne Board Manager in deinem Netzwerk.** Ein Board, das Home Assistant nur über die Cloud erreicht, etwa Lens, bekommt die Entität **Ereignisse** mit diesen Ereignissen, für die Lichtshow und deine Automationen.
-- **Alle 5 Sekunden.** Ein Moment, der kürzer dauert als ein Lesen, etwa eine Aufnahme, die binnen Sekunden entnommen wird, kann fehlen und wird nie nachgeholt. Ein Match, das schon vor dem Start von Home Assistant lief, zählt ab dem nächsten Lesen. Ohne Match schaut die Integration nur einmal pro Minute nach dem Board, deshalb kann das erste Lesen eines neuen Matches bis zu einer Minute nach seinem Start kommen, und das Ausbullen und die ersten Aufnahmen können fehlen. `tournament_ready` kommt nur von der Brücke, weil der Stand eines Matches es nicht zeigt.
 
 ## Sicherheit
 

@@ -41,7 +41,7 @@ const board = (states = {}, options = {}) =>
     ...options,
   });
 const actions = (hass) =>
-  hass.calls.filter(([domain]) => domain === "autodarts").map(([, service, data]) => [service, data]);
+  hass.calls.filter(([domain]) => domain === "homedarts").map(([, service, data]) => [service, data]);
 const tap = (card, selector) => $(card, selector).click();
 const type = (card, digits) => {
   for (const digit of digits) tap(card, `.pad-score [data-pad="digit"][data-value="${digit}"]`);
@@ -201,7 +201,7 @@ test("a score asks for the darts of a checkout and the darts at a double where t
 
 test("the scoreboard's keypad takes the score of a visit", () => {
   const hass = board();
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.deepEqual(
     $$(card, ".pad .segmented button").map((button) => button.textContent),
     ["Keys", "Board", "Score"]
@@ -248,7 +248,7 @@ test("the scoreboard's keypad takes the score of a visit", () => {
 
 test("a checkout asks for its darts and the darts at a double, and Cancel goes back to the score", () => {
   const hass = board(practice(100));
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   tap(card, '.pad [data-pad="score"]');
   type(card, "100");
   assert.equal(text(card, ".score-line .muted"), "Checkout");
@@ -293,7 +293,7 @@ const focused = (card) => card.shadowRoot.activeElement?.dataset.focus ?? null;
 
 test("a keyboard types the score where the focus is, and keeps typing after each score", () => {
   const hass = board();
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   // The keys view takes no digits.
   $(card, '.pad [data-value="S20"]').focus();
   assert.equal(press(card, "6"), false);
@@ -337,7 +337,7 @@ test("a keyboard types the score where the focus is, and keeps typing after each
 
 test("during the question after a score, a digit only answers it", () => {
   const hass = board(practice(4));
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   $(card, '.pad [data-pad="score"]').focus();
   tap(card, '.pad [data-pad="score"]');
   press(card, "4");
@@ -382,7 +382,7 @@ test("the score view takes the focus after a mouse, and not after a finger that 
     ["mouse", true],
     ["touch", false],
   ]) {
-    const card = mount("autodarts-scoreboard-card", board());
+    const card = mount("homedarts-scoreboard-card", board());
     const button = $(card, '.pad [data-pad="score"]');
     // Safari gives a button that a mouse clicks no focus; the pad takes it all the same.
     button.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType }));
@@ -393,7 +393,7 @@ test("the score view takes the focus after a mouse, and not after a finger that 
 
 test("a score no visit makes keeps OK and Enter off, and any bust goes in", () => {
   const hass = board(practice(32));
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   const key = (name) => press(card, name);
   tap(card, '.pad [data-pad="score"]');
   $(card, ".pad").focus();
@@ -419,7 +419,7 @@ test("a score no visit makes keeps OK and Enter off, and any bust goes in", () =
 
 test("the score view leaves with an X01 leg, waits for the bot and speaks German", () => {
   const hass = board();
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   tap(card, '.pad [data-pad="score"]');
   type(card, "1");
   // In Cricket, the keys come back, and no score goes in.
@@ -437,7 +437,7 @@ test("the score view leaves with an X01 leg, waits for the bot and speaks German
   card.hass = update(hass, practice(501, { player: 2, bot: { player: 2, level: 60 }, scores: [{ player: 2, remaining: 501, bot: true }] }));
   assert.ok($(card, ".pad-score"));
   assert.ok($$(card, ".pad-score button").every((button) => button.disabled));
-  const german = mount("autodarts-scoreboard-card", withLanguage(board(), "de"));
+  const german = mount("homedarts-scoreboard-card", withLanguage(board(), "de"));
   tap(german, '.pad [data-pad="score"]');
   assert.equal(text(german, ".pad .section-label"), "Punkte der Aufnahme");
   assert.equal(text(german, '[data-pad="enter"]'), "OK");
@@ -450,7 +450,7 @@ test("the score view leaves with an X01 leg, waits for the bot and speaks German
 
 test("the live card's keypad takes the score of a visit too", () => {
   const hass = board(practice(40));
-  const card = mount("autodarts-card", hass);
+  const card = mount("homedarts-card", hass);
   tap(card, '.pad [data-pad="score"]');
   type(card, "40");
   tap(card, '[data-pad="enter"]');
@@ -459,13 +459,13 @@ test("the live card's keypad takes the score of a visit too", () => {
     ["enter_visit", { config_entry_id: ENTRY, score: 40, checkout: true, darts: 1, darts_at_double: 1 }],
   ]);
   // A board without a config entry sends the action without one.
-  const alone = mount("autodarts-card", makeHass({ states: { "sensor.local_status": "manual", ...practice(501), ...visit() } }));
+  const alone = mount("homedarts-card", makeHass({ states: { "sensor.local_status": "manual", ...practice(501), ...visit() } }));
   tap(alone, '.pad [data-pad="score"]');
   type(alone, "26");
   tap(alone, '[data-pad="enter"]');
-  assert.deepEqual(alone._hass.calls.at(-1), ["autodarts", "enter_visit", { score: 26 }]);
+  assert.deepEqual(alone._hass.calls.at(-1), ["homedarts", "enter_visit", { score: 26 }]);
   // With Autodarts and the keypad off, there is no score view.
-  assert.equal($(mount("autodarts-card", makeHass({ states: { ...READY, ...practice(501), ...visit() } })), ".pad-score"), null);
+  assert.equal($(mount("homedarts-card", makeHass({ states: { ...READY, ...practice(501), ...visit() } })), ".pad-score"), null);
 });
 
 test("the darts of a visit entered as its score show their points, light no bed and leave the last visit its score", () => {
@@ -484,7 +484,7 @@ test("the darts of a visit entered as its score show their points, light no bed 
       },
     },
   });
-  const card = mount("autodarts-card", hass);
+  const card = mount("homedarts-card", hass);
   assert.deepEqual(
     $$(card, ".slot .segment").map((segment) => segment.textContent),
     ["60", "60", "20"]
@@ -495,7 +495,7 @@ test("the darts of a visit entered as its score show their points, light no bed 
     $$(card, ".recent-visit").map((item) => item.title),
     ["140", "T20 · MISS · MISS = 60"]
   );
-  const scoreboard = mount("autodarts-scoreboard-card", hass);
+  const scoreboard = mount("homedarts-scoreboard-card", hass);
   assert.deepEqual(
     $$(scoreboard, ".visit .dart .segment").map((segment) => segment.textContent),
     ["60", "60", "20"]

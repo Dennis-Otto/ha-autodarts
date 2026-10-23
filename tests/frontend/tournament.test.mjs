@@ -540,7 +540,7 @@ const OPENING = tournament(
 function names(hass, list) {
   list.forEach((name, index) => {
     const id = `text.dartboard_practice_player_${index + 1}`;
-    hass.entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: "practice_player" };
+    hass.entities[id] = { entity_id: id, platform: "homedarts", device_id: DEVICE, translation_key: "practice_player" };
     hass.states[id] = { entity_id: id, state: name, attributes: {} };
   });
   return hass;
@@ -553,7 +553,7 @@ const setup = (states = {}, config = {}, options = {}) => {
     state: "home",
     attributes: { entity_picture: "/api/image/serve/alex/512x512" },
   };
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 const clock = (context) => context.mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: NOW });
 const shown = (card) => Boolean($(card, ".tournament"));
@@ -818,7 +818,7 @@ const lobbyTap = (card, action, value) =>
   $(card, `[data-lobby="${action}"]${value === undefined ? "" : `[data-value="${value}"]`}`).click();
 const lobbyPlayers = (card) => $$(card, ".lobby-player .who").map((name) => name.textContent);
 const options = (card) => $$(card, ".option").map((button) => [button.dataset.value, button.getAttribute("aria-pressed")]);
-const started = (hass) => hass.calls.filter(([domain]) => domain === "autodarts");
+const started = (hass) => hass.calls.filter(([domain]) => domain === "homedarts");
 
 test("the new game screen starts a round robin of up to eight players, a knockout of more", () => {
   const { hass, card } = setup({ "select.practice_game": { state: "shanghai", attributes: { options: PRACTICE } } });
@@ -885,7 +885,7 @@ test("the new game screen starts a round robin of up to eight players, a knockou
   lobbyTap(card, "start");
   assert.deepEqual(started(hass), [
     [
-      "autodarts",
+      "homedarts",
       "start_tournament",
       {
         players: ["Alex", "Kim", "Sam", "Lea", "Max", "Tom", "Ida", "Ben"],
@@ -939,8 +939,8 @@ test("ending the game during a tournament stops the tournament too", () => {
 });
 
 test("a preview shows the tournament without its button, and German reads German", () => {
-  const card = document.createElement("autodarts-scoreboard-card");
-  card.setConfig({ type: "custom:autodarts-scoreboard-card" });
+  const card = document.createElement("homedarts-scoreboard-card");
+  card.setConfig({ type: "custom:homedarts-scoreboard-card" });
   card.preview = true;
   card.hass = setup({ ...tournament(), ...practice(["Kim", "Sam"], 2) }).hass;
   document.body.append(card);
@@ -1038,7 +1038,7 @@ test("a new tournament stops the one being played first, after a second tap", as
   lobbyTap(card, "start");
   assert.equal($(card, ".lobby"), null);
   // The stop has to succeed before the new tournament starts.
-  assert.deepEqual(started(hass), [["autodarts", "stop_tournament", { config_entry_id: "entry-1" }]]);
+  assert.deepEqual(started(hass), [["homedarts", "stop_tournament", { config_entry_id: "entry-1" }]]);
   await settle();
   assert.deepEqual(
     started(hass).map(([, service, data]) => [service, data.players]),

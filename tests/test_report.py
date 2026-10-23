@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.autodarts.report import (
+from custom_components.homedarts.report import (
     REPORT_BESTS,
     WeeklyReport,
     report_week,

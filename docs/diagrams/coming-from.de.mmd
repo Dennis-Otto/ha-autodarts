@@ -1,15 +1,10 @@
 flowchart TB
-  accTitle: Umstieg von einer anderen Autodarts-Integration
-  accDescr: Das ursprüngliche HACSAutodarts nutzt die Domain autodarts; ersetze es in HACS und behalte seinen Eintrag, der umgestellt wird. Die Integrationen von Quevinsta und belese nutzen ebenfalls die Domain autodarts; lösche ihre Einträge, entferne sie in HACS, prüfe, dass custom_components/autodarts weg ist, und starte neu. Autodarts Local, Autodarts Connect Online, Darts Hub und MQTT-Brücken haben eine eigene Domain und dürfen vorerst bleiben. Dann installierst du diese Integration, fügst das Board hinzu, stellst die Automationen auf ihre Ereignisse und Blueprints um und entfernst, was nichts mehr nutzt.
-  OLD["Deine Autodarts-<br/>Integration heute"] --> DOMAIN{"Welche Domain<br/>nutzt sie?"}
-  DOMAIN -- "autodarts:<br/>das ursprüngliche<br/>HACSAutodarts" --> KEEP["In HACS ersetzen<br/>und den Eintrag<br/>behalten, er wird<br/>umgestellt"]
-  DOMAIN -- "autodarts:<br/>Quevinsta, belese" --> REMOVE["Einträge löschen,<br/>in HACS entfernen,<br/>prüfen, dass<br/>custom_components/autodarts<br/>weg ist, neu starten"]
-  DOMAIN -- "eine eigene:<br/>Autodarts Local,<br/>Connect Online,<br/>Darts Hub, MQTT" --> BESIDE["Darf vorerst<br/>bleiben"]
-  REMOVE --> ADD["Diese Integration<br/>installieren und das<br/>Board hinzufügen"]
-  BESIDE --> ADD
-  ADD --> MOVE["Automationen auf<br/>ihre Ereignisse und<br/>Blueprints umstellen"]
-  MOVE --> DONE["Entfernen, was<br/>nichts mehr nutzt"]
+  accTitle: Umstieg von einer anderen Integration für Autodarts
+  accDescr: Die Integration unter ihrem früheren Namen Autodarts, bis Version 1.18, ist kein anderes Werkzeug: Aktualisiere sie, und HomeDarts übernimmt ihre Boards. Jede andere Integration, etwa das ursprüngliche HACSAutodarts, die von Quevinsta oder belese, Autodarts Local, Autodarts Connect Online, Darts Hub oder eine MQTT-Brücke, darf während des Umstiegs bleiben, weil HomeDarts eine eigene Domain hat, homedarts. Installiere HomeDarts daneben und füge das Board hinzu, stell die Automationen auf die Ereignisse und Blueprints von HomeDarts um, lösche dann die Einträge der alten Integration, entferne sie in HACS und starte Home Assistant neu.
+  OLD["Deine Integration<br/>für Autodarts heute"] --> WHICH{"Welche<br/>ist es?"}
+  WHICH -- "Autodarts bis 1.18,<br/>der frühere Name<br/>von HomeDarts" --> TAKE["Aktualisieren, und<br/>HomeDarts übernimmt<br/>ihre Boards"]
+  WHICH -- "eine andere:<br/>HACSAutodarts, Quevinsta,<br/>belese, Autodarts Local,<br/>Connect Online,<br/>Darts Hub, MQTT" --> ADD["HomeDarts daneben<br/>installieren und das<br/>Board hinzufügen"]
+  ADD --> MOVE["Automationen auf die<br/>Ereignisse und Blueprints<br/>von HomeDarts umstellen"]
+  MOVE --> DONE["Alte Einträge löschen,<br/>in HACS entfernen,<br/>neu starten"]
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
-  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
-  class KEEP,DONE done
-  class REMOVE warn
+  class TAKE,DONE done

@@ -160,18 +160,18 @@ test("the cards get positions, states and actions that change nothing", async ()
   assert.equal(hass.config.time_zone, "Europe/Berlin");
   await hass.callService("switch", "turn_off", {});
   assert.equal(told, 1);
-  assert.deepEqual(await hass.callWS({ type: "autodarts/positions", device_id: "demo-board" }), {
+  assert.deepEqual(await hass.callWS({ type: "homedarts/positions", device_id: "demo-board" }), {
     player: null,
     positions: [[0, 0.6]],
   });
-  assert.deepEqual(await hass.callWS({ type: "autodarts/positions", player: "Kim" }), {
+  assert.deepEqual(await hass.callWS({ type: "homedarts/positions", player: "Kim" }), {
     player: "Kim",
     known: false,
     positions: [],
     spread: [],
   });
   replay.seek(0);
-  assert.equal((await hass.callWS({ type: "autodarts/positions" })).player, null);
+  assert.equal((await hass.callWS({ type: "homedarts/positions" })).player, null);
   await assert.rejects(hass.callWS({ type: "auth/sign_path" }), { code: "not_supported" });
 });
 
@@ -251,10 +251,10 @@ test("the page plays the recorded games with the cards, in the reader's language
     assert.equal($("#play").textContent, TEXT.de.play);
     const cards = [...window.document.querySelectorAll("[data-card] > *")].map((card) => card.localName);
     assert.deepEqual(cards, [
-      "autodarts-scoreboard-card",
-      "autodarts-card",
-      "autodarts-training-card",
-      "autodarts-players-card",
+      "homedarts-scoreboard-card",
+      "homedarts-card",
+      "homedarts-training-card",
+      "homedarts-players-card",
     ]);
     const chapters = [...$("#chapters").children];
     assert.deepEqual(
@@ -277,7 +277,7 @@ test("the page plays the recorded games with the cards, in the reader's language
     replay.pause();
 
     // A button of a card, or the details of an entity, only say that this is a recording.
-    inCard("autodarts-card", "button[data-action='toggle']").click();
+    inCard("homedarts-card", "button[data-action='toggle']").click();
     await settle();
     assert.equal($("#notice").hidden, false);
     assert.equal($("#notice").textContent, TEXT.de.notice);
@@ -295,15 +295,15 @@ test("the page plays the recorded games with the cards, in the reader's language
     assert.match(view.location.href, /\?lang=fr$/);
     // The website has no French pages; the header leads to the English ones.
     assert.equal($("[data-page='cards']").getAttribute("href"), "../cards.html");
-    assert.equal($("autodarts-scoreboard-card")._hass.language, "fr");
+    assert.equal($("homedarts-scoreboard-card")._hass.language, "fr");
     // A dark theme of the system reaches the cards.
     changes[0]();
-    assert.equal($("autodarts-card")._hass.themes.darkMode, false);
+    assert.equal($("homedarts-card")._hass.themes.darkMode, false);
 
     // The last step: Kim wins the tournament.
     replay.seek(replay.steps.length - 1);
     await settle();
-    assert.match($("autodarts-scoreboard-card").shadowRoot.textContent, /Kim/);
+    assert.match($("homedarts-scoreboard-card").shadowRoot.textContent, /Kim/);
   } finally {
     replay.pause();
   }
@@ -316,7 +316,7 @@ test("the games start on their own, in the language of the address", async () =>
     assert.equal(replay.playing, true);
     assert.equal(window.document.documentElement.lang, "es");
     assert.equal($("#language").value, "es");
-    assert.equal($("autodarts-card")._hass.themes.darkMode, true);
+    assert.equal($("homedarts-card")._hass.themes.darkMode, true);
   } finally {
     replay.pause();
   }

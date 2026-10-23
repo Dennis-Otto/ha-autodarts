@@ -16,8 +16,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.storage import (
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.storage import (
     STORAGE_MINOR_VERSION,
     STORAGE_VERSION,
     TrainingStore,
@@ -40,7 +40,7 @@ async def setup(hass, aioclient_mock, entry_id="stored-entry"):
 
 def test_the_store_is_private_and_named_after_the_entry(hass):
     store = TrainingStore(hass, "some-entry")
-    assert store.key == storage_key("some-entry") == "autodarts.some-entry.training"
+    assert store.key == storage_key("some-entry") == "homedarts.some-entry.training"
     assert (store.version, store.minor_version) == (1, 3)
     # Player names are stored, so the file is readable by Home Assistant only.
     assert store._private is True
@@ -210,8 +210,8 @@ async def failed_setup(hass, aioclient_mock, hass_storage, state: ConfigEntrySta
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=5))
     await hass.async_block_till_done()
     assert {
-        key: value for key, value in hass_storage.items() if key.startswith("autodarts")
-    } == {key: value for key, value in before.items() if key.startswith("autodarts")}
+        key: value for key, value in hass_storage.items() if key.startswith("homedarts")
+    } == {key: value for key, value in before.items() if key.startswith("homedarts")}
     return entry
 
 
@@ -281,7 +281,7 @@ async def test_a_store_that_cannot_be_restored_stops_the_setup(
 ):
     stored_training(hass_storage)
     with patch(
-        "custom_components.autodarts.games.PersonalRecords.restore",
+        "custom_components.homedarts.games.PersonalRecords.restore",
         side_effect=TypeError("unhashable type: 'list'"),
     ):
         entry = await failed_setup(

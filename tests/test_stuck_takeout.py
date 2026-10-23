@@ -14,9 +14,9 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import AutodartsLocalCommandError
-from custom_components.autodarts.storage import storage_key
+from custom_components.homedarts.errors import AutodartsConnectionError
+from custom_components.homedarts.local_api import AutodartsLocalCommandError
+from custom_components.homedarts.storage import storage_key
 
 from .local_helpers import (
     BASE,
@@ -42,7 +42,7 @@ NO_HAND = {
     "isTakeoutFull": False,
 }
 HAND = {**NO_HAND, "isStable": False, "isHand": True}
-LOGGER = "custom_components.autodarts.local_coordinator"
+LOGGER = "custom_components.homedarts.local_coordinator"
 
 
 class Board:
@@ -355,7 +355,7 @@ async def test_a_missing_or_unknown_setting_frees_stuck_takeouts(
     hass_storage[key] = {"version": 1, "key": key, "data": {"takeout": stored}}
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts", version=2, data=local_entry_data(), entry_id="stored-entry"
+        domain="homedarts", version=2, data=local_entry_data(), entry_id="stored-entry"
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

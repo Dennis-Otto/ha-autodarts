@@ -6,7 +6,7 @@ description: "Alle Entitäten und Ereignisse eines Autodarts-Boards in Home Assi
 
 [← Dokumentation](README.de.md) · [English](entities.md)
 
-Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Board in Autodarts, wenn die Board-Suche oder die Cloud es gefunden hat, sonst *Autodarts Board*. Die Namen der Entitäten folgen der Sprache von Home Assistant und wiederholen den Gerätenamen nicht. Die Entitäts-IDs leiten sich beim Anlegen einer Entität aus beiden ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`, und bleiben erhalten, wenn eine spätere Version eine Entität umbenennt.
+Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Board in Autodarts, wenn die Board-Suche es gefunden hat, sonst *Autodarts Board*. Die Namen der Entitäten folgen der Sprache von Home Assistant und wiederholen den Gerätenamen nicht. Die Entitäts-IDs leiten sich beim Anlegen einer Entität aus beiden ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`, und bleiben erhalten, wenn eine spätere Version eine Entität umbenennt.
 
 **Legende:**
 
@@ -26,24 +26,24 @@ Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Bo
 | Letzter Dart | Sensor | Feld des letzten Darts, zum Beispiel `T20`, `D16`, `S5`, `25`, `Bull`. |
 | Punkte letzter Dart | Sensor, Punkte | Punkte des letzten Darts. |
 | Darts in der Aufnahme | Sensor, Darts | Darts, die gerade im Board erkannt sind (0–3). |
-| Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. Ein erkannter Dart behält seine Position, solange die Kamera ihn um weniger als etwa 1,7 mm wandern sieht, damit er auf der Karte stillsteht; ein Dart, der sich weiter bewegt hat oder in Home Assistant gesetzt wurde, steht dort, wo er jetzt ist. Ein `bed`, das das Board in unbekannter Form sendet, bleibt leer. In Home Assistant korrigierte oder eingegebene Darts und die Darts des [Bots](#bot) gehören zur Aufnahme, markiert mit `corrected`, `manual` oder `bot`; `dart` nummeriert die Darts der aktuellen Aufnahme (1–3), so wie [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) sie zählt. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts`, `segments` und `manual` bei einer Aufnahme mit von Hand eingegebenen oder korrigierten Darts. Der Recorder speichert beide Attribute nicht. |
+| Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. Ein erkannter Dart behält seine Position, solange die Kamera ihn um weniger als etwa 1,7 mm wandern sieht, damit er auf der Karte stillsteht; ein Dart, der sich weiter bewegt hat oder in Home Assistant gesetzt wurde, steht dort, wo er jetzt ist. Ein `bed`, das das Board in unbekannter Form sendet, bleibt leer. In Home Assistant korrigierte oder eingegebene Darts und die Darts des [Bots](#bot) gehören zur Aufnahme, markiert mit `corrected`, `manual` oder `bot`; `dart` nummeriert die Darts der aktuellen Aufnahme (1–3), so wie [`homedarts.correct_dart`](#dart-korrigieren-homedartscorrect_dart) sie zählt. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts`, `segments` und `manual` bei einer Aufnahme mit von Hand eingegebenen oder korrigierten Darts. Der Recorder speichert beide Attribute nicht. |
 | Letztes Ereignis | Sensor, *Diagnose*, *Deaktiviert* | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`, auf Englisch, wie das Board ihn schreibt; *Erkennungsstatus* zeigt dasselbe übersetzt. Er ändert sich mit jedem Dart und ist daher anfangs deaktiviert. |
 
 Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwerfen. Letzter Dart, seine Punkte und die Aufnahmepunkte folgen Korrekturen, von Hand eingegebenen Darts und den Darts des Bots; *Darts in der Aufnahme* zählt die Darts, die das Board selbst sieht.
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem deutschsprachigen Home Assistant, `event.autodarts_board_events` in einem englischen, bei einem mit einer früheren Version eingerichteten Board etwa `event.autodarts_board_board_ereignisse`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht, `manual` für [Korrekturen, von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) und was daraus folgt, `bot` für die Darts des [Bots](#bot), `online` für die Momente von [Online-Matches](online-matches.de.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt, und `cloud` für dieselben Momente aus der [Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung), sobald es sie gibt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem deutschsprachigen Home Assistant, `event.autodarts_board_events` in einem englischen, bei einem mit einer früheren Version eingerichteten Board etwa `event.autodarts_board_board_ereignisse`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht, `manual` für [Korrekturen, von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) und was daraus folgt, `bot` für die Darts des [Bots](#bot) und `online` für die Momente von [Online-Matches](online-matches.de.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
 | `dart_detected` | Ein neuer Dart landet, wird von Hand eingegeben oder vom Bot geworfen | `dart_index` (1–3), `segment` (etwa `T20`, `S5`, `Bull`, `25` oder `M` für einen Fehlwurf), `score`, `game`, `name`; `manual` bei einem von Hand eingegebenen Dart, `bot` bei einem Dart des Bots; `call` |
-| `dart_corrected` | Das Board oder [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) korrigiert einen Dart | `dart_index`, `segment`, `score`, `previous` (das Feld davor), `game`, `name`; `manual`, wenn der Dart in Home Assistant korrigiert wurde |
+| `dart_corrected` | Das Board oder [`homedarts.correct_dart`](#dart-korrigieren-homedartscorrect_dart) korrigiert einen Dart | `dart_index`, `segment`, `score`, `previous` (das Feld davor), `game`, `name`; `manual`, wenn der Dart in Home Assistant korrigiert wurde |
 | `takeout_started` | Du beginnst, die Darts zu ziehen | keine |
 | `takeout_finished` | Das Board ist wieder frei | keine |
 | `visit_thrown` | Der dritte Dart einer Aufnahme landet, solange die Darts noch im Board stecken; einmal pro Aufnahme | `score`, `darts` (3), `segments` (etwa `["T20", "T20", "S20"]`), `game`, `name`; `manual`, wenn ein Dart der Aufnahme von Hand eingegeben oder korrigiert wurde, `bot` bei einer Aufnahme des Bots; `call` |
-| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, wenn die Erkennung stoppt oder mit [`autodarts.next_player`](#weitergeben-autodartsnext_player) | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat); `manual` und `bot` wie bei `visit_thrown`; `call` |
-| `visit_undone` | [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) nimmt die letzte Aufnahme zurück | `score`, `darts`, `segments` (die Darts, die wieder die aktuelle Aufnahme sind), `game`, `name` |
+| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, wenn die Erkennung stoppt oder mit [`homedarts.next_player`](#weitergeben-homedartsnext_player) | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat); `manual` und `bot` wie bei `visit_thrown`; `call` |
+| `visit_undone` | [`homedarts.undo_visit`](#aufnahme-zurücknehmen-homedartsundo_visit) nimmt die letzte Aufnahme zurück | `score`, `darts`, `segments` (die Darts, die wieder die aktuelle Aufnahme sind), `game`, `name` |
 | `status_changed` | Der Erkennungsstatus ändert sich | `status` |
 | `session_started` | Eine Trainingssession beginnt: mit dem Schalter *Trainingssession*, der Taste *Neue Trainingssession* oder mit dem ersten Dart, wenn *Sessions automatisch starten* an ist | `started` und `reason` (`manual`, `new_session` oder `first_dart`) |
 | `session_ended` | Eine Trainingssession endet: mit dem Schalter, der Taste oder nach der Pause aus *Session-Timeout* | `reason` (`manual`, `new_session` oder `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` und die übrigen Trainingssummen |
@@ -114,7 +114,7 @@ Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last
 
 ## Bestleistungen, Serie und Tagesziel
 
-Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht. Die Rekorde eines Legs zählen, wenn das Leg verbucht wird, also wenn seine Darts gezogen werden; ein Sieg, den eine Korrektur zurücknimmt, setzt also keinen. Eine [zurückgenommene Aufnahme](#aufnahme-zurücknehmen-autodartsundo_visit) nimmt die Rekorde zurück, die sie aufgestellt hat; ihre Darts zählen weiter für den Tag, die Serie und das Tagesziel.
+Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht. Die Rekorde eines Legs zählen, wenn das Leg verbucht wird, also wenn seine Darts gezogen werden; ein Sieg, den eine Korrektur zurücknimmt, setzt also keinen. Eine [zurückgenommene Aufnahme](#aufnahme-zurücknehmen-homedartsundo_visit) nimmt die Rekorde zurück, die sie aufgestellt hat; ihre Darts zählen weiter für den Tag, die Serie und das Tagesziel.
 
 | Rekord | Bester Wert | Aus |
 | --- | --- | --- |
@@ -198,7 +198,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Übungsspiel | Auswahl | `off` (*Aus*), `101`, `301`, `501`, `701`, `901`, `1001`, ein Cricket-Spiel (`cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket`, `hidden_cricket`), ein Partyspiel (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `bermuda`, `round_the_world`, `gotcha`) oder ein Trainingsspiel: `around_the_clock`, `doubles` (*Doppeltraining*), `checkout` (*Checkout-Training*), `bobs_27`, `checkout_121` (*121-Checkout*), `catch_40`, `jdc_challenge`, `singles` (*Singles-Training*). Die Wahl startet ein neues Match oder Spiel. |
-| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `in_mode`, `out_mode`, `bull_mode`, `max_rounds`, `round` (die Runde des X01-Legs, ab 1), `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended` und `rounds` bei einem Leg, das die Rundengrenze entschieden hat) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Mit dem [Bot](#bot) nennt `bot` dessen `player` und `level` (sonst keins), und seine Einträge in `scores`, in den `throws` des Ausbullens und in den `players` der Zusammenfassung tragen `bot: true`. `setup` enthält den [Stellwurf](#stellwürfe), wo kein Checkout möglich ist, und `undo` ist `true`, solange [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurücknehmen kann. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
+| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `in_mode`, `out_mode`, `bull_mode`, `max_rounds`, `round` (die Runde des X01-Legs, ab 1), `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended` und `rounds` bei einem Leg, das die Rundengrenze entschieden hat) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Mit dem [Bot](#bot) nennt `bot` dessen `player` und `level` (sonst keins), und seine Einträge in `scores`, in den `throws` des Ausbullens und in den `players` der Zusammenfassung tragen `bot: true`. `setup` enthält den [Stellwurf](#stellwürfe), wo kein Checkout möglich ist, und `undo` ist `true`, solange [`homedarts.undo_visit`](#aufnahme-zurücknehmen-homedartsundo_visit) die letzte Aufnahme zurücknehmen kann. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
 | Übungsspiel Checkout-Weg | Sensor | Der Checkout-Weg, etwa `T20 25 D18`; *unbekannt*, wenn es keinen gibt. |
 | Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`, bei Wild Mouse auch `D` oder `T` für jedes Double oder Triple; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; Checkout-Training und 121-Checkout ergänzen `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`; Catch 40 ergänzt `score`, `checkouts` und dieselben Werte des Rests, der gerade gecheckt wird; die JDC Challenge ergänzt `part`, `score` und `parts`, das Singles-Training `score`. |
 | Übungsspiel neues Leg | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. Nach einem beendeten Match beginnt es das nächste Match. |
@@ -227,7 +227,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Bermuda halbieren ohne Treffer | Schalter, *Konfiguration* | Ob eine Aufnahme ohne Treffer bei [Bermuda](#partyspiele) die Punkte halbiert, wie bei play.autodarts.io; standardmäßig an. Eine Änderung startet ein Bermuda neu. |
 | Übungsspiel Round-the-World-Reihenfolge | Auswahl, *Konfiguration* | Die Reihenfolge von [Round the World](#partyspiele) vor dem Bull: `ascending` (1 bis 20, die Vorgabe), `descending` (20 bis 1) oder `random`, in jedem Leg neu. Eine Änderung startet ein Round the World neu. |
 | Übungsspiel Gotcha-Zielpunktzahl | Zahl, *Konfiguration* | 101–1001, die Punktzahl, bis zu der [Gotcha](#partyspiele) zählt; standardmäßig `301`. Eine Änderung startet ein Gotcha neu; das Leg endet, wie es *Übungsspiel Out-Modus* verlangt. |
-| Übungsspiel manuelle Eingabe | Schalter, *Konfiguration* | Darts lassen sich [von Hand eingeben](#korrekturen-und-von-hand-eingegebene-darts), mit [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder dem Tastenfeld der Anzeigetafel. Standardmäßig aus. |
+| Übungsspiel manuelle Eingabe | Schalter, *Konfiguration* | Darts lassen sich [von Hand eingeben](#korrekturen-und-von-hand-eingegebene-darts), mit [`homedarts.throw_dart`](#dart-eingeben-homedartsthrow_dart) oder dem Tastenfeld der Anzeigetafel. Standardmäßig aus. |
 | Übungsspiel Bot-Stärke | Zahl, *Konfiguration* | Der 3-Dart-Average, den der [Bot](#bot) spielt, 20–120; `0`, der Standard, spielt ohne Bot. Eine Änderung startet ein neues Match. |
 | Übungsspiel Bot-Pause | Zahl, *Konfiguration* | Sekunden vor jedem Dart des Bots und bevor seine Aufnahme endet, 0–10 in Schritten von 0,5; standardmäßig `2`. |
 
@@ -248,10 +248,10 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 <img src="images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
-- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](cards.de.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
-- **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein. Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat keinen Schalter dafür, weil alle ihre Darts eingegeben werden.
-- **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; ein Aussetzen, das die letzte Runde eines Partyspiels beendet, verbucht Leg und Match wie eine Aufnahme mit Darts.
-- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Die Bestleistungen, der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
+- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`homedarts.correct_dart`](#dart-korrigieren-homedartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](cards.de.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
+- **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`homedarts.throw_dart`](#dart-eingeben-homedartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein. Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat keinen Schalter dafür, weil alle ihre Darts eingegeben werden.
+- **Weitergeben:** [`homedarts.next_player`](#weitergeben-homedartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; ein Aussetzen, das die letzte Runde eines Partyspiels beendet, verbucht Leg und Match wie eine Aufnahme mit Darts.
+- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`homedarts.undo_visit`](#aufnahme-zurücknehmen-homedartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Die Bestleistungen, der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
 
 [Die Regeln für Korrekturen und von Hand eingegebene Darts](how-it-works.de.md#korrekturen-und-von-hand-eingegebene-darts).
 
@@ -305,12 +305,12 @@ Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-autodartslink_player) oder keine), dazu der [Fortschritt](#fortschritt-der-spieler) des Spielers: `darts_thrown`, `maximums`, `streak`, `best_streak`, `hits`, `spread`, `best_aim`, `expected_ppd` und `trend`. `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
+| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-homedartslink_player) oder keine), dazu der [Fortschritt](#fortschritt-der-spieler) des Spielers: `darts_thrown`, `maximums`, `streak`, `best_streak`, `hits`, `spread`, `best_aim`, `expected_ppd` und `trend`. `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
 | Letztes Match | Sensor, Zeitstempel | Wann das letzte Match mehrerer Spieler endete. Attribute: `game` und `winner` dieses Matches, `matches` mit den letzten 20 Matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner`, im Team-Match `winners` mit beiden Gewinnern, und `name`, `legs` und `sets` am Ende, `match_legs` sowie `average`, `mpr` oder `points` und im Team-Match `team` jedes Spielers) und `head_to_head` mit den Siegen jedes Paars benannter Gegner. Der Recorder speichert keine der Listen. |
 
-Die [Spielerkarte](cards.de.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`autodarts.delete_player`](#spielerprofil-löschen-autodartsdelete_player).
+Die [Spielerkarte](cards.de.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`homedarts.delete_player`](#spielerprofil-löschen-homedartsdelete_player).
 
-**Spieler und Personen:** Verknüpfe einen Spieler mit [`autodarts.link_player`](#spieler-mit-einer-person-verknüpfen-autodartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](cards.de.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
+**Spieler und Personen:** Verknüpfe einen Spieler mit [`homedarts.link_player`](#spieler-mit-einer-person-verknüpfen-homedartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](cards.de.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
 
 ### Fortschritt der Spieler
 
@@ -425,10 +425,10 @@ Ein Turnier für drei bis 32 Spieler mit Namen an einem Board oder [auf mehreren
 
 <img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
-- **Start:** Tippe in der [Spielauswahl](cards.de.md#turniere) der Anzeigetafel auf *Turnier* und wähle Spieler, Format und Spiel; oder stelle die *Turnier*-Entitäten unten ein und drücke *Turnier starten*; oder rufe die Aktion [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) auf:
+- **Start:** Tippe in der [Spielauswahl](cards.de.md#turniere) der Anzeigetafel auf *Turnier* und wähle Spieler, Format und Spiel; oder stelle die *Turnier*-Entitäten unten ein und drücke *Turnier starten*; oder rufe die Aktion [`homedarts.start_tournament`](#turnier-starten-homedartsstart_tournament) auf:
 
   ```yaml
-  action: autodarts.start_tournament
+  action: homedarts.start_tournament
   data:
     players: [Dennis, Lea, Max, Kim]
     format: knockout
@@ -523,7 +523,7 @@ Jedes Zurücksetzen steht auf Stufe Info im Protokoll, und die [Diagnosedaten](t
 | Kamerastörung | Binärsensor, *Diagnose* | An, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Normales Stoppen, Kalibrieren und Standby zählen nicht. |
 | Störung Kamera *N* | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
-| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die nachträglich korrigiert wurden: vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](troubleshooting.de.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
+| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die nachträglich korrigiert wurden: vom Board, auf der Anzeigetafel oder mit `homedarts.correct_dart`. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](troubleshooting.de.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
 | Bildrate Kamera *N* | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
 | CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose*, *Deaktiviert* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |
@@ -552,26 +552,11 @@ Während die Erkennung gestoppt ist, startet, stoppt oder kalibriert, sind diese
 | --- | --- | --- |
 | Kamera *N* | Kamera, *Deaktiviert* | Eine Board-Kamera, etwa für eine Bildkarte oder den Kameradialog. Mit **BM 2** leitet die Liveansicht den Kamerastream des Boards über Home Assistant weiter; läuft der Stream nicht, und mit BM 1, zeigt sie Standbilder. Um eine Kamera zu zeigen, startet oder stoppt die Integration weder die Erkennung noch die Streams. |
 
-## Cloud-Spieldaten (optional)
-
-Diese Entitäten gibt es nur mit [verknüpftem Autodarts-Konto](installation.de.md#autodarts-cloud-verknüpfen-optional). Sie werden während eines Matches alle 5 Sekunden gelesen, sonst einmal pro Minute.
-
-| Entität | Typ | Beschreibung |
-| --- | --- | --- |
-| Cloud-Status | Sensor (Aufzählung), *Diagnose* | `connected` oder `disconnected` in der Autodarts-Cloud. |
-| Spielmodus | Sensor | Variante des laufenden Spiels, etwa `X01` oder `Cricket`. |
-| Match-Status | Sensor (Aufzählung) | `no_match`, `active` oder `finished`. |
-| Runde | Sensor | Aktuelle Runde. |
-| Punkte der Aufnahme | Sensor, Punkte | Punkte der aktuellen Aufnahme im Spiel. |
-| Geworfene Darts | Sensor, Darts | Im Spiel geworfene Darts. |
-
-Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in der Aufnahme* aus der Cloud.
-
 ## Aktionen
 
-Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export`, `autodarts.save_highlight` und `autodarts.generate_voice_pack` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
+Mit den Aktionen kann jeder angemeldete Benutzer spielen. `homedarts.delete_player`, `homedarts.link_player`, `homedarts.unlink_player`, `homedarts.export`, `homedarts.save_highlight` und `homedarts.generate_voice_pack` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
 
-### Übungsspiel starten: `autodarts.start_game`
+### Übungsspiel starten: `homedarts.start_game`
 
 Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skripte, Dashboard-Tasten und Sprachsteuerung. Werte, die du weglässt, bleiben, wie sie sind.
 
@@ -598,10 +583,10 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 | `order` | `ascending`, `descending`, `random` | Die Reihenfolge von Round the World vor dem Bull |
 | `target_score` | 101–1001 | Die Punktzahl, bis zu der Gotcha zählt; `out_mode` entscheidet, wie es endet |
 | `bot_level` | `0` oder 20–120 | Gegen den [Bot](#bot) spielen, in X01 und den Cricket-Spielen, mit diesem 3-Dart-Average; `0` spielt ohne ihn |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.start_game
+action: homedarts.start_game
 data:
   game: "501"
   players: [Dennis, Lea]
@@ -611,7 +596,7 @@ data:
 Gegen den Bot mit einem 3-Dart-Average von 60:
 
 ```yaml
-action: autodarts.start_game
+action: homedarts.start_game
 data:
   game: "501"
   players: [Dennis]
@@ -621,7 +606,7 @@ data:
 Ein Team-Match zu viert:
 
 ```yaml
-action: autodarts.start_game
+action: homedarts.start_game
 data:
   game: "501"
   players: [Alex, Sam, Kim, Lea]
@@ -631,7 +616,7 @@ data:
 Ein Handicap, Mia beginnt mit 301:
 
 ```yaml
-action: autodarts.start_game
+action: homedarts.start_game
 data:
   game: "501"
   players: [Dennis, Mia]
@@ -643,14 +628,14 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn
 **Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist. `started` ist `true` mit dem Schlüssel des Spiels in `game`, den benannten `players`, `bot` und der `message` „Game on: 501 mit Alex und Sam.“; oder `started` ist `false`, und `message` sagt, was nicht gepasst hat, in der Sprache von Home Assistant, auch wenn Home Assistant selbst den Aufruf ablehnt, etwa für einen Eintrag, den es nicht kennt. Der Blueprint [Start a game by voice](automations.de.md#start-a-game-by-voice) spricht die Nachricht aus.
 
 ```yaml
-action: autodarts.start_game
+action: homedarts.start_game
 data:
   game: Around the Clock
   players: [alex, sam]
 response_variable: result
 ```
 
-### Dart korrigieren: `autodarts.correct_dart`
+### Dart korrigieren: `homedarts.correct_dart`
 
 Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. Wo das Board das Feld falsch gelesen hat, lag es auch bei der Stelle daneben: Der korrigierte Dart verliert die Position des Boards und bleibt aus den [Dart-Positionen](how-it-works.de.md#dart-positionen) heraus, außer `x` und `y` sagen, wo er steckt. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
 
@@ -659,10 +644,10 @@ Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in
 | `dart` | 1–3 | Der Dart der aktuellen Aufnahme; Pflicht |
 | `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull, auch `S25`, `SB` oder `OB`), `BULL` (Bullseye, auch `D25`, `DB` oder `50`), `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht ohne `x` und `y` |
 | `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie das Board Positionen meldet: 0 ist die Mitte, 1 der äußere Rand des Doppelrings, und `y` zeigt zur 20. Das Feld ergibt sich aus der Position; ein zusätzlich angegebenes `segment` muss dieses Feld sein |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.correct_dart
+action: homedarts.correct_dart
 data:
   dart: 2
   segment: T20
@@ -671,7 +656,7 @@ data:
 Mit der Stelle, an der der Dart steckt, ergibt sich das Feld daraus:
 
 ```yaml
-action: autodarts.correct_dart
+action: homedarts.correct_dart
 data:
   dart: 2
   x: 0.02
@@ -680,19 +665,19 @@ data:
 
 Die Aktion bricht mit einer klaren Meldung ab, die bei einem unbekannten Feld die gültigen Felder nennt, wenn weder Feld noch Position angegeben sind, wenn nur `x` oder `y` angegeben ist oder ein Wert außerhalb von -3 bis 3 liegt, wenn das Feld nicht das Feld an der Position ist, und wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
 
-### Dart eingeben: `autodarts.throw_dart`
+### Dart eingeben: `homedarts.throw_dart`
 
 Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert mit `manual`: einen Dart, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras. Braucht *Übungsspiel manuelle Eingabe*.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht ohne `x` und `y` |
-| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `autodarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](how-it-works.de.md#dart-positionen) gespeichert |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `homedarts.correct_dart` | Das Feld; Pflicht ohne `x` und `y` |
+| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `homedarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](how-it-works.de.md#dart-positionen) gespeichert |
 | `player` | Name | Der Spieler, für den der Dart ist, wie ein Sprachassistent ihn hört, in beliebiger Groß- und Kleinschreibung; die Aktion lehnt den Dart ab, solange ein anderer Spieler am Board ist |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.throw_dart
+action: homedarts.throw_dart
 data:
   segment: D16
 ```
@@ -701,7 +686,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn
 
 **Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist: `entered` ist `true`, und `message` nennt das Feld, in X01 mit dem Rest, einem Überwerfen oder dem Game Shot, etwa „Triple 20, noch 441.“ oder „Doppel 20. Game shot!“; oder `entered` ist `false`, und `message` sagt, warum, in der Sprache von Home Assistant. Der Blueprint [Enter darts by voice](automations.de.md#enter-darts-by-voice) spricht die Nachricht aus.
 
-### Aufnahmepunkte eingeben: `autodarts.enter_visit`
+### Aufnahmepunkte eingeben: `homedarts.enter_visit`
 
 Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus oder sind überworfen, wo keine Aufnahme mit diesen Darts sie checken kann, etwa 159 mit Double-Out. Mehr ist überworfen, ebenso ein Rest von 1 mit Double-Out, auch wo keine Aufnahme alle Punkte vor dem Überwerfen werfen kann, etwa 100 von 32: Die Darts nach dem Dart, der überwirft, zählen nicht.
 
@@ -716,11 +701,11 @@ Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkt
 | `checkout` | `true` | Die Aufnahme checkt den Rest des Spielers, statt `score`; ein `score` dazu muss genau der Rest sein |
 | `darts` | 1–3 | Die Darts der Aufnahme, weniger als 3 nur beim Checkout; Standard 3 |
 | `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner, und beim Überwerfen nur die bis zu dem Dart, der überwirft |
-| `player` | Name | Der Spieler, für den die Aufnahme ist, wie bei `autodarts.throw_dart`; die Aktion lehnt die Aufnahme ab, solange ein anderer Spieler am Board ist |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `player` | Name | Der Spieler, für den die Aufnahme ist, wie bei `homedarts.throw_dart`; die Aktion lehnt die Aufnahme ab, solange ein anderer Spieler am Board ist |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.enter_visit
+action: homedarts.enter_visit
 data:
   score: 40
   darts: 2
@@ -732,7 +717,7 @@ Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `to
 Ein Checkout des Rests mit zwei Darts für den Spieler am Board:
 
 ```yaml
-action: autodarts.enter_visit
+action: homedarts.enter_visit
 data:
   checkout: true
   darts: 2
@@ -740,38 +725,38 @@ data:
 
 **Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen: `entered` ist `true`, und `message` sagt in den Worten des Callers der Anzeigetafel, was die Aufnahme erzielt hat und was bleibt und wer als Nächstes wirft, etwa „140 für Alex, noch 361. Sam, du brauchst 501.“, ein Überwerfen, „Überworfen: Alex bleibt bei 40.“, oder das Leg oder das Match, „Game shot, und das Match, Alex!“; oder `entered` ist `false`, und `message` sagt, warum, in der Sprache von Home Assistant.
 
-### Weitergeben: `autodarts.next_player`
+### Weitergeben: `homedarts.next_player`
 
 Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; in einem Partyspiel zählt das Aussetzen als Aufnahme aus drei Fehlwürfen, und ein Aussetzen, das die letzte Runde beendet, verbucht Leg und Match. In Trainingsspielen, beim Ausbullen und bei Killer, solange die Zahlen gewählt werden, bricht die Aktion dann mit einer klaren Meldung ab.
 
 ```yaml
-action: autodarts.next_player
+action: homedarts.next_player
 ```
 
 Nimmt `config_entry_id`, wenn es mehr als ein Board gibt. **Antwort:** Mit `response_variable` sagen `passed` und eine `message`, wer jetzt wirft, in X01, was er braucht, etwa „Sam, du brauchst 501.“, und nach einem Game Shot das Leg oder das Match.
 
-### Aufnahme zurücknehmen: `autodarts.undo_visit`
+### Aufnahme zurücknehmen: `homedarts.undo_visit`
 
-Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und ihre Darts werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit `autodarts.next_player` zu beenden. Aufnahmen des Bots danach werden mit zurückgenommen. Eine Aufnahme lässt sich zurücknehmen, solange kein Dart im Board steckt und sich Spiel und Trainingssession seitdem nicht geändert haben; ein Neustart vergisst sie. Sonst bricht die Aktion mit einer klaren Meldung ab; `undo` von *Übungsspiel Restpunkte* sagt, ob es geht.
+Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und ihre Darts werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit `homedarts.next_player` zu beenden. Aufnahmen des Bots danach werden mit zurückgenommen. Eine Aufnahme lässt sich zurücknehmen, solange kein Dart im Board steckt und sich Spiel und Trainingssession seitdem nicht geändert haben; ein Neustart vergisst sie. Sonst bricht die Aktion mit einer klaren Meldung ab; `undo` von *Übungsspiel Restpunkte* sagt, ob es geht.
 
 ```yaml
-action: autodarts.undo_visit
+action: homedarts.undo_visit
 ```
 
 Nimmt `config_entry_id`, wenn es mehr als ein Board gibt. **Antwort:** Mit `response_variable` sagen `undone` und eine `message`, wessen Aufnahme mit wie vielen Punkten zurückgenommen ist, etwa „Zurückgenommen: 140 von Alex.“
 
-### Spielerprofil löschen: `autodarts.delete_player`
+### Spielerprofil löschen: `homedarts.delete_player`
 
 Vergisst Statistik, Bestleistungen, direkte Vergleiche, Fortschritt und Abzeichen eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `name` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt, und solange der Spieler im laufenden Turnier mitspielt: Beende zuerst das Turnier. Der Spieler verschwindet auch aus den Spielern des nächsten Turniers.
 
-### Trainingsdaten exportieren: `autodarts.export`
+### Trainingsdaten exportieren: `homedarts.export`
 
 Schreibt deine Trainingssessions, Übungsmatches oder Spielerprofile in eine Datei und gibt zurück, wo sie liegt, für Tabellenkalkulationen, Sicherungen oder eigene Auswertungen. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
@@ -779,18 +764,18 @@ Schreibt deine Trainingssessions, Übungsmatches oder Spielerprofile in eine Dat
 | --- | --- | --- |
 | `format` | `csv` (Standard), `json` | CSV für Tabellenkalkulationen, in UTF-8 mit Byte-Order-Mark; mit `what: all` eine ZIP-Datei mit `sessions.csv`, `matches.csv` und `profiles.csv`. JSON ist eine Datei mit einer Liste pro Tabelle. |
 | `what` | `sessions`, `matches`, `profiles`, `all` (Standard) | Die Sessions und Matches der letzten 365 Tage (die des [Trainingskalenders](#trainingskalender)), die [Spielerprofile](#spielerprofile) oder alles |
-| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben lässt: `www`, ein Medienordner oder ein Ordner aus [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs), relativ zum Konfigurationsordner oder als absoluter Pfad. Ohne Angabe `autodarts/exports` im Medienordner, unter Home Assistant OS `/media/autodarts/exports`. Versteckte Ordner wie `.storage`, Steuerzeichen und Ordner, zu denen `..` oder ein symbolischer Link woandershin führt, werden abgelehnt. |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben lässt: `www`, ein Medienordner oder ein Ordner aus [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs), relativ zum Konfigurationsordner oder als absoluter Pfad. Ohne Angabe `homedarts/exports` im Medienordner, unter Home Assistant OS `/media/homedarts/exports`. Versteckte Ordner wie `.storage`, Steuerzeichen und Ordner, zu denen `..` oder ein symbolischer Link woandershin führt, werden abgelehnt. |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.export
+action: homedarts.export
 data:
   format: json
   what: matches
 response_variable: export
 ```
 
-Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der Ordner in `www` liegt, sonst `null`), `download` (eine Adresse unter `/api/`, von der Administratoren die Datei bis zum nächsten Neustart von Home Assistant herunterladen), `format`, `what` und `rows` mit den Zeilen jeder Tabelle. Jeder Export ist eine neue Datei mit einem Namen wie `autodarts-all-20260927-201500-<zufällig>.zip`. Home Assistant liefert `www` unter `/local/` nur aus, wenn der Ordner beim Start schon existierte: Nach dem ersten Export in einen neuen Ordner `www` funktioniert `url` nach dem nächsten Neustart, `download` sofort. Pro Stunde werden höchstens 20 Exporte geschrieben.
+Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der Ordner in `www` liegt, sonst `null`), `download` (eine Adresse unter `/api/`, von der Administratoren die Datei bis zum nächsten Neustart von Home Assistant herunterladen), `format`, `what` und `rows` mit den Zeilen jeder Tabelle. Jeder Export ist eine neue Datei mit einem Namen wie `homedarts-all-20260927-201500-<zufällig>.zip`. Home Assistant liefert `www` unter `/local/` nur aus, wenn der Ordner beim Start schon existierte: Nach dem ersten Export in einen neuen Ordner `www` funktioniert `url` nach dem nächsten Neustart, `download` sofort. Pro Stunde werden höchstens 20 Exporte geschrieben.
 
 | Tabelle | Spalten |
 | --- | --- |
@@ -802,14 +787,14 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist, wenn in der letzten Stunde schon 20 Exporte geschrieben wurden oder wenn die Datei nicht geschrieben werden kann.
 
-### Highlight-Foto speichern: `autodarts.save_highlight`
+### Highlight-Foto speichern: `homedarts.save_highlight`
 
 Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automations.de.md#highlight-galerie), benannt nach Zeitpunkt, Spieler und dem, was es zeigt, und antwortet mit der Datei und ihrer Adresse erst, wenn die Datei geschrieben ist. Der Blueprint [Highlight photo](automations.de.md#highlight-photo) speichert seine Fotos damit; deine eigenen Automationen können das auch, etwa für ein Foto vom ersten Leg des Abends. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `camera` | Kamera-Entität | Die Kamera, die das Foto macht, etwa eine Board-Kamera; Pflicht. Die Kameras eines Boards sind deaktiviert, bis du sie auf der Seite des Boards aktivierst. Jede andere Kamera geht auch. |
-| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben darf, wie bei [`autodarts.export`](#trainingsdaten-exportieren-autodartsexport). Leer oder weggelassen: die Galerie, `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container. |
+| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben darf, wie bei [`homedarts.export`](#trainingsdaten-exportieren-homedartsexport). Leer oder weggelassen: die Galerie, `homedarts/highlights` im Medienordner, `/media/homedarts/highlights` unter Home Assistant OS und im Container. |
 | `player` | Text | Der Spieler auf dem Foto, für seinen Namen und seinen Titel in der Galerie |
 | `label` | Text | Was das Foto zeigt, am Ende seines Namens, etwa `180` oder `checkout-121`; eine Zahl zeigt die Galerie als Punkte, `checkout-121` als Checkout |
 | `clip_camera` | Kamera-Entität | Eine Kamera mit Videostream, die den Moment zusätzlich als [Clip](automations.de.md#highlight-clips) neben dem Foto aufnimmt, unter seinem Namen mit `.mp4`. Die Aufnahme läuft im Hintergrund, die Aktion wartet also nicht auf sie. Leer oder weggelassen: kein Clip |
@@ -817,7 +802,7 @@ Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automati
 | `clip_duration` | 1 bis 60 Sekunden | Wie viel des Clips auf das Foto folgt; Standard 8 |
 
 ```yaml
-action: autodarts.save_highlight
+action: homedarts.save_highlight
 data:
   camera: camera.autodarts_board_camera_1
   player: Alex
@@ -827,32 +812,32 @@ response_variable: highlight
 
 Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home Assistant. Spieler und Bezeichnung verlieren, was ein Dateiname oder eine Adresse nicht haben kann, etwa `/`, `:`, `_`, `~`, `..`, `{`, `%` und `#`, und werden auf 20 und 24 Zeichen gekürzt, ohne Punkt am Ende. Ein zweites Foto derselben Sekunde mit demselben Namen heißt `2026-09-26_21-05-33_Alex_180 (2).jpg`, ein drittes bekommt `(3)` und so weiter; nichts wird überschrieben. Das Bild behält die Art, die die Kamera schickt: `.jpg`, oder `.png` oder `.webp`.
 
-**Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer. Mit einer `clip_camera` sind `clip` und `clip_url` die Datei und die Adresse des Clips, die entsteht, wenn die Aufnahme endet; eine Kamera ohne Stream oder eine, die schon aufnimmt, schreibt keinen Clip, und das Protokoll sagt, warum.
+**Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/homedarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer. Mit einer `clip_camera` sind `clip` und `clip_url` die Datei und die Adresse des Clips, die entsteht, wenn die Aufnahme endet; eine Kamera ohne Stream oder eine, die schon aufnimmt, schreibt keinen Clip, und das Protokoll sagt, warum.
 
 Die Aktion schlägt mit einer klaren Meldung fehl und schreibt nichts, wenn es die Kamera-Entität nicht gibt oder sie deaktiviert ist, wenn die Kamera nicht verfügbar ist oder kein Bild liefert, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann. Mit `continue_on_error: true` macht eine Automation ohne das Foto weiter, wie der Blueprint. Anders als `camera.snapshot`, das eine deaktivierte oder nicht verfügbare Kamera und ein fehlendes Bild ohne Fehler übergeht, meldet sie nie ein Foto, das nicht auf der Festplatte liegt.
 
-### Einen Sound eines Voice-Packs finden: `autodarts.voice_sound`
+### Einen Sound eines Voice-Packs finden: `homedarts.voice_sound`
 
 Sucht den Sound einer Ansage in einem [Voice-Pack](scoreboard.de.md#voice-packs), für einen Mediaplayer, wie es [Dart caller und Practice caller](automations.de.md#voice-packs-der-caller) tun. Jeder Benutzer darf fragen: Die Aktion liest nur, welche Dateien ein Pack hat.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `pack` | Ordnername | Der Ordner des Packs in `autodarts/voices` des Medienordners, etwa `russ-bray`; erforderlich |
+| `pack` | Ordnername | Der Ordner des Packs in `homedarts/voices` des Medienordners, etwa `russ-bray`; erforderlich |
 | `keys` | 1–10 Schlüssel | Der Sound der Ansage, wie darts-caller seine Dateien nennt, etwa `yr_40` und `you_require`; es zählt der erste, den das Pack hat, in Groß- oder Kleinschreibung; erforderlich |
 
 ```yaml
-action: autodarts.voice_sound
+action: homedarts.voice_sound
 data:
   pack: russ-bray
   keys: [yr_40]
 response_variable: sound
 ```
 
-**Antwort:** `key` ist der Schlüssel, den das Pack hat, `media_content_id` sein Sound als Medium für `media_player.play_media`, etwa `media-source://media_source/local/autodarts/voices/russ-bray/yr_40.mp3`, und `media_content_type` seine Art, etwa `audio/mpeg`. Ein Schlüssel mit mehreren Dateien, etwa `gameshot.mp3` und `gameshot+2.mp3`, antwortet mit einer davon nach Zufall. Hat das Pack keinen der Schlüssel oder gibt es das Pack nicht, sind alle drei leer, damit die Ansage stattdessen gesprochen werden kann. Ein Name mit `/`, `..` oder einem Punkt am Anfang oder Ende wird abgelehnt.
+**Antwort:** `key` ist der Schlüssel, den das Pack hat, `media_content_id` sein Sound als Medium für `media_player.play_media`, etwa `media-source://media_source/local/homedarts/voices/russ-bray/yr_40.mp3`, und `media_content_type` seine Art, etwa `audio/mpeg`. Ein Schlüssel mit mehreren Dateien, etwa `gameshot.mp3` und `gameshot+2.mp3`, antwortet mit einer davon nach Zufall. Hat das Pack keinen der Schlüssel oder gibt es das Pack nicht, sind alle drei leer, damit die Ansage stattdessen gesprochen werden kann. Ein Name mit `/`, `..` oder einem Punkt am Anfang oder Ende wird abgelehnt.
 
-### Ein Voice-Pack aufnehmen: `autodarts.generate_voice_pack`
+### Ein Voice-Pack aufnehmen: `homedarts.generate_voice_pack`
 
-Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-Engine von Home Assistant auf: jede Ansage des Callers in 419 Sounds, benannt wie in den Voice-Packs von darts-caller, in `autodarts/voices` des Medienordners. Mit [Piper](https://www.home-assistant.io/integrations/piper/) verlässt die Stimme nie dein Zuhause. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
+Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-Engine von Home Assistant auf: jede Ansage des Callers in 419 Sounds, benannt wie in den Voice-Packs von darts-caller, in `homedarts/voices` des Medienordners. Mit [Piper](https://www.home-assistant.io/integrations/piper/) verlässt die Stimme nie dein Zuhause. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -862,7 +847,7 @@ Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-En
 | `voice` | Text | Eine Stimme der Engine, etwa `de_DE-thorsten-medium` für Piper; ohne sie die eigene der Engine |
 
 ```yaml
-action: autodarts.generate_voice_pack
+action: homedarts.generate_voice_pack
 data:
   tts_entity: tts.piper
   language: de_DE
@@ -874,7 +859,7 @@ Das Pack hat die Punkte `0`, gesagt als „Keine Punkte“, bis `180`, `busted`,
 
 **Antwort:** Mit `response_variable` ist `pack` der Name des Packs, `folder` sein Ordner und `sounds` die Zahl seiner Sounds.
 
-### Spieler mit einer Person verknüpfen: `autodarts.link_player`
+### Spieler mit einer Person verknüpfen: `homedarts.link_player`
 
 Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](cards.de.md#anzeigetafel), [Spielerkarte](cards.de.md#spielerkarte) und [Spielauswahl](cards.de.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin. Nur für Administratoren.
 
@@ -882,10 +867,10 @@ Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](cards.de.
 | --- | --- | --- |
 | `player` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
 | `person` | Personen-Entität | Etwa `person.dennis`; Pflichtfeld |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
-action: autodarts.link_player
+action: homedarts.link_player
 data:
   player: Dennis
   person: person.dennis
@@ -893,18 +878,18 @@ data:
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn Home Assistant diese Person nicht kennt oder der Spielername geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält.
 
-### Spieler-Verknüpfung lösen: `autodarts.unlink_player`
+### Spieler-Verknüpfung lösen: `homedarts.unlink_player`
 
 Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `player` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig |
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt.
 
-### Turnier starten: `autodarts.start_tournament`
+### Turnier starten: `homedarts.start_tournament`
 
 Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du weglässt, kommen aus den *Turnier*-Entitäten, Legs, Sätze und Regeln aus dem [Übungsspiel](#übungsspiel); die Werte, die du angibst, bleiben in den *Turnier*-Entitäten fürs nächste Turnier.
 
@@ -927,11 +912,11 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | `seed` | 1–999999 | Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus |
 | `pause` | 0–600 | Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf *Nächstes Turniermatch* |
 | `summary` | 0–60 | Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt |
-| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig; mit `boards` das Board, das das Turnier führt |
+| `config_entry_id` | HomeDarts-Eintrag | Nur bei mehreren Boards nötig; mit `boards` das Board, das das Turnier führt |
 | `boards` | Bis zu 8 Geräte oder Einträge | Weitere Boards, die [zur selben Zeit Matches des Turniers](games.de.md#ein-turnier-auf-mehreren-boards) spielen, über ihr Gerät oder die ID ihres Eintrags; das Board der Aktion gehört ohnehin dazu. Insgesamt bis zu acht Boards. |
 
 ```yaml
-action: autodarts.start_tournament
+action: homedarts.start_tournament
 data:
   players: [Dennis, Lea, Max, Kim, Sam]
   format: round_robin
@@ -940,17 +925,17 @@ data:
   pause: 30
 ```
 
-Ein laufendes Turnier muss beendet sein, bevor das nächste beginnt; ein abgeschlossenes wird ersetzt. Die Aktion bricht mit einer klaren Meldung ab, solange ein Turnier läuft, wenn das Format die Zahl der Spieler nicht nimmt, wenn die Spieler nicht in die Gruppen passen, wenn ein Name zweimal vorkommt oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält, wenn die Startpunkte wie oben nicht passen, wenn ein Board in `boards` kein Autodarts-Board oder nicht geladen ist, wenn eines der Boards schon in einem Turnier spielt oder wenn es mehr als acht Boards sind.
+Ein laufendes Turnier muss beendet sein, bevor das nächste beginnt; ein abgeschlossenes wird ersetzt. Die Aktion bricht mit einer klaren Meldung ab, solange ein Turnier läuft, wenn das Format die Zahl der Spieler nicht nimmt, wenn die Spieler nicht in die Gruppen passen, wenn ein Name zweimal vorkommt oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält, wenn die Startpunkte wie oben nicht passen, wenn ein Board in `boards` kein Board von HomeDarts oder nicht geladen ist, wenn eines der Boards schon in einem Turnier spielt oder wenn es mehr als acht Boards sind.
 
-### Nächstes Turniermatch starten: `autodarts.next_tournament_match`
+### Nächstes Turniermatch starten: `homedarts.next_tournament_match`
 
 Startet in der Pause das nächste Match des Turniers oder richtet das Match des Turniers wieder ein, wenn inzwischen ein anderes Spiel gewählt wurde. Auf mehreren Boards startet sie das nächste Match des Boards der Aktion. Die Aktion bricht mit einer klaren Meldung ab, solange das Match des Turniers läuft, wenn kein Turnier läuft und wenn für dieses Board noch kein Match bereit ist.
 
 ```yaml
-action: autodarts.next_tournament_match
+action: homedarts.next_tournament_match
 ```
 
-### Turnier beenden: `autodarts.stop_tournament`
+### Turnier beenden: `homedarts.stop_tournament`
 
 Beendet das Turnier, auf mehreren Boards auf jedem Board; das laufende Match geht als Übungsmatch weiter. Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Turnier gibt.
 

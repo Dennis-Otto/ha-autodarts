@@ -83,7 +83,7 @@ CALL_SERVICE = """
 async ([domain, service, key, data]) => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === key
+    (item) => item.platform === 'homedarts' && item.translation_key === key
   );
   await hass.callService(domain, service, { entity_id: entity.entity_id, ...data });
 }
@@ -94,7 +94,7 @@ SET_NAME = """
 async ([index, name]) => {
   const hass = document.querySelector('home-assistant').hass;
   const ids = Object.values(hass.entities)
-    .filter((item) => item.platform === 'autodarts' && item.translation_key === 'practice_player')
+    .filter((item) => item.platform === 'homedarts' && item.translation_key === 'practice_player')
     .map((item) => item.entity_id)
     .sort();
   await hass.callService('text', 'set_value', { entity_id: ids[index], value: name });
@@ -106,7 +106,7 @@ SET_START = """
 async ([index, value]) => {
   const hass = document.querySelector('home-assistant').hass;
   const ids = Object.values(hass.entities)
-    .filter((item) => item.platform === 'autodarts' && item.translation_key === 'practice_start')
+    .filter((item) => item.platform === 'homedarts' && item.translation_key === 'practice_start')
     .map((item) => item.entity_id)
     .sort();
   await hass.callService('number', 'set_value', { entity_id: ids[index], value });
@@ -117,7 +117,7 @@ FIND_CARDS = """
 () => {
   const cards = [];
   (function collect(root) {
-    root.querySelectorAll('autodarts-card').forEach((card) => cards.push(card));
+    root.querySelectorAll('homedarts-card').forEach((card) => cards.push(card));
     root.querySelectorAll('*').forEach((el) => el.shadowRoot && collect(el.shadowRoot));
   })(document);
   return cards;
@@ -166,7 +166,7 @@ def ready(page: Page) -> None:
 
 
 def open_dashboard(page: Page, view: str) -> None:
-    page.goto(f"{HA}/autodarts-demo/{view}")
+    page.goto(f"{HA}/homedarts-demo/{view}")
     page.wait_for_function(
         f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
         timeout=60000,
@@ -340,7 +340,7 @@ def saved(path: Path) -> None:
 
 
 def card_shot(
-    page: Page, name: str, index: int = 0, tag: str = "autodarts-card"
+    page: Page, name: str, index: int = 0, tag: str = "homedarts-card"
 ) -> None:
     card = page.locator(tag).nth(index)
     path = OUTPUT / f"{name}.png"
@@ -402,7 +402,7 @@ def failure_screenshots() -> Iterator[list[Browser]]:
 class Recorder:
     """Frames of one element and how long each shows, for an animated WebP."""
 
-    def __init__(self, page: Page, tag: str = "autodarts-card") -> None:
+    def __init__(self, page: Page, tag: str = "homedarts-card") -> None:
         self.page = page
         self.element = page.locator(tag).first
         self.frames: list[Image.Image] = []
@@ -496,7 +496,7 @@ def correct_live_animation(page: Page) -> None:
     wait_for_score(page, "80")
     page.wait_for_timeout(600)
     recorder.shot(1400)
-    card = page.locator("autodarts-card").first
+    card = page.locator("homedarts-card").first
     tap(page, recorder, card.locator(".slot[data-dart='2']"), 1200)
     tap(page, recorder, card.locator("[data-pad='multiplier'][data-value='3']"), 700)
     tap(page, recorder, card.locator(".pad-number[data-value='T20']"), 300)
@@ -532,7 +532,7 @@ def pull_darts() -> None:
 
 
 def wait_card(
-    page: Page, condition: str, tag: str = "autodarts-card", timeout: int = 15000
+    page: Page, condition: str, tag: str = "homedarts-card", timeout: int = 15000
 ) -> None:
     """Wait until the card's shadow root `r` meets a JavaScript condition."""
     page.wait_for_function(
@@ -661,8 +661,8 @@ def scoreboard_animation(page: Page) -> None:
     game(page, "501")
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
-    tag = "autodarts-scoreboard-card"
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
+    tag = "homedarts-scoreboard-card"
     # The first load of the dashboard takes a while.
     wait_card(board, "r.querySelectorAll('.player').length === 2", tag, 60000)
     ready(board)
@@ -722,7 +722,7 @@ def scoreboard_match(page: Page, option: str) -> tuple[Page, "Recorder"]:
     game(page, option)
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(
         board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
     )
@@ -799,7 +799,7 @@ def celebration_animation(page: Page) -> None:
     wait_card(board, "!!r.querySelector('.celebrate .moment.max')", SCOREBOARD)
     # The confetti frame by frame: the scoreboard's animations stand at each moment in
     # turn, before anything lets them run to their end.
-    seek = SEEK.replace("'autodarts-card'", f"'{SCOREBOARD}'")
+    seek = SEEK.replace("'homedarts-card'", f"'{SCOREBOARD}'")
     for index in range(18):
         board.evaluate(seek, index * 140)
         recorder.shot(140 if index < 17 else 1600, wait=False)
@@ -819,8 +819,8 @@ def killer_animation(page: Page) -> None:
     game(page, "killer")
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
-    tag = "autodarts-scoreboard-card"
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
+    tag = "homedarts-scoreboard-card"
     wait_card(board, "r.querySelectorAll('.player').length === 3", tag, 60000)
     ready(board)
     recorder = Recorder(board, tag)
@@ -876,7 +876,7 @@ TAP = """
 }
 """
 UNTAP = "() => document.getElementById('demo-tap')?.remove()"
-SCOREBOARD = "autodarts-scoreboard-card"
+SCOREBOARD = "homedarts-scoreboard-card"
 
 
 def tap(page: Page, recorder: Recorder, target, hold: int = 800) -> None:
@@ -890,7 +890,7 @@ def tap(page: Page, recorder: Recorder, target, hold: int = 800) -> None:
     recorder.shot(hold)
 
 
-def tablet(page: Page, path: str = "autodarts-auto/scoreboard") -> Page:
+def tablet(page: Page, path: str = "homedarts-auto/scoreboard") -> Page:
     """A landscape tablet at the board, showing the scoreboard."""
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
@@ -929,7 +929,7 @@ def lobby_animation(page: Page) -> None:
 CALL_ACTION = """
 async ([service, data]) => {
   const hass = document.querySelector('home-assistant').hass;
-  await hass.callService('autodarts', service, data);
+  await hass.callService('homedarts', service, data);
 }
 """
 
@@ -939,7 +939,7 @@ TOURNAMENT_IN = """
 (statuses) => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === 'tournament'
+    (item) => item.platform === 'homedarts' && item.translation_key === 'tournament'
       && item.entity_id.startsWith('sensor.')
   );
   return statuses.includes(hass.states[entity.entity_id]?.attributes.status);
@@ -1144,7 +1144,7 @@ def correct_loupe_animation(page: Page) -> None:
         has_touch=True,
     )
     phone = context.new_page()
-    phone.goto(f"{HA}/autodarts-auto/scoreboard")
+    phone.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(phone, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
     ready(phone)
     recorder = Recorder(phone, SCOREBOARD)
@@ -1197,7 +1197,7 @@ def keypad_screen(page: Page) -> None:
     """The keypad for darts entered by hand, with two darts of the visit entered."""
     bot_match(page, 60, 2)
     page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
-    board = tablet(page, "autodarts-demo/keypad")
+    board = tablet(page, "homedarts-demo/keypad")
     wait_card(board, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
     for segment in ("T20", "S19"):
         board.evaluate(CALL_ACTION, ["throw_dart", {"segment": segment}])
@@ -1284,7 +1284,7 @@ def tournament_bracket_animation(page: Page) -> None:
             },
         ],
     )
-    board = tablet(page, "autodarts-demo/tournament")
+    board = tablet(page, "homedarts-demo/tournament")
     wait_card(board, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
     ready(board)
     recorder = Recorder(board, SCOREBOARD)
@@ -1343,7 +1343,7 @@ def tournament_table(page: Page) -> None:
     page.evaluate(
         CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 90}]
     )
-    board = tablet(page, "autodarts-demo/tournament")
+    board = tablet(page, "homedarts-demo/tournament")
     wait_card(board, "!!r.querySelector('.standings')", SCOREBOARD, 60000)
     ready(board)
     page_shot(board, "tournament-table")
@@ -1413,7 +1413,7 @@ def big_tournament(
     page.evaluate(
         CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 90}]
     )
-    board = tablet(page, "autodarts-demo/tournament")
+    board = tablet(page, "homedarts-demo/tournament")
     board.set_viewport_size({"width": 1280, "height": height})
     wait_card(board, shown, SCOREBOARD, 60000)
     ready(board)
@@ -1515,7 +1515,7 @@ def idle_screen(page: Page) -> None:
     """Idle mode: the leaderboard of the demo players, with their pictures."""
     pull_darts()
     game(page, "off")
-    board = tablet(page, "autodarts-demo/idle")
+    board = tablet(page, "homedarts-demo/idle")
     wait_card(
         board,
         "r.querySelector('.idle-panel')?.dataset.panel === 'leaderboard'",
@@ -1532,8 +1532,8 @@ def media_gallery(page: Page) -> None:
     # Low enough for the month without a screen full of nothing below it.
     page.set_viewport_size({"width": 1280, "height": 640})
     page.goto(
-        f"{HA}/media-browser/browser/app%2Cmedia-source%3A%2F%2Fautodarts"
-        "/directory%2Cmedia-source%3A%2F%2Fautodarts%2F2026-09"
+        f"{HA}/media-browser/browser/app%2Cmedia-source%3A%2F%2Fhomedarts"
+        "/directory%2Cmedia-source%3A%2F%2Fhomedarts%2F2026-09"
     )
     # The title of a photo also sits in its hidden tooltip.
     page.get_by_text("180 · Alex").filter(visible=True).first.wait_for(timeout=30000)
@@ -1567,7 +1567,7 @@ def match_of(page: Page, names: list[str], option: str) -> Page:
     game(page, option)
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(
         board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
     )
@@ -1656,7 +1656,7 @@ def party_scoreboard(page: Page) -> None:
         page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": 1}])
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(
         board, "r.querySelectorAll('.main .player').length === 8", SCOREBOARD, 60000
     )
@@ -1787,31 +1787,31 @@ def doubles_card(page: Page) -> None:
             pull_darts()
             page.wait_for_timeout(300)
     game(page, "off")
-    page.goto(f"{HA}/autodarts-auto/training")
+    page.goto(f"{HA}/homedarts-auto/training")
     page.wait_for_function(
-        f"() => ({find('autodarts-doubles-card')})().some((c) =>"
+        f"() => ({find('homedarts-doubles-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.double').length >= 10)",
         timeout=60000,
     )
     ready(page)
-    card_shot(page, "doubles-card", tag="autodarts-doubles-card")
+    card_shot(page, "doubles-card", tag="homedarts-doubles-card")
 
 
 def players_card(page: Page) -> None:
     """The players card after the matches of the animations."""
-    page.goto(f"{HA}/autodarts-auto/players")
+    page.goto(f"{HA}/homedarts-auto/players")
     page.wait_for_function(
-        f"() => ({find('autodarts-players-card')})().some((c) =>"
+        f"() => ({find('homedarts-players-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.profile').length >= 2)",
         timeout=60000,
     )
     # Badges, trends and groupings have pictures of their own.
     page.evaluate(
-        f"() => ({find('autodarts-players-card')})().forEach((card) => card.setConfig("
+        f"() => ({find('homedarts-players-card')})().forEach((card) => card.setConfig("
         "{...card._config, show_badges: false, show_trends: false, show_spread: false}))"
     )
     ready(page)
-    card_shot(page, "players-card", tag="autodarts-players-card")
+    card_shot(page, "players-card", tag="homedarts-players-card")
 
 
 # The box of some parts of a card, scrolled below the toolbar: the card's full
@@ -1849,8 +1849,8 @@ def progress_cards(page: Page) -> None:
     and the records."""
     size = page.viewport_size
     page.set_viewport_size({"width": size["width"], "height": 2000})
-    players = "autodarts-players-card"
-    page.goto(f"{HA}/autodarts-demo/progress")
+    players = "homedarts-players-card"
+    page.goto(f"{HA}/homedarts-demo/progress")
     page.wait_for_function(
         f"() => ({find(players)})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.trend .spark').length >= 10"
@@ -1866,8 +1866,8 @@ def progress_cards(page: Page) -> None:
         [".badges-section .section-head", ".badge-player"],
     )
     part_shot(page, "players-trends", players, [".trends-section", ".groups-section"])
-    training = "autodarts-training-card"
-    page.goto(f"{HA}/autodarts-demo/positions")
+    training = "homedarts-training-card"
+    page.goto(f"{HA}/homedarts-demo/positions")
     page.wait_for_function(
         f"() => ({find(training)})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.heat-layer .position').length > 100"
@@ -1886,21 +1886,21 @@ def progress_cards(page: Page) -> None:
     )
     ready(page)
     part_shot(page, "training-aim", training, [".heat"])
-    page.goto(f"{HA}/autodarts-demo/leaderboard")
+    page.goto(f"{HA}/homedarts-demo/leaderboard")
     page.wait_for_function(
-        f"() => ({find('autodarts-leaderboard-card')})().some((c) =>"
+        f"() => ({find('homedarts-leaderboard-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.record').length >= 7)",
         timeout=60000,
     )
     ready(page)
-    card_shot(page, "leaderboard-card", tag="autodarts-leaderboard-card")
+    card_shot(page, "leaderboard-card", tag="homedarts-leaderboard-card")
     page.set_viewport_size(size)
 
 
 def heatmap_animation(page: Page) -> None:
     """The heatmap from beds to numbers and positions, then Alex's own darts."""
-    tag = "autodarts-training-card"
-    page.goto(f"{HA}/autodarts-demo/positions")
+    tag = "homedarts-training-card"
+    page.goto(f"{HA}/homedarts-demo/positions")
     page.wait_for_function(
         f"() => ({find(tag)})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.heat-layer .position').length > 100)",
@@ -1954,9 +1954,9 @@ def scoreboard_page(page: Page) -> Page:
     """The scoreboard view of the generated dashboard, as on a tablet at the board."""
     board = page.context.new_page()
     board.set_viewport_size({"width": 1280, "height": 800})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     board.wait_for_function(
-        f"() => ({find('autodarts-scoreboard-card')})().some((c) =>"
+        f"() => ({find('homedarts-scoreboard-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.player').length === 2)",
         timeout=60000,
     )
@@ -1974,7 +1974,7 @@ def match_summary(page: Page) -> None:
         page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": value}])
     game(page, "301")
     board = scoreboard_page(page)
-    tag = "autodarts-scoreboard-card"
+    tag = "homedarts-scoreboard-card"
     visits = [
         # Leg 1: Alex scores 180 and checks out 121.
         ["T20", "T20", "T20"],
@@ -2067,7 +2067,7 @@ def practice_card(page: Page) -> None:
         timeout=15000,
     )
     scoreboard.wait_for_function(
-        f"() => ({find('autodarts-scoreboard-card')})().some((c) => c.shadowRoot"
+        f"() => ({find('homedarts-scoreboard-card')})().some((c) => c.shadowRoot"
         ".querySelectorAll('.cricket tbody tr')[4]?.children[1]?.textContent === 'Ⓧ')",
         timeout=15000,
     )
@@ -2081,7 +2081,7 @@ def practice_card(page: Page) -> None:
 
 
 def find(tag: str) -> str:
-    return FIND_CARDS.replace("'autodarts-card'", f"'{tag}'")
+    return FIND_CARDS.replace("'homedarts-card'", f"'{tag}'")
 
 
 def training_card(page: Page, suffix: str) -> None:
@@ -2090,14 +2090,14 @@ def training_card(page: Page, suffix: str) -> None:
     # A tall page keeps the whole card below the toolbar.
     tall = 2600 if size["width"] < 600 else 1700
     page.set_viewport_size({"width": size["width"], "height": tall})
-    page.goto(f"{HA}/autodarts-demo/training")
+    page.goto(f"{HA}/homedarts-demo/training")
     page.wait_for_function(
-        f"() => ({find('autodarts-training-card')})().some((c) =>"
+        f"() => ({find('homedarts-training-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.history-chart .visit-bar:not(.empty)').length >= 5)",
         timeout=60000,
     )
     ready(page)
-    card_shot(page, f"training-card{suffix}", tag="autodarts-training-card")
+    card_shot(page, f"training-card{suffix}", tag="homedarts-training-card")
     page.set_viewport_size(size)
 
 
@@ -2105,9 +2105,9 @@ def live_positions(page: Page) -> None:
     """The positions of the session, with the darts of the current visit as pins."""
     size = page.viewport_size
     page.set_viewport_size({"width": size["width"], "height": 1700})
-    tag = "autodarts-training-card"
+    tag = "homedarts-training-card"
     # The card of Alex's positions, switched to the session.
-    page.goto(f"{HA}/autodarts-demo/positions")
+    page.goto(f"{HA}/homedarts-demo/positions")
     page.locator(f"{tag} button[data-source='']").click()
     page.wait_for_function(
         f"() => ({find(tag)})().some((c) =>"
@@ -2121,23 +2121,23 @@ def live_positions(page: Page) -> None:
 
 
 def status_card(page: Page, suffix: str) -> None:
-    page.goto(f"{HA}/autodarts-demo/status")
+    page.goto(f"{HA}/homedarts-demo/status")
     page.wait_for_function(
-        f"() => ({find('autodarts-status-card')})().some((c) =>"
+        f"() => ({find('homedarts-status-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.camera').length === 3)",
         timeout=60000,
     )
     ready(page)
-    card_shot(page, f"status-card{suffix}", tag="autodarts-status-card")
+    card_shot(page, f"status-card{suffix}", tag="homedarts-status-card")
 
 
 def strategy_dashboard(page: Page) -> None:
     """The training view of the dashboard that the strategy generates."""
     size = page.viewport_size
     page.set_viewport_size({"width": size["width"], "height": 1700})
-    page.goto(f"{HA}/autodarts-auto/training")
+    page.goto(f"{HA}/homedarts-auto/training")
     page.wait_for_function(
-        f"() => ({find('autodarts-training-card')})().some((c) =>"
+        f"() => ({find('homedarts-training-card')})().some((c) =>"
         " c.shadowRoot.querySelectorAll('.history-chart .visit-bar:not(.empty)').length >= 5)",
         timeout=60000,
     )
@@ -2149,12 +2149,12 @@ def strategy_dashboard(page: Page) -> None:
 # The views of the automatic dashboard in the order of its tabs, each with the card
 # it waits for: its first card, or for the game settings the built-in card of a list.
 STRATEGY_VIEWS = (
-    ("live", "autodarts-card"),
-    ("scoreboard", "autodarts-scoreboard-card"),
-    ("training", "autodarts-training-card"),
-    ("players", "autodarts-players-card"),
+    ("live", "homedarts-card"),
+    ("scoreboard", "homedarts-scoreboard-card"),
+    ("training", "homedarts-training-card"),
+    ("players", "homedarts-players-card"),
     ("games", "hui-entities-card"),
-    ("board", "autodarts-status-card"),
+    ("board", "homedarts-status-card"),
 )
 
 
@@ -2169,9 +2169,9 @@ def strategy_views(page: Page) -> None:
     context.add_init_script(f"try {{ {HIDE_SIDEBAR} }} catch {{}}")
     view = context.new_page()
     for path, tag in STRATEGY_VIEWS:
-        view.goto(f"{HA}/autodarts-auto/{path}")
+        view.goto(f"{HA}/homedarts-auto/{path}")
         wait_card(view, "r?.querySelector('ha-card')", tag, 60000)
-        if tag.startswith("autodarts-"):
+        if tag.startswith("homedarts-"):
             ready(view)
         else:
             # Built-in cards alone, which ready() does not wait for.
@@ -2200,7 +2200,7 @@ def rest_pointer(page: Page) -> None:
 
 
 def config_flow(page: Page) -> None:
-    page.goto(f"{HA}/config/integrations/dashboard/add?domain=autodarts")
+    page.goto(f"{HA}/config/integrations/dashboard/add?domain=homedarts")
     # An integration that is already set up asks before adding another entry.
     confirm = page.get_by_role("button", name="OK", exact=True)
     try:
@@ -2227,7 +2227,7 @@ def config_flow(page: Page) -> None:
     page.wait_for_timeout(800)
     page_shot(page, "setup-local")
     # Leave the unfinished flow; the demo instance is discarded afterwards.
-    page.goto(f"{HA}/autodarts-demo/board")
+    page.goto(f"{HA}/homedarts-demo/board")
 
 
 # Opens a path of Home Assistant within the app, as its links do.
@@ -2243,7 +2243,7 @@ def device_page(page: Page) -> None:
     open_dashboard(page, "board")
     device_id = page.evaluate(
         "() => Object.values(document.querySelector('home-assistant').hass.devices)"
-        ".find((d) => d.identifiers.some((i) => i[0] === 'autodarts')).id"
+        ".find((d) => d.identifiers.some((i) => i[0] === 'homedarts')).id"
     )
     # The device page names the button to the Board Manager once, when it opens,
     # and gets no words when the texts of the settings have not arrived yet. So the
@@ -2270,7 +2270,7 @@ def device_page(page: Page) -> None:
 
 
 def editor(page: Page) -> None:
-    page.goto(f"{HA}/autodarts-demo/board")
+    page.goto(f"{HA}/homedarts-demo/board")
     root = f"({find('hui-root')})()[0]"
     # The dashboard has loaded once the card has drawn its board.
     page.wait_for_function(
@@ -2293,13 +2293,13 @@ def editor(page: Page) -> None:
 
 def strategy_editor(page: Page) -> None:
     """The editor of the generated dashboard: the board and the title."""
-    page.goto(f"{HA}/autodarts-auto/live")
+    page.goto(f"{HA}/homedarts-auto/live")
     page.wait_for_function(
         f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
         timeout=60000,
     )
     page.evaluate(f"() => ({find('hui-root')})()[0]._enableEditMode()")
-    page.locator("autodarts-strategy-editor > ha-form").wait_for(timeout=15000)
+    page.locator("homedarts-strategy-editor > ha-form").wait_for(timeout=15000)
     page.wait_for_timeout(2000)
     page_shot(page, "strategy-editor")
     page.keyboard.press("Escape")
@@ -2321,7 +2321,7 @@ REPORTED = """
 async () => {
   const hass = document.querySelector('home-assistant').hass;
   const notifications = await hass.callWS({ type: 'persistent_notification/get' });
-  return notifications.some((item) => item.notification_id === 'autodarts_weekly_report');
+  return notifications.some((item) => item.notification_id === 'homedarts_weekly_report');
 }
 """
 SHOW_NOTIFICATIONS = """
@@ -2409,7 +2409,7 @@ ROUTE = """
 () => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === 'practice_checkout'
+    (item) => item.platform === 'homedarts' && item.translation_key === 'practice_checkout'
   );
   return hass.states[entity.entity_id].state;
 }
@@ -2419,7 +2419,7 @@ CRICKET_NUMBERS = """
 () => {
   const hass = document.querySelector('home-assistant').hass;
   const entity = Object.values(hass.entities).find(
-    (item) => item.platform === 'autodarts' && item.translation_key === 'practice_remaining'
+    (item) => item.platform === 'homedarts' && item.translation_key === 'practice_remaining'
   );
   return hass.states[entity.entity_id].attributes.numbers;
 }
@@ -2489,13 +2489,13 @@ def dart_by_dart(board: Page, recorder: Recorder, darts: list[dict]) -> None:
     recorder.shot(1000)
 
 
-HERO_CARDS = ("autodarts-card", SCOREBOARD)
+HERO_CARDS = ("homedarts-card", SCOREBOARD)
 
 
 def hero_view(view: Page) -> tuple[ClipRecorder, list[int]]:
     """The live card and the scoreboard of the hero dashboard on a page, and a
     recorder of the region around both, with their heights at the start."""
-    view.goto(f"{HA}/autodarts-demo/hero")
+    view.goto(f"{HA}/homedarts-demo/hero")
     wait_card(view, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
     ready(view)
     boxes = [view.locator(tag).first.bounding_box() for tag in HERO_CARDS]
@@ -2601,7 +2601,7 @@ def scoreboard_game(page: Page, names: list[str], option: str) -> Page:
     board = page.context.new_page()
     # High enough that the winner's banner never pushes the card under the toolbar.
     board.set_viewport_size({"width": 1280, "height": 1000})
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(
         board, "!!r.querySelector('.main .player, .main .single')", SCOREBOARD, 60000
     )
@@ -2853,7 +2853,7 @@ def scoreboard_portrait(page: Page) -> None:
     context = own_context(page, viewport={"width": 800, "height": 1280})
     context.add_init_script(HIDE_SIDEBAR)
     board = context.new_page()
-    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    board.goto(f"{HA}/homedarts-auto/scoreboard")
     wait_card(board, "!!r.querySelector('.cricket')", SCOREBOARD, 60000)
     throw_visits(
         board,
@@ -2880,7 +2880,7 @@ def scoreboard_portrait(page: Page) -> None:
 STREAM_PICTURE = """
 async ([name]) => {
   const hass = document.querySelector('home-assistant').hass;
-  const path = `/media/local/autodarts/highlights/${name}`;
+  const path = `/media/local/homedarts/highlights/${name}`;
   const signed = await hass.callWS({ type: 'auth/sign_path', path });
   const picture = new Image();
   picture.src = signed.path;
@@ -2893,7 +2893,7 @@ async ([name]) => {
 
 OVERLAY_CORNER = f"""
 () => ({find(SCOREBOARD)})()[0].setConfig({{
-  type: 'custom:autodarts-scoreboard-card', overlay: 'chroma', overlay_layout: 'corner'
+  type: 'custom:homedarts-scoreboard-card', overlay: 'chroma', overlay_layout: 'corner'
 }})
 """
 
@@ -2904,7 +2904,7 @@ def stream_overlay(page: Page) -> None:
     start_match(page, ["Alex", "Sam"], "501", legs=3)
     context = own_context(page, viewport={"width": 1280, "height": 720})
     board = context.new_page()
-    board.goto(f"{HA}/autodarts-auto/overlay")
+    board.goto(f"{HA}/homedarts-auto/overlay")
     wait_card(
         board,
         "r.querySelectorAll('.stage.taken .player').length === 2",
@@ -2949,7 +2949,7 @@ def dashboard_trends(page: Page) -> None:
         reduced_motion="reduce",
     )
     view = context.new_page()
-    view.goto(f"{HA}/autodarts-auto/training")
+    view.goto(f"{HA}/homedarts-auto/training")
     view.locator("hui-statistics-graph-card").first.wait_for(timeout=60000)
     # The graphs draw a moment after their data arrives.
     view.wait_for_timeout(5000)
@@ -2999,7 +2999,7 @@ def blueprints_page(page: Page) -> None:
     )
     view = context.new_page()
     view.goto(f"{HA}/config/blueprint/dashboard")
-    view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
+    view.get_by_text("HomeDarts: light show").first.wait_for(timeout=60000)
     # The list shows before the texts of the settings, such as its tabs.
     settings_texts(view)
     view.get_by_text(
@@ -3008,7 +3008,7 @@ def blueprints_page(page: Page) -> None:
     view.wait_for_timeout(1500)
     page_shot(view, "blueprints")
     # A blueprint opens a new automation with its form.
-    view.get_by_text("Autodarts: light show").first.click()
+    view.get_by_text("HomeDarts: light show").first.click()
     view.wait_for_url("**/config/automation/edit/new", timeout=30000)
     view.wait_for_timeout(3000)
     page_shot(view, "blueprint-light-show")
@@ -3110,7 +3110,7 @@ def board_events_dialog(page: Page) -> None:
         view.clock.set_fixed_time(now + timedelta(seconds=6))
     entity = view.evaluate(
         "() => Object.values(document.querySelector('home-assistant').hass.entities)"
-        ".find((item) => item.platform === 'autodarts' && item.translation_key === 'board_events')"
+        ".find((item) => item.platform === 'homedarts' && item.translation_key === 'board_events')"
         ".entity_id"
     )
     view.evaluate(RECORDED, entity)
@@ -3139,7 +3139,7 @@ def online_bridge_options(page: Page) -> None:
         page, viewport={"width": 1280, "height": 1100}, device_scale_factor=2
     )
     view = context.new_page()
-    view.goto(f"{HA}/config/integrations/integration/autodarts")
+    view.goto(f"{HA}/config/integrations/integration/homedarts")
     # The label of the button is one of the texts of the settings.
     settings_texts(view)
     label = "Configure" if LANGUAGE == "en" else "Konfigurieren"
@@ -3157,12 +3157,12 @@ def online_bridge_options(page: Page) -> None:
 
 # A dartboard without Autodarts -------------------------------------------------------
 
-MANUAL_DASHBOARD = "autodarts-manual"
+MANUAL_DASHBOARD = "homedarts-manual"
 ADD_MANUAL_BOARD = """
 async (name) => {
   const hass = document.querySelector('home-assistant').hass;
   const flow = (path, data) => hass.callApi('POST', `config/config_entries/flow${path}`, data);
-  const menu = await flow('', { handler: 'autodarts' });
+  const menu = await flow('', { handler: 'homedarts' });
   const form = await flow(`/${menu.flow_id}`, { next_step_id: 'manual' });
   const done = await flow(`/${form.flow_id}`, { name });
   return done.result.entry_id;
@@ -3187,9 +3187,9 @@ async ([path, device]) => {
     config: { views: [
       {
         title: 'Live', path: 'live', type: 'sections', max_columns: 2,
-        sections: [{ type: 'grid', column_span: 2, cards: [card('autodarts-card')] }],
+        sections: [{ type: 'grid', column_span: 2, cards: [card('homedarts-card')] }],
       },
-      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('autodarts-scoreboard-card', { full_height: true })] },
+      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('homedarts-scoreboard-card', { full_height: true })] },
     ] },
   });
 }
@@ -3203,7 +3203,7 @@ MANUAL_TITLE = {"en": "Dartboard without Autodarts", "de": "Dartscheibe ohne Aut
 
 def manual_setup(page: Page) -> None:
     """The form of the setup that adds a dartboard without Autodarts."""
-    page.goto(f"{HA}/config/integrations/dashboard/add?domain=autodarts")
+    page.goto(f"{HA}/config/integrations/dashboard/add?domain=homedarts")
     confirm = page.get_by_role("button", name="OK", exact=True)
     try:
         confirm.wait_for(timeout=10000)
@@ -3301,7 +3301,7 @@ def manual_voice_animation(page: Page, entry: str) -> None:
     and two darts of Sam's go in through Assist, which answers in the words of the
     caller, and the scoreboard shows them once the dialog closes."""
     automation = {
-        "id": "autodarts_voice_darts",
+        "id": "homedarts_voice_darts",
         "alias": "Darts by voice",
         "use_blueprint": {
             "path": "Dennis-Otto/enter_darts_by_voice.yaml",
@@ -3450,7 +3450,7 @@ def cards(browser: Browser) -> None:
             # The short card first, while the page is at the top: the tall one
             # scrolls it under the toolbar.
             card_shot(page, "card-board-only", 1)
-            tall_card_shot(page, "card-autodarts-style", 0)
+            tall_card_shot(page, "card-flat-style", 0)
             editor(page)
             strategy_editor(page)
             config_flow(page)

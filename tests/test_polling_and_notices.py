@@ -13,9 +13,9 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.local_api import AutodartsLocalClient
-from custom_components.autodarts.topics import Topic
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.local_api import AutodartsLocalClient
+from custom_components.homedarts.topics import Topic
 
 from .local_helpers import (
     BASE,
@@ -51,7 +51,7 @@ async def test_the_setup_waits_only_briefly_for_a_board_that_is_off(
         return dict(STATE)
 
     with (
-        patch("custom_components.autodarts.local_coordinator.FIRST_POLL_SECONDS", 0),
+        patch("custom_components.homedarts.local_coordinator.FIRST_POLL_SECONDS", 0),
         patch.object(
             AutodartsLocalClient, "get_state", side_effect=first_read_never_answers
         ),
