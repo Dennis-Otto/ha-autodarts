@@ -33,6 +33,7 @@ from custom_components.homedarts.const import LANGUAGES
 from custom_components.homedarts.positions import DartLog
 
 from .local_helpers import BLUEPRINTS, automate_all
+from .test_consistency import TRANSLATIONS, card_texts
 from .test_manual_board import DATA, act, entity, setup_manual
 
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
@@ -1326,14 +1327,34 @@ ASKED = {
             "Dein höchster Checkout ist 141.",
         ),
         (
+            "Was ist mein höchstes Finish?",
+            "Noch kein Checkout.",
+            "Dein höchster Checkout ist 141.",
+        ),
+        (
+            "Was ist das höchste Finish?",
+            "Noch kein Checkout.",
+            "Dein höchster Checkout ist 141.",
+        ),
+        (
             "Wie lang ist meine Serie?",
+            "Noch keine Serie.",
+            "Ein Tag in Folge. Dein Rekord: 1.",
+        ),
+        (
+            "Wie viele Tage hintereinander?",
             "Noch keine Serie.",
             "Ein Tag in Folge. Dein Rekord: 1.",
         ),
         (
             "Wer führt die Bestenliste an?",
             "Noch steht niemand in der Bestenliste.",
-            "Alex führt die Bestenliste an, mit einem 3-Dart-Average von 167.",
+            "Alex führt die Bestenliste mit einem 3-Dart-Average von 167 an.",
+        ),
+        (
+            "Wer steht an der Spitze der Bestenliste?",
+            "Noch steht niemand in der Bestenliste.",
+            "Alex führt die Bestenliste mit einem 3-Dart-Average von 167 an.",
         ),
         (
             "Wohin soll Sam zielen?",
@@ -1349,38 +1370,48 @@ ASKED = {
     "es": [
         (
             "¿Cuál es mi media de hoy?",
-            "Todavía no hay dardos hoy.",
+            "Hoy todavía no se ha lanzado ningún dardo.",
             "Hoy: media de 3 dardos de 120,2 en 18 dardos.",
         ),
         (
             "¿Qué media llevo?",
-            "Todavía no hay dardos hoy.",
+            "Hoy todavía no se ha lanzado ningún dardo.",
             "Hoy: media de 3 dardos de 120,2 en 18 dardos.",
         ),
         (
             "¿Cuál es mi media esta semana?",
-            "Todavía no hay dardos esta semana.",
+            "Esta semana todavía no se ha lanzado ningún dardo.",
             "Esta semana: media de 3 dardos de 120,2.",
         ),
         (
             "¿Cuántos 180 llevo esta semana?",
-            "Todavía no hay ningún 180 esta semana.",
+            "Esta semana todavía no hay ningún 180.",
             "180 esta semana: 2.",
         ),
         (
             "¿Cuántos dardos llevo hoy?",
-            "Todavía no hay dardos hoy.",
-            "18 dardos hoy. Te faltan 2 para tu objetivo diario de 20.",
+            "Hoy todavía no se ha lanzado ningún dardo.",
+            "Hoy llevas 18 dardos. Te faltan 2 para tu objetivo diario de 20.",
         ),
         (
             "¿Cuál es mi cierre más alto?",
-            "Todavía no hay ningún cierre.",
+            "Todavía no tienes ningún cierre.",
+            "Tu cierre más alto es 141.",
+        ),
+        (
+            "¿Cuál es mi mejor checkout?",
+            "Todavía no tienes ningún cierre.",
             "Tu cierre más alto es 141.",
         ),
         (
             "¿Cuál es mi racha?",
             "Todavía no tienes racha.",
-            "Llevas un día. Tu récord: 1.",
+            "Llevas un día seguido. Tu récord: 1.",
+        ),
+        (
+            "¿Cuántos días seguidos llevo entrenando?",
+            "Todavía no tienes racha.",
+            "Llevas un día seguido. Tu récord: 1.",
         ),
         (
             "¿Quién lidera la clasificación?",
@@ -1422,7 +1453,7 @@ ASKED = {
         (
             f"Combien de fléchettes aujourd'hui{NBSP}?",
             "Pas encore de fléchettes aujourd'hui.",
-            "18 fléchettes aujourd'hui. Encore 2 pour votre objectif quotidien de 20.",
+            "18 fléchettes aujourd'hui. Encore 2 pour atteindre votre objectif quotidien de 20.",
         ),
         (
             f"Quel est mon meilleur finish{NBSP}?",
@@ -1431,6 +1462,11 @@ ASKED = {
         ),
         (
             f"Quelle est ma série{NBSP}?",
+            "Pas encore de série.",
+            f"Un jour d'affilée. Votre record{NBSP}: 1.",
+        ),
+        (
+            f"Combien de jours de suite{NBSP}?",
             "Pas encore de série.",
             f"Un jour d'affilée. Votre record{NBSP}: 1.",
         ),
@@ -1454,17 +1490,17 @@ ASKED = {
         (
             "Wat is mijn gemiddelde vandaag?",
             "Vandaag nog geen darts.",
-            "Vandaag: 3-dart-gemiddelde 120,2 uit 18 darts.",
+            "Vandaag: 3-dart-gemiddelde van 120,2 over 18 darts.",
         ),
         (
             "Hoe gooi ik vandaag?",
             "Vandaag nog geen darts.",
-            "Vandaag: 3-dart-gemiddelde 120,2 uit 18 darts.",
+            "Vandaag: 3-dart-gemiddelde van 120,2 over 18 darts.",
         ),
         (
             "Wat is mijn gemiddelde deze week?",
             "Deze week nog geen darts.",
-            "Deze week: 3-dart-gemiddelde 120,2.",
+            "Deze week: 3-dart-gemiddelde van 120,2.",
         ),
         (
             "Hoeveel 180's heb ik deze week gegooid?",
@@ -1487,7 +1523,17 @@ ASKED = {
             "Eén dag op rij. Je record: 1.",
         ),
         (
+            "Hoeveel dagen achter elkaar?",
+            "Nog geen reeks.",
+            "Eén dag op rij. Je record: 1.",
+        ),
+        (
             "Wie staat bovenaan de ranglijst?",
+            "Er staat nog niemand op de ranglijst.",
+            "Alex staat bovenaan de ranglijst met een 3-dart-gemiddelde van 167.",
+        ),
+        (
+            "Wie staat eerste in de ranglijst?",
             "Er staat nog niemand op de ranglijst.",
             "Alex staat bovenaan de ranglijst met een 3-dart-gemiddelde van 167.",
         ),
@@ -1571,6 +1617,30 @@ def test_assist_answers_questions_in_every_language_of_the_integration():
     assert not [text for text in french if re.search(rf"(?<!{NBSP})[:;!?]", text)]
     spanish = [text for text in answers["es"].values() if isinstance(text, str)]
     assert all(text.startswith("¡") for text in spanish if text.endswith("!"))
+
+
+def test_assist_answers_with_the_words_of_the_integration():
+    """The answers name the daily goal, the streak, the leaderboard and the beds as
+    the translations of the integration and the cards do, in every language."""
+    answers = load_yaml(BLUEPRINTS / "ask_about_darts.yaml")["variables"]["answers"]
+    cards = card_texts()
+    for language, said in answers.items():
+        entities = TRANSLATIONS[language]["entity"]
+        messages = TRANSLATIONS[language]["exceptions"]
+        events = entities["event"]["board_events"]["state_attributes"]
+        reached = events["event_type"]["state"]["daily_goal_reached"]
+        exclaim = f"{NBSP}!" if language == "fr" else "!"
+        opening = "¡" if language == "es" else ""
+        assert said["goal_reached"] == f"{opening}{reached}{exclaim}", language
+        goal = entities["number"]["training_daily_goal"]["name"].lower()
+        assert goal in said["goal_left"].lower(), language
+        streak = events["achievement"]["state"]["streak"].lower()
+        assert streak in said["no_streak"].lower(), language
+        leaderboard = cards[language]["leaderboard"].lower()
+        for key in ("leader", "leader_plain", "no_leader"):
+            assert leaderboard in said[key].lower(), (language, key)
+        for bed, spoken in said["beds"].items():
+            assert spoken == messages[f"voice_bed_{bed}"]["message"], (language, bed)
 
 
 @pytest.mark.parametrize("language", ASKED)
@@ -1690,7 +1760,7 @@ async def test_assist_answers_in_the_language_of_the_question(hass, freezer):
     await daily_goal(hass, 20)
     await evening(hass, freezer)
     assert await ask(hass, "¿Cuántos dardos llevo hoy?", "es-419") == (
-        "18 dardos hoy. Te faltan 2 para tu objetivo diario de 20."
+        "Hoy llevas 18 dardos. Te faltan 2 para tu objetivo diario de 20."
     )
     assert await ask(hass, "Wie lang ist meine Serie?", "de-CH") == (
         "Ein Tag in Folge. Dein Rekord: 1."
