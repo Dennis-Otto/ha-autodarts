@@ -17,7 +17,7 @@ from collections.abc import Coroutine
 from typing import Any
 
 from .errors import AutodartsApiError
-from .generation import BoardGeneration
+from .generation import PROBE_SECONDS, SYSTEM_RECHECK_SECONDS, BoardGeneration
 from .local_api import (
     AutodartsEndpointMissing,
     AutodartsLocalClient,
@@ -25,10 +25,12 @@ from .local_api import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-# Board Manager 1 reports its settings and version in separate reads.
-METADATA_SECONDS = 30
-# The board PC changes only with system or Board Manager updates.
-HOST_REFRESH_SECONDS = 3600
+# Board Manager 1 reports its settings and version in separate reads, as often
+# as a board of unknown generation is asked for its version.
+METADATA_SECONDS = PROBE_SECONDS
+# The board PC changes only with system or Board Manager updates, after which a
+# board without /api/system is asked for it again.
+HOST_REFRESH_SECONDS = SYSTEM_RECHECK_SECONDS
 # Unknown answers in a row to a required read before a repair notice appears.
 PROTOCOL_FAILURES = 3
 REQUIRED_PATHS = ("/api/state", "/api/config", "/api/system")

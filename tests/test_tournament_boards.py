@@ -3,7 +3,7 @@ started on holds it, every board plays a match of its own, and the table and
 the bracket take the results of all of them."""
 
 import random
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -437,8 +437,14 @@ def test_a_restored_tournament_keeps_its_boards_where_they_fit():
     director = TournamentDirector()
     director.tournament = clash
     assert director.due_at("board-2") == NOW
+    # One stored without its start: at once, at no time that a snapshot shows.
     clash.started = None
-    assert director.due_at("board-2") is not None
+    assert director.due_at("board-2") == datetime.min.replace(tzinfo=UTC)
+    assert director.due(NOW, "board-2")
+    assert [board["next_at"] for board in director.snapshot("board-2")["boards"]] == [
+        None,
+        None,
+    ]
     beyond = Tournament.restored(
         {**saved, "seats": [seats[0], {**seats[1], "match": 99}]}
     )

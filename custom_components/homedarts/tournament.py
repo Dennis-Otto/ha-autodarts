@@ -159,6 +159,12 @@ _RANDOM = random.Random()  # noqa: S311
 _EPOCH = datetime.min.replace(tzinfo=UTC)
 
 
+def _shown(due: datetime | None) -> str | None:
+    """When a match is due, as the snapshot shows it: no time for a
+    tournament stored without its start, whose next match is due at once."""
+    return None if due is None or due == _EPOCH else due.isoformat()
+
+
 def _name(name: str) -> str:
     """A player name as the practice game keeps it."""
     return clean_name(name)
@@ -1584,7 +1590,7 @@ class TournamentDirector:
             "last_result": tournament.match(last, numbers),
             "pause": self.setup.pause,
             "summary": self.setup.summary,
-            "next_at": due.isoformat() if due else None,
+            "next_at": _shown(due),
             "ends_at": tournament.ends_at(self.setup.summary, self.setup.pause),
             "winner": tournament.podium()[0] if finished else None,
             "started": tournament.started,
@@ -1611,7 +1617,7 @@ class TournamentDirector:
                     "name": seat.name,
                     "match": None if seat.match is None else numbers[seat.match],
                     "players": [] if match is None else tournament.names(match),
-                    "next_at": due.isoformat() if due else None,
+                    "next_at": _shown(due),
                 }
             )
         return {"board": number + 1, "boards": boards}
