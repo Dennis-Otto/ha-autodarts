@@ -91,7 +91,7 @@ The defaults, automatic start on and no pause limit, count every dart as version
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Training darts | Sensor, total | Darts in the session. The `hits` attribute counts the hits per bed, for example `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; the heatmap uses it. The recorder does not store `hits`. |
+| Training darts | Sensor, total | Darts in the session. The `hits` attribute counts the hits per bed, for example `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; the heatmap uses it. The `summary` attribute is the session in a sentence in the language of Home Assistant, such as "30 darts, 3-dart average 57.3, highest visit 140, 1 × 180.", for the [training report](automations.md#training-report). The recorder stores neither. |
 | Training points | Sensor, total | Sum of all dart scores. |
 | Training 3-dart average | Sensor | Points per three darts, the usual darts average. *Unknown* before the first dart. |
 | Training visits | Sensor, total | Visits with at least one counted dart. |

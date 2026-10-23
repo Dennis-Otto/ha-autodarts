@@ -91,7 +91,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Training Darts | Sensor, Summe | Darts der Session. Das Attribut `hits` zählt die Treffer pro Feld, etwa `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; das Trefferbild nutzt es. Der Recorder speichert `hits` nicht. |
+| Training Darts | Sensor, Summe | Darts der Session. Das Attribut `hits` zählt die Treffer pro Feld, etwa `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; das Trefferbild nutzt es. Das Attribut `summary` ist die Session in einem Satz in der Sprache von Home Assistant, etwa „30 Darts, 3-Dart-Average 57,3, höchste Aufnahme 140, 1 × 180.“, für den [Trainingsbericht](automations.de.md#training-report). Der Recorder speichert beide nicht. |
 | Training Punkte | Sensor, Summe | Summe aller Punkte. |
 | Training 3-Dart-Average | Sensor | Punkte pro drei Darts, der übliche Durchschnitt im Darts. Vor dem ersten Dart *unbekannt*. |
 | Training Aufnahmen | Sensor, Summe | Aufnahmen mit mindestens einem gezählten Dart. |

@@ -110,9 +110,13 @@ async def test_asked_for_an_answer_the_action_tells_what_started(hass, aioclient
     assert await start(hass, game="301") is None
 
 
-async def test_the_answer_speaks_the_language_of_home_assistant(hass, aioclient_mock):
+@pytest.mark.parametrize("language", ["de", "de-CH", "de_AT"])
+async def test_the_answer_speaks_the_language_of_home_assistant(
+    hass, aioclient_mock, language
+):
+    """Also in a regional language, such as German of Switzerland."""
     await setup_local(hass, aioclient_mock, state=board())
-    hass.config.language = "de"
+    hass.config.language = language
     answer = await start(hass, True, game="doubles", players=["Alex", "Sam"])
     assert answer["message"] == "Game on: Doppeltraining mit Alex und Sam."
     answer = await start(hass, True, game="501", players=["Alex"], bot_level=60)

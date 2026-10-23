@@ -274,6 +274,48 @@ async def test_the_summary_writes_the_numbers_of_its_language(hass):
     )
 
 
+# A training session as the "Training darts" sensor holds it: its 3-dart average
+# is 45.1538…, which its sensor shows as 45.15 and the training report rounds
+# to 45.1.
+SESSION = {"darts": 39, "points": 587, "highest_visit": 140, "scores_180": 1}
+
+
+async def test_the_english_training_summary_is_the_one_the_blueprint_wrote(hass):
+    english = await caller(hass, "en")
+    assert english.training(SESSION) == (
+        "39 darts, 3-dart average 45.1, highest visit 140, 1 × 180."
+    )
+    assert english.training({**SESSION, "darts": 3, "points": 60, "scores_180": 0}) == (
+        "3 darts, 3-dart average 60.0, highest visit 140."
+    )
+    # A session without darts, as the blueprint reads the unknown average.
+    assert english.training({"darts": 0, "points": 0}) == (
+        "0 darts, 3-dart average 0.0, highest visit 0."
+    )
+    # Before the words are loaded, the blueprint says its own.
+    assert Caller().training(SESSION) is None
+
+
+@pytest.mark.parametrize(
+    ("language", "summary"),
+    [
+        ("de", "39 Darts, 3-Dart-Average 45,1, höchste Aufnahme 140, 1 × 180."),
+        ("de-CH", "39 Darts, 3-Dart-Average 45,1, höchste Aufnahme 140, 1 × 180."),
+        (
+            "es-419",
+            "39 dardos, media de 3 dardos 45,1, tirada más alta 140, 1 × 180.",
+        ),
+        (
+            "fr",
+            "39 fléchettes, moyenne 3 fléchettes 45,1, meilleure volée 140, 1 × 180.",
+        ),
+        ("nl", "39 darts, 3-dart-gemiddelde 45,1, hoogste beurt 140, 1 × 180."),
+    ],
+)
+async def test_the_training_summary_speaks_the_language(hass, language, summary):
+    assert (await caller(hass, language)).training(SESSION) == summary
+
+
 # Every turn a caller can call, beyond the cases of ENGLISH.
 TURNS = [
     ("turn_changed", {"player": 2, "name": "Sam", "players": 2, "bull_off": True}),
@@ -308,6 +350,8 @@ async def test_every_language_formats_every_call_and_summary(hass, language):
         words = spoken.words("weekly_report", report)
         assert words["title"]
         assert words["summary"]
+    for session in (SESSION, {**SESSION, "scores_180": 0}):
+        assert spoken.training(session)
     assert not spoken._failed
 
 
@@ -327,3 +371,14 @@ async def test_a_broken_translation_brings_no_words_and_stops_nothing(hass, capl
     await spoken.async_load(hass)
     assert spoken.words("bull_off_won", sam)["call"]
     assert not spoken._failed
+
+
+async def test_a_broken_training_summary_leaves_the_blueprint_its_own(hass, caplog):
+    spoken = await caller(hass, "nl")
+    spoken.say["training_summary_180"] = "{darts} {"
+    assert spoken.training(SESSION) is None
+    assert spoken.training({**SESSION, "scores_180": 0})
+    del spoken.say["training_summary"]
+    assert spoken.training({**SESSION, "scores_180": 0}) is None
+    assert caplog.text.count("cannot be formatted") == 1
+    assert "the summary of the training report" in caplog.text

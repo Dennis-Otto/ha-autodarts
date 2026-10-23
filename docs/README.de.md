@@ -316,7 +316,7 @@ Die Integration bringt jeden Blueprint mit und hält die, die du nicht geändert
 
   [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fweekly_report.yaml)
 
-- **Training report.** Deine Tageszusammenfassung mit dem 3-Dart-Average.
+- **Training report.** Deine Tageszusammenfassung mit dem 3-Dart-Average, in der Sprache von Home Assistant.
 
   [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Ftraining_report.yaml)
 
@@ -338,7 +338,7 @@ Die Integration bringt jeden Blueprint mit und hält die, die du nicht geändert
 
 </details>
 
-Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht sprechen von sich aus die Sprache von Home Assistant, und eigene Texte, etwa für die Ansagen, wählst du beim Anlegen. Die [Anleitung zu Automationen](https://dennis-otto.github.io/homedarts-for-autodarts/de/automations.html) enthält deutsche Beispiele.
+Die Blueprints sind auf Englisch beschriftet. Die Caller, der Trainings- und der Wochenbericht sprechen von sich aus die Sprache von Home Assistant, und eigene Texte, etwa für die Ansagen, wählst du beim Anlegen. Die [Anleitung zu Automationen](https://dennis-otto.github.io/homedarts-for-autodarts/de/automations.html) enthält deutsche Beispiele.
 
 <!-- --8<-- [start:devices-and-languages] -->
 
@@ -364,7 +364,7 @@ Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spa
 
 - Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
 - Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache, oder mit einem [Voice-Pack](scoreboard.de.md#voice-packs) aufgenommener Ansagen; `homedarts.generate_voice_pack` nimmt eines in der Sprache deiner Wahl auf.
-- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints sind auf Englisch beschriftet, weil Home Assistant Blueprints nicht übersetzt. Ihre Ansagen sprechen trotzdem jede der fünf Sprachen: Die Integration gibt den Ereignissen die Worte der Caller und des Wochenberichts in der Sprache von Home Assistant mit ([Ansagen in der Sprache von Home Assistant](automations.de.md#ansagen-in-der-sprache-von-home-assistant)). Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen. Assist antwortet in der Sprache von Home Assistant, bei *Ask Assist about your darts* in der Sprache der Frage.
+- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints sind auf Englisch beschriftet, weil Home Assistant Blueprints nicht übersetzt. Ihre Ansagen sprechen trotzdem jede der fünf Sprachen: Die Integration gibt den Ereignissen die Worte der Caller und des Wochenberichts und dem Trainingsbericht seine Zusammenfassung in der Sprache von Home Assistant mit ([Ansagen in der Sprache von Home Assistant](automations.de.md#ansagen-in-der-sprache-von-home-assistant)). Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen. Assist antwortet in der Sprache von Home Assistant, bei *Ask Assist about your darts* in der Sprache der Frage.
 
 Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original, stehen im [Übersetzungs-Issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) dieser Sprache, das ein Bot aktuell hält. Es erklärt, wie du sie direkt auf GitHub korrigierst, ganz ohne Programmierkenntnisse. Jede Sprache hat zwei kleine eigene Dateien, `translations/<Sprache>.json` für die Integration und `frontend/text/<Sprache>.js` für die Karten, beide in `custom_components/homedarts/`. Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#translations).
 

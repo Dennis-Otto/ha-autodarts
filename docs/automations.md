@@ -154,9 +154,11 @@ What this blueprint and the [automatic detection](#start-and-stop-detection-auto
 | Training 3-dart average | | The *Training 3-dart average* sensor of your board. |
 | Training highest visit | | The *Training highest visit* sensor of your board. |
 | Training 180s | | The *Training 180s* sensor of your board. |
-| Actions | | For example a notification with `summary`. They can also use `darts`, `average`, `highest`, `scores_180` and `darts_today`. |
+| Actions | | For example a notification with `summary`, such as "30 darts, 3-dart average 57.3, highest visit 140, 1 × 180." in the language of Home Assistant. They can also use `darts`, `average`, `highest`, `scores_180` and `darts_today`. |
 
 A finished session keeps its totals until the next one starts, so the report checks the *Darts today* sensor of the same board and skips days without darts. If that sensor is disabled, the darts of the session decide. To start a new session every day, add *New training session* of your board as the last action.
+
+No board event starts the report, so it takes `summary` from the `summary` attribute of the *Training darts* sensor: the sentence describes that sensor's session, even when the other sensors of the report come from another board, and it is in the language of Home Assistant (see [calls in the language of Home Assistant](#calls-in-the-language-of-home-assistant)). Without the attribute, as with a release of the integration before the one that added it, it writes the sentence in English.
 
 ### Training session routine
 
@@ -469,7 +471,7 @@ For example, in words of your own:
 
 ### Calls in the language of Home Assistant
 
-Home Assistant translates no blueprint, so the integration gives each event that a caller speaks the words for it, in the language of Home Assistant, and the callers say them by default: `call` on the events of the dart caller and the practice caller, `title` and `summary` on the weekly report. They follow a new language of Home Assistant at once, in English, German, Dutch, French and Spanish; a regional variant such as `de-CH` speaks its language, and another language English. The words are those of the [scoreboard's caller](scoreboard.md#the-caller) and of the voice packs that `homedarts.generate_voice_pack` records.
+Home Assistant translates no blueprint, so the integration gives each event that a caller speaks the words for it, in the language of Home Assistant, and the callers say them by default: `call` on the events of the dart caller and the practice caller, `title` and `summary` on the weekly report, and the `summary` attribute of the *Training darts* sensor for the training report, which runs on a timer. They follow a new language of Home Assistant at once, in English, German, Dutch, French and Spanish; a regional variant such as `de-CH` speaks its language, and another language English. The words are those of the [scoreboard's caller](scoreboard.md#the-caller) and of the voice packs that `homedarts.generate_voice_pack` records.
 
 | Event | `call` in English | `call` in German |
 | --- | --- | --- |

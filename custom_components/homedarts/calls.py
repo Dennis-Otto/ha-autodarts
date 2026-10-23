@@ -3,10 +3,11 @@ language of Home Assistant.
 
 Home Assistant translates no blueprint, so the board events bring the words with
 them: a `call` on the events that the dart caller and the practice caller speak,
-and a `title` and a `summary` on the weekly report. Their blueprints say them by
-default. The words are those of the scoreboard's caller and of the voice packs
-that the integration records; in English, they are the words the blueprints said
-before they had these.
+and a `title` and a `summary` on the weekly report. The training report runs on a
+timer that no event starts, so the "Training darts" sensor holds its `summary`.
+Their blueprints say them by default. The words are those of the scoreboard's
+caller and of the voice packs that the integration records; in English, they are
+the words the blueprints said before they had these.
 """
 
 from __future__ import annotations
@@ -91,17 +92,21 @@ class Caller:
         except (KeyError, IndexError, ValueError):
             # A broken translation must not stop the games: the event comes
             # without words, and the blueprints say their own.
-            if not self._failed:
-                self._failed = True
-                _LOGGER.warning(
-                    "A message in %s cannot be formatted; the %s event and "
-                    "others come without words until the language reloads",
-                    self.language,
-                    kind,
-                    exc_info=True,
-                )
+            self._broken(f"the {kind} event")
             return {}
         return {} if call is None else {"call": call}
+
+    def _broken(self, what: str) -> None:
+        """Log once that a message of the language fails to format."""
+        if not self._failed:
+            self._failed = True
+            _LOGGER.warning(
+                "A message in %s cannot be formatted; %s and others come "
+                "without words until the language reloads",
+                self.language,
+                what,
+                exc_info=True,
+            )
 
     # -- the callers -------------------------------------------------------------
 
@@ -255,3 +260,30 @@ class Caller:
         if count := (len(bests) if isinstance(bests, list) else 0):
             parts.append(self._counted("report_new_best", "report_new_bests", count))
         return " ".join(parts)
+
+    # -- the training report -----------------------------------------------------
+
+    def training(self, session: Mapping[str, Any]) -> str | None:
+        """The session as the training report says it: its darts, its 3-dart
+        average, its highest visit and its 180s, as the blueprint says them in
+        English. None before the words are loaded, or where a message of the
+        language fails to format: the blueprint then says its own."""
+        if not self.say:
+            return None
+        darts = _number(session.get("darts"))
+        # Rounded as the blueprint rounds the sensor of the 3-dart average,
+        # which keeps two decimals: to one of them.
+        points = _number(session.get("points"))
+        average = round(round(points / darts * 3, 2), 1) if darts else 0.0
+        maximums = _number(session.get("scores_180"))
+        key = "training_summary_180" if maximums else "training_summary"
+        try:
+            return self.say[key].format(
+                darts=darts,
+                average=self._shown(average),
+                highest=_number(session.get("highest_visit")),
+                count=maximums,
+            )
+        except (KeyError, IndexError, ValueError):
+            self._broken("the summary of the training report")
+            return None

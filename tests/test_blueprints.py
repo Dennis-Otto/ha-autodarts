@@ -1880,6 +1880,92 @@ async def test_training_report_skips_days_without_darts(hass, freezer):
     )
 
 
+@pytest.mark.parametrize(
+    ("language", "summary"),
+    [
+        ("en", "6 darts, 3-dart average 120.0, highest visit 180, 1 × 180."),
+        ("de-CH", "6 Darts, 3-Dart-Average 120,0, höchste Aufnahme 180, 1 × 180."),
+        ("es-419", "6 dardos, media de 3 dardos 120,0, tirada más alta 180, 1 × 180."),
+    ],
+    ids=["en", "de-CH", "es-419"],
+)
+async def test_the_training_report_speaks_the_language_of_home_assistant(
+    hass, aioclient_mock, freezer, language, summary
+):
+    """Home Assistant translates no blueprint, and no board event starts the
+    report: the "Training darts" sensor of the board has the words."""
+    reports = async_mock_service(hass, "test", "report")
+    await hass.config.async_set_time_zone("Europe/Berlin")
+    freezer.move_to("2026-09-26 20:30:00+02:00")
+    hass.config.language = language
+    entry = await setup_bridge(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await visit(hass, coordinator, T20, T20, T20)
+    await visit(hass, coordinator, S20, S20, S20)
+    darts = entity_id(hass, "sensor", "training_darts")
+    assert hass.states.get(darts).attributes["summary"] == summary
+    await automate(
+        hass,
+        "training_report",
+        {
+            **REPORT,
+            "darts_sensor": darts,
+            "average_sensor": entity_id(hass, "sensor", "training_average"),
+            "highest_sensor": entity_id(hass, "sensor", "training_highest_visit"),
+            "maximum_sensor": entity_id(hass, "sensor", "training_scores_180"),
+        },
+    )
+    await report_at(hass, freezer, "26")
+    assert [call.data["message"] for call in reports] == [summary]
+    await hass.services.async_call(
+        "automation", "turn_off", {"entity_id": "all"}, blocking=True
+    )
+
+
+async def test_the_training_summary_follows_a_new_language_at_once(
+    hass, aioclient_mock
+):
+    entry = await setup_bridge(hass, aioclient_mock, state=board())
+    await visit(hass, entry.runtime_data.local, T20, S20, MISS)
+    darts = entity_id(hass, "sensor", "training_darts")
+    assert hass.states.get(darts).attributes["summary"] == (
+        "3 darts, 3-dart average 80.0, highest visit 80."
+    )
+    await hass.config.async_update(language="nl")
+    await hass.async_block_till_done()
+    assert hass.states.get(darts).attributes["summary"] == (
+        "3 darts, 3-dart-gemiddelde 80,0, hoogste beurt 80."
+    )
+    # Without the words, such as a broken translation, the sensor has no
+    # summary, and the training report writes its own.
+    coordinator = entry.runtime_data.local
+    del coordinator.caller.say["training_summary"]
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    assert "summary" not in hass.states.get(darts).attributes
+    assert hass.states.get(darts).attributes["hits"] == {"T20": 1, "S20": 1, "MISS": 1}
+
+
+async def test_the_training_report_has_its_own_words_without_the_sensors(hass, freezer):
+    """A board of a release without the summary, or without its words, gets the
+    report in English."""
+    reports = async_mock_service(hass, "test", "report")
+    await hass.config.async_set_time_zone("Europe/Berlin")
+    freezer.move_to("2026-09-26 20:59:00+02:00")
+    training_totals(hass, "30")
+    hass.states.async_set(
+        "sensor.autodarts_training_darts", "30", {"hits": {}, "summary": None}
+    )
+    await automate(hass, "training_report", REPORT)
+    await report_at(hass, freezer, "26")
+    assert [call.data["message"] for call in reports] == [
+        "30 darts, 3-dart average 57.3, highest visit 140, 1 × 180."
+    ]
+    await hass.services.async_call(
+        "automation", "turn_off", {"entity_id": "all"}, blocking=True
+    )
+
+
 SESSION = {
     "board_events": EVENTS,
     "detection": "switch.autodarts_board_detection",

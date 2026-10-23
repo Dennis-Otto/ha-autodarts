@@ -1155,6 +1155,12 @@
     },
     "report_new_bests": {
       "message": "{count} neue Bestleistungen."
+    },
+    "training_summary": {
+      "message": "{darts} Darts, 3-Dart-Average {average}, höchste Aufnahme {highest}."
+    },
+    "training_summary_180": {
+      "message": "{darts} Darts, 3-Dart-Average {average}, höchste Aufnahme {highest}, {count} × 180."
     }
   },
   "issues": {

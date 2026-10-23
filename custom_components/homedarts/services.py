@@ -29,6 +29,7 @@ from homeassistant.helpers.translation import async_get_translations
 
 from .board import RADIUS_MM, bed_name, segment_at
 from .bot import valid_level
+from .calls import speaks
 from .const import DOMAIN, LANGUAGES
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
@@ -460,7 +461,9 @@ async def _game_key(hass: HomeAssistant, game: str) -> str:
 
 async def _game_on(hass: HomeAssistant, key: str, practice: PracticeGame) -> str:
     """What a voice assistant says when a game starts: the game and who plays it."""
-    texts = await async_get_translations(hass, hass.config.language, "entity", {DOMAIN})
+    # The name of the game in the language of the answer, such as German for de-CH.
+    language = speaks(hass.config.language)
+    texts = await async_get_translations(hass, language, "entity", {DOMAIN})
     game = texts.get(f"component.{DOMAIN}.entity.select.practice_game.state.{key}", key)
     players = [name for name in practice.names[: practice.humans] if name]
     if practice.bot_seat is not None:
