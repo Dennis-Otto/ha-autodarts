@@ -383,7 +383,7 @@ and the uv 0.12.23 of Home Assistant 2026.10. `osv-scanner.toml`, which OSV-Scan
 the OpenSSF Scorecard read, accepts such a version with every advisory as a
 `[[PackageOverrides]]` entry, with its reason and an `effectiveUntil` date, after which
 OSV-Scanner reports it again and someone looks again. `python3 .github/blueprint.py
-advisories --fix` writes a rule of Renovate for each into
+advisories --fix` (from blueprint 1.0.8 on) writes a rule of Renovate for each into
 `.github/renovate-accepted.json5`, so that Renovate tries no fix that the lock file can't
 take. A single advisory goes into `[[IgnoredVulns]]` with a reason that starts with the
 pinned version, and into `allow-ghsas` of the dependency review. A consistency test fails

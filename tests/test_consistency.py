@@ -849,5 +849,5 @@ def test_osv_overrides_accept_only_the_pinned_versions():
         assert versions == [version], (
             f"requirements-test.txt pins {name} {versions or 'no more'}: remove the "
             f"override of {name} {version} from osv-scanner.toml and run "
-            "python3 .github/blueprint.py advisories --fix"
+            "python3 .github/blueprint.py advisories --fix (from blueprint 1.0.8 on)"
         )

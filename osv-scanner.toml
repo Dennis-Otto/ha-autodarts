@@ -9,7 +9,7 @@
 # vulnerability.ignore, which accepts every advisory of that version, also those that
 # are published later, with its `reason` and `effectiveUntil`, after which OSV-Scanner
 # reports it again and a person looks again. `python3 .github/blueprint.py advisories
-# --fix` writes a rule of Renovate for each into .github/renovate-accepted.json5, so that
+# --fix` (from blueprint 1.0.8 on) writes a rule of Renovate for each into .github/renovate-accepted.json5, so that
 # Renovate tries no fix that the lock file can't take. tests/test_consistency.py fails
 # once the test base moves past the version, so an entry leaves with the update that
 # fixes it.
