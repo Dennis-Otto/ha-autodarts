@@ -4,6 +4,15 @@ All notable changes of HomeDarts for Autodarts, called Autodarts up to version 1
 
 ## Unreleased
 
+## [2.0.1](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v2.0.0...v2.0.1) (2026-10-23)
+
+
+### Bug fixes
+
+* **i18n:** review the questions and answers of Ask Assist in German, Spanish, French and Dutch ([#455](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/455)) ([a08706f](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/a08706f58790ec13f547ed15796c4fd157ad73e5))
+* **security:** accept the advisories of the test tools that Home Assistant pins ([#458](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/458)) ([b749968](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/b7499680ead9b64dc5da9ad39fb8a684f43537d4))
+* the training report and Assist answer in the regional language ([#457](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/457)) ([9870397](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/98703972d770aefb31eaa9ce90f214b4dd622603))
+
 ## [2.0.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.18.0...v2.0.0) (2026-10-21)
 
 ### Breaking changes
