@@ -247,6 +247,8 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_config_changed(self, _event: CoreEvent) -> None:
         await self.caller.async_load(self.hass)
+        # The summary of the training report speaks the new language, too.
+        self.async_update_listeners()
 
     # -- events and changes of the games -----------------------------------------
 

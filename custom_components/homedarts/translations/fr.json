@@ -1155,6 +1155,12 @@
     },
     "report_new_bests": {
       "message": "{count} nouveaux records personnels."
+    },
+    "training_summary": {
+      "message": "{darts} fléchettes, moyenne 3 fléchettes {average}, meilleure volée {highest}."
+    },
+    "training_summary_180": {
+      "message": "{darts} fléchettes, moyenne 3 fléchettes {average}, meilleure volée {highest}, {count} × 180."
     }
   },
   "issues": {

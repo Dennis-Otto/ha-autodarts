@@ -8,7 +8,8 @@ blueprint:
 
 
     Your actions can use the variables `darts`, `average`, `highest`,
-    `scores_180`, `darts_today` and `summary` (a ready-made sentence). To
+    `scores_180`, `darts_today` and `summary` (a ready-made sentence in the
+    language of Home Assistant). To
     start a new session every day, add "New training session" of your board
     as the last action.
 
@@ -118,9 +119,13 @@ variables:
     {%- endif %}
     {%- endfor %}
     {{- ns.darts }}
+  # In the language of Home Assistant from the "Training darts" sensor; in
+  # English where it has no summary, as with a release before 2.0.1.
   summary: >-
-    {{ darts }} darts, 3-dart average {{ average }}, highest visit {{ highest }}{{
-    (', ' ~ scores_180 ~ ' × 180') if scores_180 > 0 else '' }}.
+    {% set spoken = state_attr(darts_sensor, 'summary') %}
+    {%- if spoken %}{{ spoken }}{% else %}{{ darts }} darts, 3-dart average {{
+    average }}, highest visit {{ highest }}{{
+    (', ' ~ scores_180 ~ ' × 180') if scores_180 > 0 else '' }}.{% endif %}
 
 conditions:
   - alias: The session has darts to report

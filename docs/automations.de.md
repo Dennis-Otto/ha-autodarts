@@ -41,7 +41,7 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
 Die Buttons importieren einen Blueprint von GitHub, etwa einen, den du gelöscht hast. Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/homedarts`](https://github.com/Dennis-Otto/homedarts-for-autodarts/tree/main/blueprints/automation/homedarts) ein. Ein importierter Blueprint bleibt aktuell wie die anderen.
 
-Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
+Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen, der Trainings- und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
 <img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn HomeDarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
@@ -156,9 +156,11 @@ Was dieser Blueprint und die [automatische Erkennung](#start-and-stop-detection-
 | Training 3-dart average | | Der Sensor *Training 3-Dart-Average* deines Boards. |
 | Training highest visit | | Der Sensor *Training höchste Aufnahme* deines Boards. |
 | Training 180s | | Der Sensor *Training 180er* deines Boards. |
-| Actions | | Zum Beispiel eine Benachrichtigung mit `summary`. Nutzbar sind auch `darts`, `average`, `highest`, `scores_180` und `darts_today`. |
+| Actions | | Zum Beispiel eine Benachrichtigung mit `summary`, etwa „30 Darts, 3-Dart-Average 57,3, höchste Aufnahme 140, 1 × 180.“ in der Sprache von Home Assistant. Nutzbar sind auch `darts`, `average`, `highest`, `scores_180` und `darts_today`. |
 
 Eine beendete Session behält ihre Summen bis zur nächsten. Deshalb prüft der Bericht den Sensor *Darts heute* desselben Boards und überspringt Tage ohne Darts. Ist dieser Sensor deaktiviert, entscheiden die Darts der Session. Für jeden Tag eine neue Session füge *Neue Trainingssession* deines Boards als letzte Aktion hinzu.
+
+Kein Ereignis des Boards startet den Bericht. Deshalb nimmt er `summary` aus dem Attribut `summary` des Sensors *Training Darts*, in der Sprache von Home Assistant (siehe [Ansagen in der Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant)). Ohne das Attribut, etwa mit einer Version der Integration vor 2.0.1, schreibt er den Satz auf Englisch.
 
 ### Training session routine
 
@@ -497,7 +499,7 @@ data:
 
 ### Ansagen in der Sprache von Home Assistant
 
-Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem Ereignis, das ein Caller ansagt, seine Worte in der Sprache von Home Assistant mit, und die Caller sagen sie standardmäßig: `call` bei den Ereignissen des Dart- und des Übungs-Callers, `title` und `summary` beim Wochenbericht. Sie folgen einer neuen Sprache von Home Assistant sofort, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch; eine regionale Variante wie `de-CH` spricht ihre Sprache, jede andere Sprache Englisch. Es sind die Worte des [Callers der Anzeigetafel](scoreboard.de.md#der-caller) und der Voice-Packs, die `homedarts.generate_voice_pack` aufnimmt.
+Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem Ereignis, das ein Caller ansagt, seine Worte in der Sprache von Home Assistant mit, und die Caller sagen sie standardmäßig: `call` bei den Ereignissen des Dart- und des Übungs-Callers, `title` und `summary` beim Wochenbericht und das Attribut `summary` des Sensors *Training Darts* für den Trainingsbericht, der nach Uhrzeit läuft. Sie folgen einer neuen Sprache von Home Assistant sofort, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch; eine regionale Variante wie `de-CH` spricht ihre Sprache, jede andere Sprache Englisch. Es sind die Worte des [Callers der Anzeigetafel](scoreboard.de.md#der-caller) und der Voice-Packs, die `homedarts.generate_voice_pack` aufnimmt.
 
 | Ereignis | `call` auf Deutsch | `call` auf Englisch |
 | --- | --- | --- |

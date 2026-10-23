@@ -1155,6 +1155,12 @@
     },
     "report_new_bests": {
       "message": "{count} new personal bests."
+    },
+    "training_summary": {
+      "message": "{darts} darts, 3-dart average {average}, highest visit {highest}."
+    },
+    "training_summary_180": {
+      "message": "{darts} darts, 3-dart average {average}, highest visit {highest}, {count} × 180."
     }
   },
   "issues": {

@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 
+from .calls import speaks
 from .const import DOMAIN
 from .practice import PracticeGame
 
@@ -26,9 +27,12 @@ OTHER_BEDS = {
 async def _message(hass: HomeAssistant, domain: str, key: str) -> str | None:
     """A message of an integration in the language of Home Assistant; English where
     the language lacks it."""
-    texts = await async_get_translations(
-        hass, hass.config.language, "exceptions", {domain}
+    # This integration speaks a language without its region, such as German for
+    # de-CH, as its callers do; Home Assistant itself also speaks regions.
+    language = (
+        speaks(hass.config.language) if domain == DOMAIN else hass.config.language
     )
+    texts = await async_get_translations(hass, language, "exceptions", {domain})
     return texts.get(f"component.{domain}.exceptions.{key}.message")
 
 

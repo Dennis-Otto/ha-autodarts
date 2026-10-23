@@ -627,14 +627,22 @@ class AutodartsTrainingSensor(AutodartsStoredEntity, SensorEntity):
 
 
 class AutodartsTrainingDartsSensor(AutodartsTrainingSensor):
-    """Darts of the session, with hits per bed for heatmaps."""
+    """Darts of the session, with hits per bed for heatmaps and the summary of
+    the training report in the language of Home Assistant."""
 
-    # The breakdown is for cards; long-term history only needs the total.
-    _unrecorded_attributes = frozenset({"hits"})
+    # The breakdown is for cards and the summary for the training report, which
+    # reads it when it runs; long-term history only needs the total.
+    _unrecorded_attributes = frozenset({"hits", "summary"})
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return {"hits": self._session()["hits"]}
+        session = self._session()
+        attributes: dict[str, Any] = {"hits": session["hits"]}
+        # Home Assistant translates no blueprint, and no board event starts the
+        # report; without the words, the blueprint says its own.
+        if summary := self.coordinator.caller.training(session):
+            attributes["summary"] = summary
+        return attributes
 
 
 class AutodartsLastSessionSensor(AutodartsStoredEntity, SensorEntity):
