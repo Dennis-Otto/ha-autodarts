@@ -25,6 +25,10 @@ bash tests/e2e/run.sh
 The log shows the seconds of every phase of the scenario, such as
 `Scenario phase: resilience (46.3 s)`.
 
+The script pulls the image of Home Assistant before the containers start, up to
+three times 10 seconds apart, so that a pull the registry cuts off doesn't fail the
+scenario.
+
 The scenario uses only Home Assistant's public REST and WebSocket APIs and verifies:
 
 - onboarding and local config flow, including invalid-host, unreachable-board and
