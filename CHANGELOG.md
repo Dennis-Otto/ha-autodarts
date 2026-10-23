@@ -4,6 +4,14 @@ All notable changes of HomeDarts for Autodarts, called Autodarts up to version 1
 
 ## Unreleased
 
+## [2.0.1](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v2.0.0...v2.0.1) (2026-10-23)
+
+### Fixed
+
+- **Ask Assist about your darts sounds more natural in German, Spanish, French and Dutch:** the answers use the same words as the rest of the integration, such as "¡Objetivo diario alcanzado!" and "Dagdoel bereikt!", and read as people say them, such as "Alex führt die Bestenliste mit einem 3-Dart-Average von 167 an." or "Vandaag: 3-dart-gemiddelde van 120,2 over 18 darts.". Assist also understands more ways to ask, such as "Was ist mein höchstes Finish?", "Wer steht an der Spitze der Bestenliste?", "¿Cuál es mi mejor checkout?", "¿Cuántos días seguidos llevo entrenando?", "Combien de jours de suite ?" and "Hoeveel dagen achter elkaar?". The update brings the new sentences and answers to every automation made from the blueprint; an automation in which you changed the sentences keeps yours, so add the new ones there yourself.
+- **The security scans pass again for the test tools of Home Assistant:** Home Assistant 2026.10 pins Pillow 12.3.0 and uv 0.12.23 for the tests of every integration, and no update of the tests can fix their advisories until Home Assistant moves on, so the OSV-Scanner and Findings checks failed on every change. `osv-scanner.toml` now accepts every advisory of exactly these two versions, with the reason and until 2026-11-22. Nothing that you install changes: the integration ships neither of them.
+- **The training report and Assist speak a regional language of Home Assistant:** the ready-made `summary` of the training report now comes in the language of Home Assistant, such as "30 Darts, 3-Dart-Average 57,3, höchste Aufnahme 140, 1 × 180." in German, from the new `summary` attribute of the *Training darts* sensor; an automation made from the blueprint gets it with the update. Assist answers in German, Spanish, French or Dutch also when Home Assistant speaks a regional variant such as `de-CH` or `es-419`, with the name of the game in that language too, instead of in English.
+
 ## [2.0.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.18.0...v2.0.0) (2026-10-21)
 
 ### Breaking changes
