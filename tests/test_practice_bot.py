@@ -5,7 +5,7 @@ import json
 from custom_components.homedarts.bot import DEFAULT_DELAY
 from custom_components.homedarts.practice import PracticeGame, valid_delay
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 
 def against_the_bot(game: int | str = 301, level: int = 60, humans: int = 1):
@@ -62,8 +62,8 @@ def test_the_bot_throws_its_dart_of_the_bull_off():
     game.set_bot(80)
     game.play(501)
     assert game.bulling is not None and not game.bot_up
-    game.track([dart("S20")], [(0.0, 0.5)])
-    game.finish_visit()
+    game.track([dart("S20")], [(0.0, 0.5)], now=NOW)
+    game.finish_visit(now=NOW)
     assert game.bot_up
     throws = game.snapshot()["bull_off"]["throws"]
     assert [item.get("bot") for item in throws] == [None, True]
@@ -135,13 +135,13 @@ def test_valid_delays():
 def test_a_visit_without_darts_passes_in_x01_and_cricket():
     game = against_the_bot(301)
     assert game.passes()
-    ((kind, turn),) = game.finish_visit(empty=True)
+    ((kind, turn),) = game.finish_visit(empty=True, now=NOW)
     assert kind == "turn_changed" and turn["player"] == 2
     assert game.players[0].darts == 0 and game.players[0].remaining == 301
     game = against_the_bot("cricket")
-    assert game.finish_visit(empty=True)[0][1]["player"] == 2
+    assert game.finish_visit(empty=True, now=NOW)[0][1]["player"] == 2
     # Without the empty flag, nothing happens as before.
-    assert game.finish_visit() == []
+    assert game.finish_visit(now=NOW) == []
 
 
 def test_no_pass_while_choosing_in_the_bull_off_training_games_or_after_the_match():
@@ -149,10 +149,10 @@ def test_no_pass_while_choosing_in_the_bull_off_training_games_or_after_the_matc
     game.set_players(2)
     game.play("killer")
     # Killer passes only once every player has a number.
-    assert not game.passes() and game.finish_visit(empty=True) == []
+    assert not game.passes() and game.finish_visit(empty=True, now=NOW) == []
     game.party.numbers = [20, 3]
     assert game.passes()
-    ((kind, turn),) = game.finish_visit(empty=True)
+    ((kind, turn),) = game.finish_visit(empty=True, now=NOW)
     assert kind == "turn_changed" and turn["player"] == 2
     assert turn["lives"] == 3 and turn["killer"] is False and "points" not in turn
     game.set_players(1)
@@ -163,13 +163,13 @@ def test_no_pass_while_choosing_in_the_bull_off_training_games_or_after_the_matc
     game.bull_off = True
     game.set_players(2)
     game.play(301)
-    assert not game.passes() and game.finish_visit(empty=True) == []
+    assert not game.passes() and game.finish_visit(empty=True, now=NOW) == []
     game.bull_off = False
     game.play(301)
     game.players[0].remaining = 40
     throw(game, "D20")
     assert game.winner == 0 and not game.passes()
-    assert game.finish_visit(empty=True) == []
+    assert game.finish_visit(empty=True, now=NOW) == []
 
 
 def test_a_checkpoint_brings_the_game_back_with_its_visit():
@@ -179,19 +179,19 @@ def test_a_checkpoint_brings_the_game_back_with_its_visit():
     checkpoint = game.checkpoint()
     visit = [dart("S20"), dart("D10")]
     for count in (1, 2):
-        game.track(visit[:count])
-    assert game.finish_visit()[0][0] == "turn_changed"
+        game.track(visit[:count], now=NOW)
+    assert game.finish_visit(now=NOW)[0][0] == "turn_changed"
     assert game.players[0].legs == 1 and len(game.legs) == 1
-    game.track([])
-    game.rewind(checkpoint, visit, [None, (0.0, 0.97)])
+    game.track([], now=NOW)
+    game.rewind(checkpoint, visit, [None, (0.0, 0.97)], now=NOW)
     # Before the booking, with the darts thrown again and the win known.
     assert game.players[0].legs == 0 and game.legs == []
     snapshot = game.snapshot()
     assert snapshot["won"] is True and snapshot["visit"] == ["S20", "D10"]
-    assert game.track(visit) == []
+    assert game.track(visit, now=NOW) == []
     # A correction that changes the outcome announces again.
-    assert game.track([dart("S20"), dart("S10")]) == []
-    assert game.track(visit)[0][0] == "leg_won"
+    assert game.track([dart("S20"), dart("S10")], now=NOW) == []
+    assert game.track(visit, now=NOW)[0][0] == "leg_won"
     # A checkpoint is a copy: the game goes on independently.
     checkpoint["players"][0]["remaining"] = 7
     assert game.players[0].remaining == 40
@@ -202,6 +202,6 @@ def test_a_checkpoint_of_cricket_goes_back_from_any_game():
     checkpoint = game.checkpoint()
     throw(game, "T20")
     game.play(301)
-    game.rewind(checkpoint, [dart("T20")], [None])
+    game.rewind(checkpoint, [dart("T20")], [None], now=NOW)
     assert game.cricket == "cricket" and game.game == 0
     assert game.snapshot()["scores"][0]["marks"][0] == 3

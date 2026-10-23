@@ -11,7 +11,7 @@ from custom_components.homedarts.practice import (
     PracticeGame,
 )
 
-from .local_helpers import PLAYER_1, dart, match, playing, throw, win_leg
+from .local_helpers import NOW, PLAYER_1, dart, match, playing, throw, win_leg
 
 
 def test_a_leg_counts_down_and_suggests_the_checkout():
@@ -22,7 +22,7 @@ def test_a_leg_counts_down_and_suggests_the_checkout():
     assert snapshot["average"] == 180.0 and snapshot["checkout"] is None
     game.restore({"game": 501, "remaining": 100})
     assert game.snapshot()["checkout"] == "T20 D20"
-    game.track([dart("S20")])
+    game.track([dart("S20")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["remaining"] == 80 and snapshot["visit"] == ["S20"]
     assert snapshot["checkout"] == " ".join(checkout(80, 2))
@@ -44,7 +44,7 @@ def test_a_bust_keeps_the_score_of_the_visit_start():
 
 def test_the_bust_shows_until_the_darts_are_pulled():
     game = playing(301, 32)
-    game.track([dart("T20")])
+    game.track([dart("T20")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["bust"] and snapshot["remaining"] == 32
     assert snapshot["checkout"] == "D16"
@@ -81,23 +81,23 @@ def test_a_double_wins_the_leg_and_the_next_leg_starts():
 
 def test_without_double_out_any_bed_finishes():
     game = playing(301, 20, double_out=False)
-    game.track([dart("S20")])
+    game.track([dart("S20")], now=NOW)
     assert game.snapshot()["won"] and game.snapshot()["checkout"] is None
-    game.finish_visit()
+    game.finish_visit(now=NOW)
     assert game.legs[0]["checkout"] == 20
 
 
 def test_corrections_revise_the_visit():
     game = playing(301, 40)
-    assert game.track([dart("D20")])[0][0] == "leg_won"
-    assert game.track([dart("S20")]) == []
+    assert game.track([dart("D20")], now=NOW)[0][0] == "leg_won"
+    assert game.track([dart("S20")], now=NOW) == []
     assert game.snapshot()["remaining"] == 20
-    assert game.track([dart("S20"), dart("D10")])[0][0] == "leg_won"
+    assert game.track([dart("S20"), dart("D10")], now=NOW)[0][0] == "leg_won"
 
 
 def test_darts_already_thrown_do_not_count_for_a_new_leg():
     game = PracticeGame()
-    assert game.track([dart("T20")]) == []
+    assert game.track([dart("T20")], now=NOW) == []
     assert game.snapshot() == {
         "game": None,
         "double_out": True,
@@ -117,10 +117,10 @@ def test_darts_already_thrown_do_not_count_for_a_new_leg():
         "bot": None,
     }
     game.play(501)
-    game.track([dart("T20"), dart("T19")])
+    game.track([dart("T20"), dart("T19")], now=NOW)
     assert game.snapshot()["remaining"] == 444
     game.new_leg()
-    game.track([dart("T20"), dart("T19"), dart("S1")])
+    game.track([dart("T20"), dart("T19"), dart("S1")], now=NOW)
     assert game.snapshot()["remaining"] == 500
     game.play(0)
     assert game.snapshot()["game"] is None
@@ -237,7 +237,7 @@ def test_legs_make_sets_and_sets_make_the_match():
     assert [score["match_legs"] for score in snapshot["scores"]] == [4, 0]
     assert len(game.legs) == 4 and game.legs[0]["player"] == 1
     # The result stays until the next dart, which starts a new match.
-    game.track([dart("S20")])
+    game.track([dart("S20")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["winner"] is None and snapshot["player"] == 1
     assert [score["remaining"] for score in snapshot["scores"]] == [281, 301]
@@ -373,7 +373,7 @@ def test_a_store_of_version_1_5_restores_cleanly():
 
 def test_darts_beyond_the_third_do_not_count():
     game = playing(301)
-    game.track([dart("T20"), dart("T20"), dart("T20"), dart("T20")])
+    game.track([dart("T20"), dart("T20"), dart("T20"), dart("T20")], now=NOW)
     snapshot = game.snapshot()
     assert snapshot["remaining"] == 121 and snapshot["visit"] == ["T20"] * 3
 
@@ -429,17 +429,17 @@ def test_any_match_keeps_turns_and_scores_consistent(players, legs, sets, visits
 
 def test_playing_alone_the_next_visit_is_announced_with_its_checkout():
     game = playing(301, 141)
-    game.track([dart("T20")])
-    assert game.finish_visit() == [
+    game.track([dart("T20")], now=NOW)
+    assert game.finish_visit(now=NOW) == [
         (
             "turn_changed",
             {**PLAYER_1, "remaining": 81, "checkout": "T19 D12", "setup": None},
         )
     ]
     game.players[0].remaining = 40
-    game.track([dart("D20")])
+    game.track([dart("D20")], now=NOW)
     # A won leg starts the next one.
-    assert game.finish_visit() == [
+    assert game.finish_visit(now=NOW) == [
         (
             "turn_changed",
             {**PLAYER_1, "remaining": 301, "checkout": None, "setup": None},

@@ -33,7 +33,7 @@ from custom_components.homedarts.practice import (
 from custom_components.homedarts.scoring import BULL_MODES, MODES, STRAIGHT
 from custom_components.homedarts.training import TrainingSession, segments
 
-from .local_helpers import dart
+from .local_helpers import NOW, dart
 
 KINDS = [
     *(101, 301, "cricket", "cut_throat", "tactics"),
@@ -81,7 +81,9 @@ class PracticeMachine(RuleBasedStateMachine):
         self.checkpoint: tuple[dict, list[str], list] | None = None
 
     def _track(self) -> None:
-        self.game.track([dart(name) for name in self.darts], list(self.positions))
+        self.game.track(
+            [dart(name) for name in self.darts], list(self.positions), now=NOW
+        )
 
     @initialize(
         kind=st.sampled_from(KINDS),
@@ -164,7 +166,7 @@ class PracticeMachine(RuleBasedStateMachine):
                 list(self.darts),
                 list(self.positions),
             )
-        self.game.finish_visit()
+        self.game.finish_visit(now=NOW)
         self.darts, self.positions = [], []
         self._track()
 
@@ -203,7 +205,7 @@ class PracticeMachine(RuleBasedStateMachine):
         """Next player without darts: X01, the Cricket and the party games pass."""
         if not self.darts:
             passes = self.game.passes()
-            assert bool(self.game.finish_visit(empty=True)) == passes
+            assert bool(self.game.finish_visit(empty=True, now=NOW)) == passes
 
     @rule()
     def undo(self) -> None:
@@ -212,7 +214,7 @@ class PracticeMachine(RuleBasedStateMachine):
             return
         saved, darts, positions = self.checkpoint
         self.checkpoint = None
-        self.game.rewind(saved, [dart(name) for name in darts], positions)
+        self.game.rewind(saved, [dart(name) for name in darts], positions, now=NOW)
         self.darts, self.positions = darts, positions
         self._track()
 
@@ -470,7 +472,7 @@ class VisitMachine(RuleBasedStateMachine):
         self.board: list[str] = []
         self.running = True
         self.manual = ManualDarts()
-        self.training = TrainingSession()
+        self.training = TrainingSession(NOW)
         self.game = PracticeGame()
         self.game.set_bot(60)
         self.game.play(301)
@@ -481,13 +483,13 @@ class VisitMachine(RuleBasedStateMachine):
 
     def follow(self, state: dict) -> None:
         self.effective = self.manual.apply(state)
-        for kind, attributes in self.training.observe(self.effective):
+        for kind, attributes in self.training.observe(self.effective, now=NOW):
             if kind == "visit_completed":
                 if not attributes.get("bot"):
                     self.undo_point = self.game.checkpoint()
-                self.game.finish_visit()
+                self.game.finish_visit(now=NOW)
         visit = self.training.visit()
-        self.game.track(visit, [None] * len(visit))
+        self.game.track(visit, [None] * len(visit), now=NOW)
 
     def observe(self, status: str = "Throw") -> None:
         state = board_state(self.board, self.running, status)
@@ -563,7 +565,7 @@ class VisitMachine(RuleBasedStateMachine):
         if self.training.visit() or self.manual.extras:
             self.manual.end_visit()
         elif self.game.passes():
-            self.game.finish_visit(empty=True)
+            self.game.finish_visit(empty=True, now=NOW)
         self.observe()
 
     @rule()
@@ -582,7 +584,7 @@ class VisitMachine(RuleBasedStateMachine):
         darts = self.training.undo_visit() if self.undo_point else None
         if self.undo_point is None or darts is None:
             return
-        self.game.rewind(self.undo_point, darts, [None] * len(darts))
+        self.game.rewind(self.undo_point, darts, [None] * len(darts), now=NOW)
         self.manual.replay(darts, [None] * len(darts))
         self.undo_point = None
         self.observe()

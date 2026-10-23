@@ -19,7 +19,7 @@ from custom_components.homedarts.party import (
 from custom_components.homedarts.practice import PracticeGame, valid_party_rule
 from custom_components.homedarts.scoring import DOUBLE, MASTER, STRAIGHT
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 
 def darts(*names: str) -> list[dict]:
@@ -148,10 +148,10 @@ def test_round_the_world_is_won_with_the_bull_after_the_last_number():
     practice = practice_of("round_the_world", 2)
     practice.party.progress = [20, 0]
     assert practice.snapshot()["target"] == "25"
-    practice.track(darts("S20"))
+    practice.track(darts("S20"), now=NOW)
     snapshot = practice.snapshot()
     assert snapshot["target"] == "25" and snapshot["scored"] == 0
-    events = practice.track(darts("S20", "BULL"))
+    events = practice.track(darts("S20", "BULL"), now=NOW)
     assert kinds(events) == ["leg_won", "match_won"]
     assert dict(events)["leg_won"]["darts"] == 2
     assert dict(events)["leg_won"]["points"] == 50
@@ -160,17 +160,17 @@ def test_round_the_world_is_won_with_the_bull_after_the_last_number():
 
 def test_round_the_world_shows_the_target_of_every_dart_while_it_is_thrown():
     practice = practice_of("round_the_world", 2)
-    practice.track(darts("S1"))
+    practice.track(darts("S1"), now=NOW)
     snapshot = practice.snapshot()
     assert snapshot["target"] == "2" and snapshot["scored"] == 1
     assert snapshot["scores"][0]["progress"] == 1
     assert snapshot["scores"][1]["progress"] == 0
-    practice.track(darts("S1", "T2"))
+    practice.track(darts("S1", "T2"), now=NOW)
     assert practice.snapshot()["target"] == "3"
     assert practice.snapshot()["scored"] == 7
-    events = practice.finish_visit()
+    events = practice.finish_visit(now=NOW)
     assert events[-1][1]["target"] == "1" and events[-1][1]["player"] == 2
-    practice.track([])
+    practice.track([], now=NOW)
     assert practice.snapshot()["scores"][0]["progress"] == 2
 
 
@@ -303,12 +303,12 @@ def test_gotcha_in_the_practice_game_busts_wins_and_follows_the_out_mode():
     # The out mode changes a leg only before its first dart.
     practice.set_rule("out_mode", "straight")
     assert practice.party.out_mode == "double"
-    events = practice.track(darts("T20", "T20"))
+    events = practice.track(darts("T20", "T20"), now=NOW)
     assert events == [("bust", {**practice._who(1), "remaining": 101})]
     snapshot = practice.snapshot()
     assert snapshot["bust"] is True and snapshot["scored"] == 0
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     assert practice.party.points == [80, 0] and practice.players[1].darts == 2
     events = throw(practice, "S1", "D10")
     assert kinds(events) == ["leg_won", "match_won"]
@@ -323,15 +323,15 @@ def test_gotcha_in_the_practice_game_busts_wins_and_follows_the_out_mode():
 def test_a_gotcha_bust_is_announced_once_and_taken_back_with_a_correction():
     practice = practice_of("gotcha", 1)
     practice.set_party_rule("gotcha_target", 101)
-    assert practice.track(darts("T20")) == []
-    events = practice.track(darts("T20", "T20"))
+    assert practice.track(darts("T20"), now=NOW) == []
+    events = practice.track(darts("T20", "T20"), now=NOW)
     assert kinds(events) == ["bust"] and events[0][1]["remaining"] == 101
     # Later darts of the busted visit announce nothing again.
-    assert practice.track(darts("T20", "T20", "S1")) == []
+    assert practice.track(darts("T20", "T20", "S1"), now=NOW) == []
     # The dart corrected back below the target takes the bust away.
-    assert practice.track(darts("T20", "S20")) == []
+    assert practice.track(darts("T20", "S20"), now=NOW) == []
     assert practice.snapshot()["bust"] is False
-    assert kinds(practice.track(darts("T20", "S20", "T20"))) == ["bust"]
+    assert kinds(practice.track(darts("T20", "S20", "T20"), now=NOW)) == ["bust"]
 
 
 def test_gotcha_rules_restart_the_game_and_come_back_after_a_restart():
@@ -376,7 +376,11 @@ def test_the_new_games_keep_their_invariants(kind, players, visits):
     practice.set_party_rule("gotcha_target", 101)
     for visit in visits:
         before, legs = practice.current, practice.legs_total
-        events = throw(practice, *visit) if visit else practice.finish_visit(empty=True)
+        events = (
+            throw(practice, *visit)
+            if visit
+            else practice.finish_visit(empty=True, now=NOW)
+        )
         won = [event for event in events if event[0] == "leg_won"]
         assert len(won) == practice.legs_total - legs <= 1
         snapshot = practice.snapshot()

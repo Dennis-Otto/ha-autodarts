@@ -20,6 +20,7 @@ from typing import Any, Protocol
 
 from .bot import BOT_DARTS, Bot
 from .bot import aim as bot_aim
+from .errors import ActionRefused
 from .local_api import number
 from .manual import ManualDarts
 from .modes import VisitRefused
@@ -73,16 +74,6 @@ def _aligned(
     return aligned
 
 
-class ActionRefused(ValueError):
-    """An action that the games cannot take now: the key of the message that
-    says why, and what the message names."""
-
-    def __init__(self, key: str, **placeholders: str) -> None:
-        super().__init__(key)
-        self.key = key
-        self.placeholders = placeholders
-
-
 class Reports(Protocol):
     """The weekly report and the training journal, which count what the games
     announce and take part in an undo; see BoardReports."""
@@ -122,8 +113,10 @@ class BoardGames:
     which a day of training begins and ends.
     """
 
-    def __init__(self, reports: Reports, rng: random.Random | None = None) -> None:
-        self.training = TrainingSession()
+    def __init__(
+        self, reports: Reports, now: datetime, rng: random.Random | None = None
+    ) -> None:
+        self.training = TrainingSession(now)
         self.practice = PracticeGame()
         self.quality = DetectionQuality()
         self.records = PersonalRecords()
@@ -218,7 +211,7 @@ class BoardGames:
         """Training, practice game and records follow the darts on the board."""
         announced = self._announced
         changed = False
-        observed = self.training.observe(state)
+        observed = self.training.observe(state, now)
         completed = any(kind == "visit_completed" for kind, _ in observed)
         # The weekly report and the personal bests before they count a
         # completed visit, to undo it.
@@ -247,7 +240,7 @@ class BoardGames:
         visit = self.training.visit()
         aligned = _aligned(self._positions, len(visit))
         for kind, attributes in self._recorded(
-            self.practice.track(visit, aligned), now
+            self.practice.track(visit, aligned, now=now), now
         ):
             changed = True
             announced.append((kind, attributes, source))
@@ -263,7 +256,7 @@ class BoardGames:
         if self.training.active and not bot:
             self.progress.session_visit(pending.booking)
         decided = self.practice.winner is not None
-        events = self.practice.finish_visit(empty)
+        events = self.practice.finish_visit(empty, now=now)
         booked = self._booked(pending.legs_total, decided)
         events += self.progress.after(pending, self.practice, now)
         # A tournament takes the result once the practice game booked it; the
@@ -423,7 +416,7 @@ class BoardGames:
         events = director.booked(self.practice, utc, board)
         due = director.due(utc, board) and self.board_free()
         if due:
-            director.next_match(self.practice, board, utc)
+            director.next_match(self.practice, utc, board)
         if events or due:
             # A result the tournament took, or its next match, cannot be undone.
             self._undo = None
@@ -493,7 +486,7 @@ class BoardGames:
     def next_tournament_match(self, now: datetime) -> None:
         """Start the next match at this board now, see TournamentDirector.next_match."""
         director, board = self._seat()
-        director.next_match(self.practice, board, now.astimezone(UTC))
+        director.next_match(self.practice, now.astimezone(UTC), board)
 
     def _release_guests(self) -> list[BoardGames]:
         """The other boards go back to their practice settings and leave."""
@@ -529,7 +522,7 @@ class BoardGames:
             games = self if key is None else self.guests.get(key)
             if games is None or not director.due(utc, key) or not games.board_free():
                 continue
-            director.next_match(games.practice, key, utc)
+            director.next_match(games.practice, utc, key)
             games.moved()
             changed.append(games)
         return changed
@@ -756,7 +749,7 @@ class BoardGames:
             return self.drain()
         raise ActionRefused("empty_visit")
 
-    def undo_visit(self) -> list[Announcement]:
+    def undo_visit(self, now: datetime) -> list[Announcement]:
         """Take the last visit of a player back as the current visit, with the
         game as it was before; the bot's visits after it are undone, too."""
         darts = self.training.undo_visit() if self._undo else None
@@ -767,7 +760,7 @@ class BoardGames:
         self.progress.rewind(checkpoint.progress)
         self._reports.rewind(checkpoint.reports)
         self.records.rewind(checkpoint.records)
-        self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)
+        self.practice.rewind(checkpoint.practice, darts, checkpoint.positions, now)
         self.manual.replay(darts, checkpoint.positions)
         undone = {
             "darts": len(darts),

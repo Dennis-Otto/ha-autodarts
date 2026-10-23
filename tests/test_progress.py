@@ -25,12 +25,12 @@ def play(game: PracticeGame, progress: Progress, *names: str, positions=None, no
     """Throw a visit, pull the darts and collect the progress; its events."""
     visit = [dart(name) for name in names]
     for count in range(1, len(visit) + 1):
-        game.track(visit[:count], positions[:count] if positions else None)
+        game.track(visit[:count], positions[:count] if positions else None, now=NOW)
     pending = progress.before(game)
     progress.session_visit(pending.booking)
-    game.finish_visit()
+    game.finish_visit(now=NOW)
     events = progress.after(pending, game, now)
-    game.track([])
+    game.track([], now=NOW)
     return events
 
 
@@ -557,7 +557,7 @@ def test_a_visit_without_darts_books_nobody():
     booking = game.booking()
     assert (booking.visit, booking.player, booking.darts) == ([], None, [])
     # Darts before the leg began belong to nobody either.
-    game.track([dart("T20")])
+    game.track([dart("T20")], now=NOW)
     game.new_leg()
     booking = game.booking()
     assert booking.visit == [dart("T20")] and booking.darts == []

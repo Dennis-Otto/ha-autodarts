@@ -10,6 +10,8 @@ from custom_components.homedarts.training import (
     segments,
 )
 
+from .local_helpers import NOW
+
 SEGMENTS = [
     ("T20", 20, 3),
     ("S20", 20, 1),
@@ -77,9 +79,9 @@ def check_consistent(snapshot: dict) -> None:
 @PROPERTIES
 @given(histories)
 def test_any_history_keeps_the_session_consistent(history):
-    session = TrainingSession()
+    session = TrainingSession(NOW)
     for state in history:
-        for kind, attributes in session.observe(state):
+        for kind, attributes in session.observe(state, now=NOW):
             assert kind in {
                 "dart_detected",
                 "dart_corrected",
@@ -98,10 +100,10 @@ def test_any_history_keeps_the_session_consistent(history):
 @given(histories)
 def test_every_visit_is_announced_once_as_early_as_possible(history):
     """A full visit is thrown once, before it completes; nothing is announced twice."""
-    session = TrainingSession()
+    session = TrainingSession(NOW)
     thrown = False
     for state in history:
-        for kind, attributes in session.observe(state):
+        for kind, attributes in session.observe(state, now=NOW):
             if kind == "visit_thrown":
                 assert not thrown
                 assert attributes["darts"] == 3
@@ -116,11 +118,11 @@ def test_every_visit_is_announced_once_as_early_as_possible(history):
 @PROPERTIES
 @given(histories)
 def test_restarting_home_assistant_keeps_every_total(history):
-    session = TrainingSession()
+    session = TrainingSession(NOW)
     for state in history:
-        session.observe(state)
+        session.observe(state, now=NOW)
     saved = session.snapshot()
-    restored = TrainingSession()
+    restored = TrainingSession(NOW)
     restored.restore(saved)
     assert restored.snapshot() == saved
 
@@ -128,11 +130,11 @@ def test_restarting_home_assistant_keeps_every_total(history):
 @PROPERTIES
 @given(histories)
 def test_repeated_messages_never_count_twice(history):
-    once, twice = TrainingSession(), TrainingSession()
+    once, twice = TrainingSession(NOW), TrainingSession(NOW)
     for state in history:
-        once.observe(state)
-        twice.observe(state)
-        twice.observe(state)
+        once.observe(state, now=NOW)
+        twice.observe(state, now=NOW)
+        twice.observe(state, now=NOW)
     assert {k: v for k, v in once.snapshot().items() if k != "started"} == {
         k: v for k, v in twice.snapshot().items() if k != "started"
     }
@@ -155,12 +157,12 @@ def test_hit_keys_match_their_value(darts):
 @given(histories)
 def test_sessions_only_decide_what_counts(history):
     """Dart and visit events are the same with or without a running session."""
-    running, paused = TrainingSession(), TrainingSession()
+    running, paused = TrainingSession(NOW), TrainingSession(NOW)
     paused.auto_start = False
-    paused.end("manual")
+    paused.end("manual", now=NOW)
     frozen = paused.snapshot()
     for state in history:
-        assert running.observe(state) == paused.observe(state)
+        assert running.observe(state, now=NOW) == paused.observe(state, now=NOW)
         check_consistent(running.snapshot())
     assert paused.snapshot() == frozen
 
@@ -168,12 +170,12 @@ def test_sessions_only_decide_what_counts(history):
 @PROPERTIES
 @given(histories, st.integers(min_value=0, max_value=40))
 def test_restarting_keeps_sessions_history_and_settings(history, cut):
-    session = TrainingSession()
+    session = TrainingSession(NOW)
     for index, state in enumerate(history):
-        session.observe(state)
+        session.observe(state, now=NOW)
         if index == cut:
-            session.new_session()
-    restored = TrainingSession()
+            session.new_session(now=NOW)
+    restored = TrainingSession(NOW)
     restored.restore(session.stored())
     assert restored.stored() == session.stored()
     for summary in session.history:

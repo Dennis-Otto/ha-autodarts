@@ -24,7 +24,7 @@ from custom_components.homedarts.modes import (
 from custom_components.homedarts.party import PARTY_GAMES, make_party
 from custom_components.homedarts.practice import GAMES, PracticeGame
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 KINDS = [*GAMES, *CRICKET_GAMES, *PARTY_GAMES, *DRILLS]
 BEDS = ["T20", "T19", "S20", "S5", "D20", "D16", "D1", "BULL", "25", "MISS"]
@@ -69,7 +69,7 @@ def test_no_game_counts_nothing():
     """The defaults of GameMode are what a game does that leaves a part out."""
     practice = PracticeGame()
     mode, player = practice.mode, practice.players[0]
-    assert mode.track() == [] and mode.book() == [] and not mode.passes()
+    assert mode.track() == [] and mode.book(NOW) == [] and not mode.passes()
     assert mode.start(0) == 0 and mode.slots() == len(CRICKET_NUMBERS)
     assert mode.settings == () and not mode.uses_out_mode
     assert mode.turn_details() == {"remaining": None, "checkout": None, "setup": None}
@@ -112,7 +112,7 @@ def test_a_stored_game_loads_unchanged_byte_for_byte(
         if visit:
             throw(practice, *visit)
         else:
-            practice.finish_visit(empty=True)
+            practice.finish_visit(empty=True, now=NOW)
     saved = text(practice)
     restored = PracticeGame()
     restored.restore(json.loads(saved))
@@ -145,7 +145,7 @@ def test_an_undone_visit_comes_back_to_the_game_of_its_checkpoint():
     practice.play("cricket", 2)
     checkpoint = practice.checkpoint()
     practice.play(501)
-    practice.rewind(checkpoint, [dart("T20")], [])
+    practice.rewind(checkpoint, [dart("T20")], [], now=NOW)
     assert type(practice.mode) is CricketMode
     assert practice.snapshot()["visit"] == ["T20"]
 

@@ -6,7 +6,7 @@ of the entities and actions play the same engine through Home Assistant.
 
 import ast
 import random
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -16,6 +16,7 @@ from custom_components.homedarts.games import (
     BoardGames,
     _throw_positions,
 )
+from custom_components.homedarts.moments import parse_moment, stamp
 
 from .local_helpers import BULL, S20, T20, board
 
@@ -74,7 +75,7 @@ def play(games, *states, source="websocket", data=None):
 
 def match(*names, **setup):
     """X01 501 for the players, with the board as it stands between visits."""
-    games = BoardGames(Reports(), random.Random(1))
+    games = BoardGames(Reports(), NOW, random.Random(1))
     games.start_game(501, names=list(names), **setup)
     play(games, board())
     return games
@@ -96,19 +97,43 @@ def refusal(action):
     return refused.value.key, refused.value.placeholders
 
 
+def _imports(module: str) -> tuple[set[str], set[str]]:
+    """What a module of the integration imports: the modules from outside it,
+    and the integration's own modules that it imports relatively."""
+    tree = ast.parse((GAMES.parent / f"{module}.py").read_text(encoding="utf-8"))
+    outside: set[str] = set()
+    own: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.level:
+            if node.module:
+                own.add(node.module.split(".")[0])
+            else:
+                own.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            outside.add(node.module or "")
+        elif isinstance(node, ast.Import):
+            outside.update(alias.name for alias in node.names)
+    return outside, own
+
+
 @pytest.mark.mutation_unsafe
 def test_the_engine_imports_nothing_of_home_assistant():
-    tree = ast.parse(GAMES.read_text(encoding="utf-8"))
-    modules = {
-        node.module or "" for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
-    } | {
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Import)
-        for alias in node.names
-    }
-    assert modules
-    assert not [name for name in modules if name.split(".")[0] == "homeassistant"]
+    """Neither games.py nor a module it holds, directly or through another
+    one, imports Home Assistant."""
+    found: dict[str, set[str]] = {}
+    waiting = [GAMES.stem]
+    while waiting:
+        module = waiting.pop()
+        if module not in found:
+            found[module], own = _imports(module)
+            waiting.extend(own)
+    # The classes BoardGames holds, and what they build on.
+    assert {"training", "practice", "profiles", "drills", "tournament"} <= set(found)
+    assert {
+        module: sorted(name for name in names if name.split(".")[0] == "homeassistant")
+        for module, names in found.items()
+        if any(name.split(".")[0] == "homeassistant" for name in names)
+    } == {}
 
 
 def test_positions_come_only_from_states_training_accepts():
@@ -165,7 +190,7 @@ def test_an_undone_visit_comes_back_with_the_game_from_before_it():
     reports = games._reports
     visit(games, T20, T20, T20)
     checkpoint = {"counted": reports.counted.index("visit_completed")}
-    assert games.undo_visit() == [
+    assert games.undo_visit(NOW) == [
         (
             "visit_undone",
             {
@@ -185,7 +210,7 @@ def test_an_undone_visit_comes_back_with_the_game_from_before_it():
     assert remaining(games) == [321, 501]
     assert games.practice.thrower == "Alex"
     # One visit back, and no further.
-    assert refusal(games.undo_visit) == ("undo_unavailable", {})
+    assert refusal(lambda: games.undo_visit(NOW)) == ("undo_unavailable", {})
 
 
 def test_a_change_made_in_home_assistant_cannot_be_undone_visit_by_visit():
@@ -205,7 +230,7 @@ def test_a_visit_without_darts_passes_only_in_a_game():
     announced = games.next_player(NOW)
     assert ("turn_changed", "manual") in kinds(announced)
     assert games.practice.thrower == "Kim"
-    assert refusal(lambda: BoardGames(Reports()).next_player(NOW)) == (
+    assert refusal(lambda: BoardGames(Reports(), NOW).next_player(NOW)) == (
         "empty_visit",
         {},
     )
@@ -232,7 +257,7 @@ def test_darts_entered_by_hand_need_the_keypad_and_a_visit_with_room():
 
 
 def test_a_visit_entered_as_its_score_needs_an_x01_visit_without_darts_on_the_board():
-    games = BoardGames(Reports())
+    games = BoardGames(Reports(), NOW)
     games.practice.manual_entry = True
     assert refusal(lambda: games.enter_visit(board(), 60)) == ("visit_not_x01", {})
     games = match("Alex")
@@ -304,7 +329,7 @@ def test_the_bot_ends_its_visit_after_its_darts():
 
 def test_the_bot_throws_as_seeded():
     def bot_darts(seed):
-        games = BoardGames(Reports(), random.Random(seed))
+        games = BoardGames(Reports(), NOW, random.Random(seed))
         games.start_game(501, names=["Alex"], bot_level=3)
         play(games, board())
         visit(games, T20, T20, T20)
@@ -318,12 +343,12 @@ def test_the_bot_throws_as_seeded():
 def test_the_games_restore_what_they_stored():
     games = match("Alex", "Kim")
     visit(games, T20, T20, T20)
-    restored = BoardGames(Reports())
+    restored = BoardGames(Reports(), NOW)
     restored.restore(games.stored(), NOW)
     assert restored.stored() == games.stored()
     assert restored.practice.snapshot() == games.practice.snapshot()
     for broken in (None, ["not", "stored", "games"]):
-        fresh = BoardGames(Reports())
+        fresh = BoardGames(Reports(), NOW)
         fresh.restore(broken, NOW)
         assert fresh.practice.game == 0
         assert fresh.training.history == []
@@ -357,7 +382,7 @@ def test_a_setting_that_changes_how_a_match_starts_starts_it_anew(change, anew):
 
 
 def test_a_game_takes_only_valid_player_names():
-    games = BoardGames(Reports())
+    games = BoardGames(Reports(), NOW)
     assert refusal(lambda: games.start_game(501, names=["Alex", "#Kim"])) == (
         "invalid_player_name",
         {},
@@ -366,8 +391,17 @@ def test_a_game_takes_only_valid_player_names():
 
 
 def test_a_tournament_match_waits_until_the_board_is_free():
-    games = BoardGames(Reports())
+    games = BoardGames(Reports(), NOW)
     play(games, board())
     assert games.board_free()
     play(games, board(T20))
     assert not games.board_free()
+
+
+def test_the_games_keep_the_time_of_a_step_in_utc():
+    """As Home Assistant's clock in UTC wrote it, so stored games read alike."""
+    evening = datetime(2026, 10, 1, 22, 0, tzinfo=timezone(timedelta(hours=2)))
+    assert stamp(evening) == "2026-10-01T20:00:00+00:00"
+    assert parse_moment(stamp(evening)) == evening
+    assert parse_moment("soon") is None
+    assert parse_moment(None) is None

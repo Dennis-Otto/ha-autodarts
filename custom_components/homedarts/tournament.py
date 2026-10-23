@@ -28,9 +28,6 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from homeassistant.exceptions import ServiceValidationError
-from homeassistant.util import dt as dt_util
-
 from .brackets import (
     GRAND_FINAL,
     GRAND_FINAL_RESET,
@@ -53,8 +50,9 @@ from .brackets import (
     shifted,
     snake,
 )
-from .const import DOMAIN
 from .cricket import CRICKET_GAMES, marks_per_round
+from .errors import ActionRefused
+from .moments import parse_moment
 from .practice import (
     GAMES,
     MATCH_RULES,
@@ -161,14 +159,6 @@ _RANDOM = random.Random()  # noqa: S311
 _EPOCH = datetime.min.replace(tzinfo=UTC)
 
 
-def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
-    return ServiceValidationError(
-        translation_domain=DOMAIN,
-        translation_key=key,
-        translation_placeholders=placeholders or None,
-    )
-
-
 def _name(name: str) -> str:
     """A player name as the practice game keeps it."""
     return clean_name(name)
@@ -189,7 +179,7 @@ def parse_players(text: str) -> list[str]:
 def check_names(names: list[str]) -> None:
     """Player names must not contain the characters no name contains."""
     if not all(valid_name(name) for name in names):
-        raise _invalid("invalid_player_name")
+        raise ActionRefused("invalid_player_name")
 
 
 def _flag(value: object, default: bool) -> bool:
@@ -198,7 +188,7 @@ def _flag(value: object, default: bool) -> bool:
 
 def _moment(value: object) -> datetime | None:
     """A stored time, in UTC when it names no time zone."""
-    moment = dt_util.parse_datetime(value) if isinstance(value, str) else None
+    moment = parse_moment(value)
     if moment is not None and moment.tzinfo is None:
         return moment.replace(tzinfo=UTC)
     return moment
@@ -958,7 +948,7 @@ class Tournament:
             or saved.get("players") != match.players
             or winner not in match.players
             or not isinstance(ended, str)
-            or dt_util.parse_datetime(ended) is None
+            or parse_moment(ended) is None
         ):
             return False
         for key in ("legs", "sets", "points", "marks", "darts"):
@@ -1076,7 +1066,7 @@ class TournamentDirector:
         A tournament being played has to be stopped first.
         """
         if self.running:
-            raise _invalid("tournament_running")
+            raise ActionRefused("tournament_running")
         check_names(list(players or []))
         given_starts = list(start_scores or [])
         entrants = [
@@ -1090,12 +1080,12 @@ class TournamentDirector:
         seen: set[str] = set()
         for name in names:
             if name.casefold() in seen:
-                raise _invalid("duplicate_player", name=name)
+                raise ActionRefused("duplicate_player", name=name)
             seen.add(name.casefold())
         chosen = setup.get("format") or self.setup.format
         fewest, most = ENTRANTS[chosen]
         if not fewest <= len(names) <= most:
-            raise _invalid(
+            raise ActionRefused(
                 "tournament_players",
                 count=str(len(names)),
                 min=str(fewest),
@@ -1105,7 +1095,7 @@ class TournamentDirector:
         advance = self.setup.advance if advance is None else advance
         drawn = groups or auto_groups(len(names))
         if chosen == GROUPS_KNOCKOUT and not fits_groups(len(names), drawn, advance):
-            raise _invalid(
+            raise ActionRefused(
                 "tournament_groups",
                 count=str(len(names)),
                 groups=str(drawn),
@@ -1217,7 +1207,7 @@ class TournamentDirector:
         """End the tournament; the practice match being played goes on, and
         the practice settings from before come back after it."""
         if self.tournament is None:
-            raise _invalid("no_tournament")
+            raise ActionRefused("no_tournament")
         self.tournament = None
         practice.hold = False
         self._hand_back(practice)
@@ -1248,7 +1238,7 @@ class TournamentDirector:
         tournament = self.tournament
         if self.running and tournament is not None:
             if any(player.casefold() == key for player in tournament.players):
-                raise _invalid("player_in_tournament", name=name.strip())
+                raise ActionRefused("player_in_tournament", name=name.strip())
 
     def forget(self, name: str) -> None:
         """Take a deleted player off the setup of the next tournament; a player
@@ -1264,30 +1254,27 @@ class TournamentDirector:
             ]
 
     def next_match(
-        self,
-        practice: PracticeGame,
-        board: str | None = None,
-        now: datetime | None = None,
+        self, practice: PracticeGame, now: datetime, board: str | None = None
     ) -> None:
         """Start the next match at a board now, or set its current one up again
         when the practice game plays something else."""
         tournament = self.tournament
         if tournament is None:
-            raise _invalid("no_tournament")
+            raise ActionRefused("no_tournament")
         if tournament.status == FINISHED:
-            raise _invalid("tournament_finished")
+            raise ActionRefused("tournament_finished")
         number = self._seat(board)
         index = tournament.seats[number].match
         if index is not None and self.plays(practice, board):
             first, second = tournament.names(tournament.matches[index])
-            raise _invalid(
+            raise ActionRefused(
                 "tournament_match_running", first=str(first), second=str(second)
             )
         if index is None:
             index = tournament.next_for(number)
             if index is None:
-                raise _invalid("tournament_no_match")
-            tournament.begin(index, number, (now or dt_util.utcnow()).isoformat())
+                raise ActionRefused("tournament_no_match")
+            tournament.begin(index, number, now.isoformat())
         self._play(practice, number)
 
     def _play(self, practice: PracticeGame, number: int) -> None:
@@ -1441,7 +1428,8 @@ class TournamentDirector:
             return None
         rested = tournament.rested(index, number)
         if rested is None:
-            return _moment(tournament.started) or dt_util.utcnow()
+            # A tournament stored without its start: at once.
+            return _moment(tournament.started) or _EPOCH
         if not self.setup.pause:
             return None
         return rested + timedelta(seconds=self.setup.summary + self.setup.pause)

@@ -4,7 +4,7 @@ import json
 
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import PLAYER_1, dart, match, playing, throw
+from .local_helpers import NOW, PLAYER_1, dart, match, playing, throw
 
 
 def test_double_out_switched_on_while_a_player_stands_on_1_waits_for_the_next_leg():
@@ -42,7 +42,7 @@ def test_double_out_applies_at_once_before_the_first_dart_and_between_matches():
     game.set_option("double_out", False)
     assert game.double_out is False and game.out_mode_next is None
     # A dart on the board before it counts starts the leg as well.
-    game.track([dart("S5")])
+    game.track([dart("S5")], now=NOW)
     game.set_option("double_out", True)
     assert game.double_out is False and game.out_mode_next == "double"
     game.play(301)

@@ -20,6 +20,7 @@ from custom_components.homedarts.scoring import (
 from custom_components.homedarts.training import TrainingSession, dart_flags
 
 from .local_helpers import (
+    NOW,
     board,
     entity_id,
     match,
@@ -152,8 +153,8 @@ def test_the_darts_at_a_double_of_a_bust_are_darts_that_count():
     assert not any(dart.get("at_double") for dart in game.score_visit(100))
     assert not any(dart.get("at_double") for dart in playing(501, 159).score_visit(159))
     for count in range(1, 4):
-        game.track(darts[:count])
-    game.finish_visit()
+        game.track(darts[:count], now=NOW)
+    game.finish_visit(now=NOW)
     player = game.players[0]
     assert (player.remaining, player.darts, player.at_double) == (32, 2, 2)
 
@@ -215,8 +216,8 @@ def test_the_darts_at_a_double_count_for_the_checkout_rate():
     game = playing(501, remaining=40)
     darts = game.score_visit(40, 3, 3)
     for count in range(1, 4):
-        game.track(darts[:count])
-    game.finish_visit()
+        game.track(darts[:count], now=NOW)
+    game.finish_visit(now=NOW)
     assert game.statistics()["checkout_rate"] == pytest.approx(33.3)
     assert game.statistics()["darts_at_double"] == 3
 
@@ -228,9 +229,9 @@ def test_made_up_darts_hit_no_bed_of_the_statistics():
     assert dart_flags([{"number": 20, "multiplier": 3, "total": True}]) == {
         "total": True
     }
-    session = TrainingSession()
+    session = TrainingSession(NOW)
     darts = [{**dart, "manual": True} for dart in playing(501).score_visit(180)]
-    session.observe(board())
+    session.observe(board(), now=NOW)
     session.observe(
         {
             **board(),
@@ -238,7 +239,8 @@ def test_made_up_darts_hit_no_bed_of_the_statistics():
             "throws": [
                 {"segment": dict(dart), "manual": True, "total": True} for dart in darts
             ],
-        }
+        },
+        now=NOW,
     )
     snapshot = session.snapshot()
     assert snapshot["points"] == 180 and snapshot["darts"] == 3

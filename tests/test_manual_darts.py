@@ -3,7 +3,7 @@
 from custom_components.homedarts.manual import ManualDarts, parse_bed
 from custom_components.homedarts.training import TrainingSession, segments
 
-from .local_helpers import MISS, S20, T20, board
+from .local_helpers import MISS, NOW, S20, T20, board
 
 S1 = ("S1", 1, 1)
 D16 = ("D16", 16, 2)
@@ -238,10 +238,10 @@ def test_without_detection_the_darts_entered_by_hand_make_the_visit():
 
 def test_the_training_follows_the_flags_of_the_darts():
     manual = ManualDarts()
-    session = TrainingSession()
-    session.observe(manual.apply(board()))
+    session = TrainingSession(NOW)
+    session.observe(manual.apply(board()), now=NOW)
     manual.add(parse_bed("T20"), None, "manual")
-    events = session.observe(manual.apply(board()))
+    events = session.observe(manual.apply(board()), now=NOW)
     assert events == [
         (
             "dart_detected",
@@ -249,7 +249,7 @@ def test_the_training_follows_the_flags_of_the_darts():
         )
     ]
     manual.correct(0, parse_bed("S20"))
-    events = session.observe(manual.apply(board()))
+    events = session.observe(manual.apply(board()), now=NOW)
     assert events == [
         (
             "dart_corrected",

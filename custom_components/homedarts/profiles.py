@@ -11,12 +11,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from typing import Any
 
-from homeassistant.core import split_entity_id, valid_entity_id
-from homeassistant.util import dt as dt_util
-
 from .doubles import DoubleStats
+from .moments import stamp
 
 # The X01 start scores; a leg from another start sets no fewest darts.
 GAMES = (101, 301, 501, 701, 901, 1001)
@@ -27,6 +26,9 @@ NAME_LENGTH = 20
 # brackets, percent and number signs as a template where a name goes into a
 # file name or a message, and control characters break both.
 NAME_EXCLUDED = re.compile(r"[{}%#\x00-\x1f\x7f-\x9f]")
+# The entity ID of a person in Home Assistant, as Home Assistant checks entity
+# IDs: slugs without a double underscore, none at either end.
+PERSON = re.compile(r"^(?!.+__)person\.(?!_)[\da-z_]+(?<!_)$")
 
 
 def valid_name(name: str) -> bool:
@@ -46,9 +48,9 @@ def _key(name: str) -> str:
 
 def _person(value: object) -> str | None:
     """A person entity ID such as person.alex, or None."""
-    if not isinstance(value, str) or not valid_entity_id(value):
+    if not isinstance(value, str) or not PERSON.match(value):
         return None
-    return value if split_entity_id(value)[0] == "person" else None
+    return value
 
 
 def _ratio(part: int, whole: int, factor: int, digits: int) -> float | None:
@@ -166,7 +168,7 @@ class Profiles:
             return _ratio(profile.cricket_marks, profile.cricket_darts, 3, 2)
         return _ratio(profile.x01_points, profile.x01_darts, 3, 2)
 
-    def _profile(self, name: str | None) -> Profile | None:
+    def _profile(self, name: str | None, now: datetime) -> Profile | None:
         name = clean_name(name) if name else ""
         if not name:
             return None
@@ -174,19 +176,21 @@ class Profiles:
         if key not in self.players:
             self.players[key] = Profile(name=name)
         profile = self.players[key]
-        profile.last_played = dt_util.utcnow().isoformat()
+        profile.last_played = stamp(now)
         return profile
 
     # -- recording -------------------------------------------------------------
 
-    def visit(self, name: str | None, points: int) -> None:
+    def visit(self, name: str | None, points: int, now: datetime) -> None:
         """The score of an X01 visit: nothing for a bust or before double in."""
-        if profile := self._profile(name):
+        if profile := self._profile(name, now):
             profile.highest_visit = max(profile.highest_visit, points)
 
-    def doubles(self, name: str | None, attempts: list[tuple[str, bool]]) -> None:
+    def doubles(
+        self, name: str | None, attempts: list[tuple[str, bool]], now: datetime
+    ) -> None:
         """Darts a player threw at doubles."""
-        if attempts and (profile := self._profile(name)):
+        if attempts and (profile := self._profile(name, now)):
             profile.double_stats().record(attempts)
 
     def preferred(self, name: str | None) -> tuple[str, ...]:
@@ -194,10 +198,12 @@ class Profiles:
         profile = self.players.get(_key(name)) if name and name.strip() else None
         return profile.double_stats().preferred() if profile else ()
 
-    def leg(self, game: int | str, players: list[dict[str, Any]]) -> None:
+    def leg(
+        self, game: int | str, players: list[dict[str, Any]], now: datetime
+    ) -> None:
         """A finished leg, with every player's numbers of that leg."""
         for entry in players:
-            profile = self._profile(entry.get("name"))
+            profile = self._profile(entry.get("name"), now)
             if profile is None:
                 continue
             won = entry.get("won") is True
@@ -244,6 +250,8 @@ class Profiles:
         sets_to_win: int,
         winners: list[int] | None = None,
         started: str | None = None,
+        *,
+        now: datetime,
     ) -> None:
         """A finished match of several players: history and head-to-head.
 
@@ -257,7 +265,7 @@ class Profiles:
         # Every named player, and whether one of their seats won.
         won: dict[str, bool] = {}
         for index, entry in enumerate(players):
-            if profile := self._profile(entry.get("name")):
+            if profile := self._profile(entry.get("name"), now):
                 key = _key(profile.name)
                 won[key] = won.get(key, False) or index in side
         for key, victory in won.items():
@@ -265,7 +273,7 @@ class Profiles:
             self.players[key].matches_won += int(victory)
         match: dict[str, Any] = {
             "started": started,
-            "ended": dt_util.utcnow().isoformat(),
+            "ended": stamp(now),
             "game": game,
             "legs_to_win": legs_to_win,
             "sets_to_win": sets_to_win,

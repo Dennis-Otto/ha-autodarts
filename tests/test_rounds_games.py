@@ -17,7 +17,7 @@ from custom_components.homedarts.party import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import dart, throw
+from .local_helpers import NOW, dart, throw
 
 
 def darts(*names: str) -> list[dict]:
@@ -178,9 +178,9 @@ def test_a_golf_leg_in_the_practice_game_uses_the_dart_positions():
     assert snapshot["rounds"] == 18 and snapshot["round"] == 1
     assert snapshot["target"] == "1" and snapshot["playoff"] is None
     # An inner single: three strokes, as the board's position tells.
-    practice.track([dart("S1")], [(0.0, 0.3)])
+    practice.track([dart("S1")], [(0.0, 0.3)], now=NOW)
     assert practice.snapshot()["points"] == 3
-    events = practice.finish_visit()
+    events = practice.finish_visit(now=NOW)
     assert events == [
         (
             "turn_changed",
@@ -197,9 +197,9 @@ def test_a_golf_leg_in_the_practice_game_uses_the_dart_positions():
             },
         )
     ]
-    practice.track([dart("S1")], [(0.0, 0.8)])
-    practice.finish_visit()
-    practice.track([])
+    practice.track([dart("S1")], [(0.0, 0.8)], now=NOW)
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     scores = practice.snapshot()["scores"]
     assert [score["scorecard"] for score in scores] == [[3], [4]]
     assert practice.snapshot()["round"] == 2
@@ -237,7 +237,7 @@ def test_a_golf_leg_ends_with_leg_won_after_the_last_hole():
 def test_a_party_game_passes_a_visit_without_darts_as_three_misses(kind, points):
     practice = rounds_game(kind)
     assert practice.passes()
-    ((event, turn),) = practice.finish_visit(empty=True)
+    ((event, turn),) = practice.finish_visit(empty=True, now=NOW)
     assert event == "turn_changed" and turn["player"] == 2
     assert practice.snapshot()["scores"][0]["points"] == points
     assert practice.players[0].darts == 0
@@ -245,7 +245,7 @@ def test_a_party_game_passes_a_visit_without_darts_as_three_misses(kind, points)
 
 def test_halve_it_halves_a_visit_passed_without_darts():
     practice = rounds_game("halve_it")
-    practice.finish_visit(empty=True)
+    practice.finish_visit(empty=True, now=NOW)
     assert practice.party.points == [20, 40]
 
 

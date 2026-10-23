@@ -6,10 +6,9 @@ from collections import Counter
 from datetime import datetime
 from typing import Any
 
-from homeassistant.util import dt as dt_util
-
 from .board import bed_name
 from .const import LIFECYCLE_STATUSES
+from .moments import parse_moment, stamp
 
 # Finished sessions and completed visits kept for the cards.
 HISTORY_SIZE = 20
@@ -142,7 +141,7 @@ def _contains(darts: list[dict[str, Any]], subset: list[dict[str, Any]]) -> bool
 def _timestamp(value: object) -> str | None:
     """A stored ISO timestamp with a time zone; anything else is dropped."""
     if isinstance(value, str):
-        parsed: datetime | None = dt_util.parse_datetime(value)
+        parsed = parse_moment(value)
         if parsed and parsed.tzinfo:
             return value
     return None
@@ -158,7 +157,7 @@ def _summarize(started: str, ended: str, totals: dict[str, Any]) -> dict[str, An
         key: _count(totals.get(key))
         for key in (*COUNTERS, "highest_visit", "manual_darts", "total_darts")
     }
-    begin, end = dt_util.parse_datetime(started), dt_util.parse_datetime(ended)
+    begin, end = parse_moment(started), parse_moment(ended)
     seconds = (end - begin).total_seconds() if begin and end else 0
     darts = counts["darts"]
     return {
@@ -203,8 +202,8 @@ class TrainingSession:
     automations work in every game; only darts thrown during a session count.
     """
 
-    def __init__(self) -> None:
-        self.started = dt_util.utcnow().isoformat()
+    def __init__(self, now: datetime) -> None:
+        self.started = stamp(now)
         self.ended: str | None = None
         # Version 1.0 counted every dart; without an explicit start, it still does.
         self.active = True
@@ -363,7 +362,7 @@ class TrainingSession:
         """Where the darts of the current visit are among the darts on the board."""
         return [index for index, tracked in enumerate(self._tracked) if tracked]
 
-    def _commit(self, announce: bool = False) -> None:
+    def _commit(self, now: datetime, announce: bool = False) -> None:
         announced = self.visit()
         flags = dart_flags(announced)
         # The bot's visits count nowhere, so the human's visit stays undoable.
@@ -380,7 +379,7 @@ class TrainingSession:
                 self.recent_visits.insert(
                     0,
                     {
-                        "time": dt_util.utcnow().isoformat(),
+                        "time": stamp(now),
                         **visit,
                         **{
                             flag: True
@@ -457,9 +456,11 @@ class TrainingSession:
         self._tracked = [tracked for tracked, _ in flags]
         self._counting = [counting for _, counting in flags]
 
-    def baseline(self, state: dict[str, Any], announce: bool = False) -> None:
+    def baseline(
+        self, state: dict[str, Any], now: datetime, announce: bool = False
+    ) -> None:
         """Keep accumulated counts; never count darts already present on startup."""
-        self._commit(announce)
+        self._commit(now, announce)
         observed = segments(state)
         self._initialized = observed is not None
         self._rest(observed or [])
@@ -474,8 +475,8 @@ class TrainingSession:
         """
         self._resuming = self._initialized
 
-    def _start(self, reason: str) -> tuple[str, dict[str, Any]]:
-        now = dt_util.utcnow().isoformat()
+    def _start(self, reason: str, now: datetime) -> tuple[str, dict[str, Any]]:
+        started = stamp(now)
         self._committed = dict.fromkeys(COUNTERS, 0)
         self._highest_visit = 0
         self._manual = 0
@@ -484,16 +485,16 @@ class TrainingSession:
         self._last = None
         # Darts already on the board belong to no session.
         self._counting = [False] * len(self._active)
-        self.started, self.ended, self.active = now, None, True
-        self.last_activity = now
-        return "session_started", {"started": now, "reason": reason}
+        self.started, self.ended, self.active = started, None, True
+        self.last_activity = started
+        return "session_started", {"started": started, "reason": reason}
 
-    def start(self) -> tuple[str, dict[str, Any]] | None:
+    def start(self, now: datetime) -> tuple[str, dict[str, Any]] | None:
         """Start counting from zero, unless a session is already running."""
-        return None if self.active else self._start("manual")
+        return None if self.active else self._start("manual", now)
 
     def end(
-        self, reason: str, at: str | None = None
+        self, reason: str, now: datetime, at: str | None = None
     ) -> tuple[str, dict[str, Any]] | None:
         """Finish the running session and keep its summary."""
         if not self.active:
@@ -502,29 +503,31 @@ class TrainingSession:
         self._fold()
         self._last = None
         self.active = False
-        self.ended = at or dt_util.utcnow().isoformat()
+        self.ended = at or stamp(now)
         summary = _summarize(self.started, self.ended, self.snapshot())
         if summary["darts"]:
             self.history.insert(0, summary)
             del self.history[HISTORY_SIZE:]
         return "session_ended", {**summary, "reason": reason}
 
-    def new_session(self) -> list[tuple[str, dict[str, Any]]]:
+    def new_session(self, now: datetime) -> list[tuple[str, dict[str, Any]]]:
         """Finish the running session, if any, and start the next one."""
-        ended = self.end("new_session")
-        return [*([ended] if ended else []), self._start("new_session")]
+        ended = self.end("new_session", now)
+        return [*([ended] if ended else []), self._start("new_session", now)]
 
-    def observe(self, state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    def observe(
+        self, state: dict[str, Any], now: datetime
+    ) -> list[tuple[str, dict[str, Any]]]:
         """Return dart events, preceded by a visit that ended with this state.
 
         The third dart of a visit is followed by visit_thrown, while the darts
         are still in the board; visit_completed follows when they are pulled.
         """
         self._completed = []
-        events = self._observe(state)
+        events = self._observe(state, now)
         result = [*self._completed, *events, *self._thrown()]
         if result:
-            self.last_activity = dt_util.utcnow().isoformat()
+            self.last_activity = stamp(now)
         return result
 
     def _thrown(self) -> list[tuple[str, dict[str, Any]]]:
@@ -536,7 +539,9 @@ class TrainingSession:
         darts = announced[:3]
         return [("visit_thrown", {**_visit_details(darts), **dart_flags(darts)})]
 
-    def _observe(self, state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    def _observe(
+        self, state: dict[str, Any], now: datetime
+    ) -> list[tuple[str, dict[str, Any]]]:
         observed = segments(state)
         if observed is None:
             return []
@@ -546,20 +551,20 @@ class TrainingSession:
             or state.get("running") is not True
             or status in LIFECYCLE_STATUSES
         ):
-            self.baseline(state, announce=self._initialized)
+            self.baseline(state, now, announce=self._initialized)
             return []
         if self._resuming:
             self._resuming = False
             if observed[: len(self._active)] != self._active:
                 # Darts were pulled or replaced while the board was out of sight.
-                self._commit(announce=True)
+                self._commit(now, announce=True)
                 self._rest(observed)
                 self._removing = False
                 return []
         if len(observed) < len(self._active):
             if not observed or is_takeout(state):
                 # Removing darts preserves their score, unlike a segment correction.
-                self._commit(announce=True)
+                self._commit(now, announce=True)
                 self._rest(observed)
                 self._removing = bool(observed)
                 return []
@@ -568,7 +573,7 @@ class TrainingSession:
                 self._withdraw(observed)
                 return []
             # New darts without an empty board in between: a missed takeout.
-            self._commit(announce=True)
+            self._commit(now, announce=True)
             self._removing = False
         if self._removing:
             if len(observed) <= len(self._active):
@@ -583,7 +588,7 @@ class TrainingSession:
             if index >= len(self._active):
                 # The bot's darts are nobody's training, so they start none.
                 if not self.active and self.auto_start and not dart.get("bot"):
-                    events.append(self._start("first_dart"))
+                    events.append(self._start("first_dart", now))
                 self._active.append(dart)
                 self._tracked.append(True)
                 # The bot's darts never count for the players' training.

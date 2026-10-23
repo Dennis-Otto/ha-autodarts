@@ -24,7 +24,7 @@ from custom_components.homedarts.cricket import (
 )
 from custom_components.homedarts.practice import PracticeGame
 
-from .local_helpers import board, dart, setup_local, state, throw
+from .local_helpers import NOW, board, dart, setup_local, state, throw
 
 # A draw as Random Cricket shows it, highest first, and one in the order of a
 # Hidden Cricket draw.
@@ -121,10 +121,10 @@ def test_random_cricket_draws_new_numbers_for_every_leg():
     assert snapshot["target"] == f"T{expected[0]}"
     # A dart on a number that was not drawn counts nothing.
     unused = next(number for number in range(20, 0, -1) if number not in expected)
-    practice.track([dart(f"T{unused}"), dart(f"T{expected[0]}")])
+    practice.track([dart(f"T{unused}"), dart(f"T{expected[0]}")], now=NOW)
     assert practice.snapshot()["counted"] == [None, str(expected[0])]
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     assert practice.players[0].marks[0] == MARKS_TO_CLOSE
     practice.new_leg()
     assert valid_draw(practice.drawn) and practice.drawn != expected
@@ -161,7 +161,7 @@ def test_a_restart_and_an_undone_visit_keep_the_numbers():
     assert restored.drawn == HIDDEN and restored.stored() == stored
     assert restored.snapshot()["numbers"] == [7, None, None, None, None, None, 25]
     # The undone visit comes back on the same numbers, thrown again.
-    practice.rewind(checkpoint, [dart("S18")], [None])
+    practice.rewind(checkpoint, [dart("S18")], [None], now=NOW)
     assert practice.drawn == HIDDEN
     assert practice.snapshot()["numbers"] == [None, 18, None, None, None, None, 25]
 
@@ -187,15 +187,15 @@ def test_hidden_cricket_shows_a_number_once_a_dart_marks_it():
     # Nothing but the bull shows: the players search, so there is no target.
     assert snapshot["target"] is None
     # A dart on a number that was not drawn shows nothing.
-    practice.track([dart("T20")])
+    practice.track([dart("T20")], now=NOW)
     assert practice.snapshot()["numbers"] == [None] * 6 + [25]
     # The dart on the 14 shows it at once, in the row of its draw.
-    practice.track([dart("T20"), dart("S14")])
+    practice.track([dart("T20"), dart("S14")], now=NOW)
     snapshot = practice.snapshot()
     assert snapshot["numbers"] == [None, None, None, 14, None, None, 25]
     assert snapshot["counted"] == [None, "14"] and snapshot["target"] == "T14"
-    practice.finish_visit()
-    practice.track([])
+    practice.finish_visit(now=NOW)
+    practice.track([], now=NOW)
     # It shows for the other player too, who aims at it.
     snapshot = practice.snapshot()
     assert snapshot["player"] == 2 and snapshot["numbers"][3] == 14
@@ -308,9 +308,9 @@ class DrawnCricketMachine(RuleBasedStateMachine):
         legs, won = self.game.legs_total, self.game.winner is not None
         self.checkpoint = (self.game.checkpoint(), names)
         for count in range(1, len(names) + 1):
-            self.game.track([dart(name) for name in names[:count]])
-        self.game.finish_visit()
-        self.game.track([])
+            self.game.track([dart(name) for name in names[:count]], now=NOW)
+        self.game.finish_visit(now=NOW)
+        self.game.track([], now=NOW)
         if won or self.game.legs_total != legs:
             # A new match or the next leg plays numbers of its own.
             self.checkpoint = None
@@ -347,7 +347,7 @@ class DrawnCricketMachine(RuleBasedStateMachine):
                 break
             thrown, _ = bot.throw(aim(snapshot), 60, cricket=True)
             names.append(name_of(thrown))
-            game.track([dart(name) for name in names])
+            game.track([dart(name) for name in names], now=NOW)
         self._visit(names)
 
     @rule()
@@ -357,9 +357,11 @@ class DrawnCricketMachine(RuleBasedStateMachine):
             return
         saved, names = self.checkpoint
         self.checkpoint = None
-        self.game.rewind(saved, [dart(name) for name in names], [None] * len(names))
-        self.game.finish_visit()
-        self.game.track([])
+        self.game.rewind(
+            saved, [dart(name) for name in names], [None] * len(names), now=NOW
+        )
+        self.game.finish_visit(now=NOW)
+        self.game.track([], now=NOW)
 
     @rule()
     def new_leg(self) -> None:

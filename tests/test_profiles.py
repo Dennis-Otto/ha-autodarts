@@ -1,9 +1,12 @@
 """Player profiles, the match history and head-to-head records."""
 
-from custom_components.homedarts.practice import PracticeGame
-from custom_components.homedarts.profiles import MATCH_HISTORY, Profiles
+import pytest
+from homeassistant.core import split_entity_id, valid_entity_id
 
-from .local_helpers import throw
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.profiles import MATCH_HISTORY, Profiles, _person
+
+from .local_helpers import NOW, throw
 from .test_teams_and_handicap import teams
 
 
@@ -130,7 +133,7 @@ def test_invalid_stored_profiles_are_dropped():
 def test_the_history_keeps_the_last_matches():
     profiles = Profiles()
     for index in range(MATCH_HISTORY + 5):
-        profiles.match(501, [{"name": "A"}, {"name": "B"}], index % 2, 1, 1)
+        profiles.match(501, [{"name": "A"}, {"name": "B"}], index % 2, 1, 1, now=NOW)
     assert len(profiles.matches) == MATCH_HISTORY
     assert profiles.snapshot()["head_to_head"][0]["wins"] == [13, 12]
 
@@ -139,8 +142,8 @@ def test_a_player_in_two_seats_plays_the_match_once_and_not_against_oneself():
     """Names kept from before every seat needed a name of its own."""
     profiles = Profiles()
     seats = [{"name": "Alex"}, {"name": "Sam"}, {"name": " alex "}]
-    profiles.match(501, seats, 2, 1, 1)
-    profiles.match(501, seats, 1, 1, 1)
+    profiles.match(501, seats, 2, 1, 1, now=NOW)
+    profiles.match(501, seats, 1, 1, 1, now=NOW)
     players = {player["name"]: player for player in profiles.snapshot()["players"]}
     assert (players["Alex"]["matches_played"], players["Alex"]["matches_won"]) == (2, 1)
     assert (players["Sam"]["matches_played"], players["Sam"]["matches_won"]) == (2, 1)
@@ -194,3 +197,35 @@ def test_names_never_keep_template_characters():
     restored = Profiles()
     restored.restore({"players": [{"name": "Sam{#}"}, {"name": "{}"}]})
     assert [profile.name for profile in restored.players.values()] == ["Sam"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "person.alex",
+        "person.alex_2",
+        "person.4lex",
+        "person._alex",
+        "person.alex_",
+        "person.al__ex",
+        "person.Alex",
+        "person.alex\n",
+        "person.alex.b",
+        "person.",
+        "person",
+        "persons.alex",
+        "sensor.alex",
+        "",
+        3,
+        None,
+    ],
+)
+def test_a_profile_links_a_person_as_home_assistant_checks_entity_ids(value):
+    """The profiles check a person's entity ID without Home Assistant, as
+    Home Assistant does."""
+    valid = (
+        isinstance(value, str)
+        and valid_entity_id(value)
+        and split_entity_id(value)[0] == "person"
+    )
+    assert _person(value) == (value if valid else None)

@@ -7,7 +7,6 @@ from itertools import combinations, permutations
 from types import SimpleNamespace
 
 import pytest
-from homeassistant.exceptions import ServiceValidationError
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -25,6 +24,7 @@ from custom_components.homedarts.brackets import (
     places,
     snake,
 )
+from custom_components.homedarts.errors import ActionRefused
 from custom_components.homedarts.practice import PracticeGame
 from custom_components.homedarts.tournament import (
     DOUBLE_KNOCKOUT,
@@ -567,7 +567,7 @@ def test_every_format_checks_its_players_and_groups(
     fmt, players, options, key, placeholders
 ):
     tournament = TournamentDirector()
-    with pytest.raises(ServiceValidationError) as error:
+    with pytest.raises(ActionRefused) as error:
         tournament.start(
             PracticeGame(),
             NOW,
@@ -575,8 +575,8 @@ def test_every_format_checks_its_players_and_groups(
             format=fmt,
             **options,
         )
-    assert error.value.translation_key == key
-    assert error.value.translation_placeholders == placeholders
+    assert error.value.key == key
+    assert error.value.placeholders == placeholders
     assert tournament.tournament is None and tournament.setup.format != fmt
 
 
@@ -630,7 +630,7 @@ def test_the_new_formats_survive_a_restart_at_every_stage(fmt, count, options):
         win(practice)
         tournament.booked(practice, NOW)
         if tournament.waiting:
-            tournament.next_match(practice)
+            tournament.next_match(practice, NOW)
     assert tournament.tournament.status == FINISHED
 
 

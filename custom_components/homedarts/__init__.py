@@ -127,7 +127,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
         device.name if device and device.name else "Autodarts Board"
     )
     if isinstance(local, AutodartsLocalCoordinator):
-        local.setup_generation = local.generation or 1
+        local.board_manager.setup_generation = local.generation or 1
         # An unknown generation keeps the entities and their customizations.
         if local.generation is not None:
             _remove_other_generation(hass, entry, local.board_manager_2)

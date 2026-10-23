@@ -8,7 +8,7 @@ import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from copy import deepcopy
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +26,8 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.homedarts.practice import PracticeGame
 
+# When the unit tests of the games take their steps, which take the time.
+NOW = datetime(2026, 10, 1, 20, 0, tzinfo=UTC)
 # What Board Manager 1.0.7, 2.0.0 and 2.0.2 answer, redacted by
 # scripts/capture_board.py; the double of the Docker end-to-end test answers like
 # them too, and tests/test_board_contract.py holds both doubles to them.
@@ -323,9 +325,9 @@ def throw(game: PracticeGame, *names: str) -> list[tuple[str, dict]]:
     """
     events = []
     for count in range(1, len(names) + 1):
-        events += game.track([dart(name) for name in names[:count]])
-    events += game.finish_visit()
-    game.track([])
+        events += game.track([dart(name) for name in names[:count]], now=NOW)
+    events += game.finish_visit(now=NOW)
+    game.track([], now=NOW)
     if len(game.players) == 1:
         events = [event for event in events if event[0] != "turn_changed"]
     return events
